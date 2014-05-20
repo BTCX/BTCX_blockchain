@@ -1,5 +1,6 @@
 django
 south
 djangorestframework
+python-bitcoinrpc
 #django-crispy-forms
 #django-cryptocoin
