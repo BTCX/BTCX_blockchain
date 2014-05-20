@@ -1,0 +1,5 @@
+django
+south
+djangorestframework
+#django-crispy-forms
+#django-cryptocoin
