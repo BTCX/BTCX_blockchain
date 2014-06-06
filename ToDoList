@@ -7,3 +7,10 @@ BTC testnet: where to get free coins-> http://faucet.xeno-genesis.com/
 
 address: mnNwwz8AMNLxVBAgrk31oVQb73vszYMzS8
 check the address http://tbtc.blockr.io/
+
+
+
+subtasks:
+
+1. get request with JSON
+2. APIkeyp control
