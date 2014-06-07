@@ -46,6 +46,10 @@ class ServerStatus(object):
 
     
     def do_work(self):
-        result =  ((1,2,3, ), (4,5,6,)) # final result
+        status = Status(message="service is fully operational")
+        status.update = "31 days"
+        print status.update
+        serializer = ServerStatusSerializer(status)
+        result = serializer.data # final result
         return result
 
