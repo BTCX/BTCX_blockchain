@@ -36,3 +36,11 @@ class AddressOutputResult(object):
     def __init__(self, address=""):
         self.address = address
         
+
+    @property
+    def address(self):
+        return self.address
+
+    @address.setter
+    def address(self, value):
+        self.address = value

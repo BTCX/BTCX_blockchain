@@ -14,3 +14,8 @@ subtasks:
 
 1. get request with JSON
 2. APIkeyp control
+
+
+http://188.226.170.21:8000/api/v1/address/
+
+{ "apikey" : "this is a test", "currency": "btc", "test": true }
