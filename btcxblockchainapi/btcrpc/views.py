@@ -8,21 +8,13 @@ from rest_framework import request
 from btcrpc.btcrpcall import BTCRPCall
 from btcrpc.vo import address
 from btcrpc.voserializers import addressserializer
-
+from log import *
 import logging
 import sys
 
 btcRPCcall = BTCRPCall()
 
-log = logging.getLogger("btcrpc")
-log.setLevel(logging.DEBUG)
-
-ch = logging.StreamHandler(sys.stdout)
-ch.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-ch.setFormatter(formatter)
-log.addHandler(ch)
-
+log = get_log("btc_rpc")
 
 class BTCGetInfoView(APIView):
 
