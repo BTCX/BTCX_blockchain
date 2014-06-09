@@ -13,3 +13,10 @@ http://www.django-rest-framework.org/tutorial/2-requests-and-responses
 
 
 serializers: http://www.django-rest-framework.org/api-guide/serializers
+
+
+
+3. Authentication
+
+
+http://www.django-rest-framework.org/api-guide/authentication
