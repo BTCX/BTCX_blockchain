@@ -1,4 +1,4 @@
-1. get new address
+1. get new address - Done
 2. transfer bitcoin
 3. state of bitcoinaddress
 
@@ -12,8 +12,8 @@ check the address http://tbtc.blockr.io/
 
 subtasks:
 
-1. get request with JSON
-2. APIkeyp control
+1. get request with JSON - Done
+2. APIkeyp control - Working on it!!!
 
 
 http://188.226.170.21:8000/api/v1/address/
