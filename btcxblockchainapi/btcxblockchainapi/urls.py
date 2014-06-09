@@ -1,5 +1,6 @@
 from django.conf.urls import patterns, include, url
 from rest_framework import routers
+from rest_framework.urlpatterns import format_suffix_patterns
 #from quickstart import views
 #from btcrpc import views
 
@@ -26,6 +27,8 @@ urlpatterns = patterns('',
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^api/v1/status/$', MyRESTView.as_view(), name="server_status"),
     url(r'^api/v1/information/$', BTCGetInfoView.as_view(), name="BTC_Get_Information"),
-    url(r'^api/v1/address/$', BTCGetNewAddress.as_view(), name="BTC_Create_New_Address")
+    url(r'^api/v1/address/$', BTCGetNewAddress.as_view(), name="BTC_Create_New_Address"),
 
     )
+
+#urlpatterns = format_suffix_patterns(urlpatterns)

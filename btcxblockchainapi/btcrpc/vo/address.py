@@ -12,7 +12,7 @@ class AddressInputParameter(object):
 
     @apikey.setter
     def apikey(self, value):
-        this.apikey = value
+        self.apikey = value
 
     @property
     def currency(self):
@@ -32,11 +32,11 @@ class AddressInputParameter(object):
 
         
 class AddressOutputResult(object):
-    
+        
     def __init__(self, address=""):
         self.address = address
-        
 
+    """    
     @property
     def address(self):
         return self.address
@@ -44,3 +44,10 @@ class AddressOutputResult(object):
     @address.setter
     def address(self, value):
         self.address = value
+    """
+
+    def get_address(self):
+        return self.address
+
+    def set_address(self, value):
+       self.address = value

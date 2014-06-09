@@ -9,9 +9,20 @@ from btcrpc.btcrpcall import BTCRPCall
 from btcrpc.vo import address
 from btcrpc.voserializers import addressserializer
 
-
+import logging
+import sys
 
 btcRPCcall = BTCRPCall()
+
+log = logging.getLogger("btcrpc")
+log.setLevel(logging.DEBUG)
+
+ch = logging.StreamHandler(sys.stdout)
+ch.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+ch.setFormatter(formatter)
+log.addHandler(ch)
+
 
 class BTCGetInfoView(APIView):
 
@@ -32,18 +43,20 @@ class BTCGetNewAddress(APIView):
 
         
     def post(self, request, format=None):
+        log.info("what is this")
         print request.DATA
         serializer = addressserializer.AddressInputSerializer(data=request.DATA)
+        
         if serializer.is_valid():
-            print serializer.data["apikey"]
-            print serializer.data["currency"]
-            print serializer.data["test"]
-            new_address = address.AddressOutputResult()
-            #new_address.address = BTCRPCall.do_get_new_address()
-            new_address.address = "this is my cool stuff"
-            serializerOutput = addressserializer.AddressOutputSerializer(new_address)
+            log.info(serializer.data["apikey"])
+            log.info(serializer.data["currency"])
+            log.info(serializer.data["test"])
+            new_address_output = address.AddressOutputResult()
+            new_address =  btcRPCcall.do_get_new_address()
+            new_address_output.set_address(new_address)
+            serializerOutput = addressserializer.AddressOutputSerializer(new_address_output)
             
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializerOutput.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
 
