@@ -26,12 +26,14 @@ class BTCGetInfoView(APIView):
 
 class BTCGetNewAddress(APIView):
 
-    """"
+    
     def get(self, request, *args, **kw):
+        """"
         result = btcRPCcall.do_get_new_address()
         response = Response(result, status=status.HTTP_200_OK)
         return response
-    """
+        """
+        pass
 
         
     def post(self, request, format=None):

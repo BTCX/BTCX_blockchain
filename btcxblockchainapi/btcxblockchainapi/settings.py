@@ -37,6 +37,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'sslserver',
 )
 
 REST_FRAMEWORK = {
@@ -91,4 +92,5 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 
+#STATIC_URL = 'https://test.blockchain.bt.cx/static/'
 STATIC_URL = '/static/'

@@ -2,5 +2,6 @@ django
 south
 djangorestframework
 python-bitcoinrpc
+django-sslserver
 #django-crispy-forms
 #django-cryptocoin
