@@ -19,3 +19,10 @@ subtasks:
 http://188.226.170.21:8000/api/v1/address/
 
 { "apikey" : "this is a test", "currency": "btc", "test": true }
+
+
+./bitcoind listaddressgroupings
+
+./bitcoind listreceivedbyaddress 0
+
+./bitcoind listtransactions 
