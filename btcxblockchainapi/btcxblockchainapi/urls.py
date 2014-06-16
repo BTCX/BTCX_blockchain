@@ -28,7 +28,7 @@ urlpatterns = patterns('',
     url(r'^api/v1/status/$', MyRESTView.as_view(), name="server_status"),
     url(r'^api/v1/information/$', BTCGetInfoView.as_view(), name="BTC_Get_Information"),
     url(r'^api/v1/address/$', BTCGetNewAddress.as_view(), name="BTC_Create_New_Address"),
-
+    url(r'^api/v1/receive/$', BTCCheckAddressReceive.as_view(), name="BTC_Check_Address_For_Bitcoin_Receieving"),
     )
 
 #urlpatterns = format_suffix_patterns(urlpatterns)

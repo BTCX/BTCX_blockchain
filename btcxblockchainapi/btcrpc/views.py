@@ -26,16 +26,6 @@ class BTCGetInfoView(APIView):
 
 class BTCGetNewAddress(APIView):
 
-    
-    def get(self, request, *args, **kw):
-        """"
-        result = btcRPCcall.do_get_new_address()
-        response = Response(result, status=status.HTTP_200_OK)
-        return response
-        """
-        pass
-
-        
     def post(self, request, format=None):
         log.info("what is this")
         print request.DATA
@@ -47,11 +37,25 @@ class BTCGetNewAddress(APIView):
             log.info(serializer.data["test"])
             new_address_output = address.AddressOutputResult()
             new_address =  btcRPCcall.do_get_new_address()
-            new_address_output.set_address(new_address)
+            new_address_output.address = new_address
             serializerOutput = addressserializer.AddressOutputSerializer(new_address_output)
             
             return Response(serializerOutput.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
+
+class BTCCheckAddressReceive(APIView):
+
+     def post(self, request):
+
+        print request.DATA
+        serializers = address.AddressReceiveInputSerializer(data=request.DATA)
+        if serializers.is_valid():
+            log.info(serializers.data["apikey"])
+            output_result = address.AddressReceiveInputParaMeter()
+            serializeOutput = address.AddressReceiveInputSerializer(output_result)
+
+            return Response(serializers.data, status = status.HTTP_200_OK)
+        return Response(serializers.errors, status = status.HTTP_400_BAD_REQUEST)
+            
 
 
