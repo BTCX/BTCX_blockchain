@@ -16,11 +16,13 @@ subtasks:
 2. APIkeyp control - Working on it!!!
 
 
-http://188.226.170.21:8000/api/v1/address/
+https://test.blockchain.bt.cx:8443/api/v1/address/
 
 { "apikey" : "this is a test", "currency": "btc", "test": true }
 
 
+
+https://test.blockchain.bt.cx:8443/api/v1/receive/
 
 { "apikey" : "xxxxxxxxxxxxxxxxx", "currency" : "btc",  "amount" : 0.1, "address" : "18GVZzC9cLwcn21juEjjuebAhawLJcwLWy", "test": true }
 
