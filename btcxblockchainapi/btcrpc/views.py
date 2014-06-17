@@ -6,7 +6,7 @@ from rest_framework.decorators import api_view
 from rest_framework.request import Request
 from rest_framework import request
 from btcrpc.btcrpcall import BTCRPCall
-from btcrpc.vo import address
+from btcrpc.vo import address, address_receive
 from btcrpc.voserializers import addressserializer
 from log import *
 import logging
@@ -48,11 +48,11 @@ class BTCCheckAddressReceive(APIView):
      def post(self, request):
 
         print request.DATA
-        serializers = address.AddressReceiveInputSerializer(data=request.DATA)
+        serializers = address_receive.AddressReceiveInputSerializer(data=request.DATA)
         if serializers.is_valid():
             log.info(serializers.data["apikey"])
-            output_result = address.AddressReceiveInputParaMeter()
-            serializeOutput = address.AddressReceiveInputSerializer(output_result)
+            output_result = address_receive.AddressReceiveInputParaMeter()
+            serializeOutput = address_receive.AddressReceiveInputSerializer(output_result)
 
             return Response(serializers.data, status = status.HTTP_200_OK)
         return Response(serializers.errors, status = status.HTTP_400_BAD_REQUEST)
