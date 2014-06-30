@@ -15,8 +15,13 @@ class BTCRPCall(object):
     def do_get_new_address(self):
         return access.getnewaddress();
 
-    def do_list_transactions():
+    def do_set_account(self,address, account):
+        print access.setaccount(address, account)
+
+    def do_list_transactions(self):
         return access.listtransactions();
 
-    def do_received_by_address(address = "", minconf = 0):
+    def do_received_by_address(self,address = "", minconf = 0):
         return access.getreceivedbyaddress(address, minconf);
+
+    

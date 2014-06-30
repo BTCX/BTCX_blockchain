@@ -38,8 +38,10 @@ class BTCGetNewAddress(APIView):
             new_address_output = address.AddressOutputResult()
             new_address =  btcRPCcall.do_get_new_address()
             new_address_output.address = new_address
+
+            #set an account name same as address
+            btcRPCcall.do_set_account(new_address,new_address)
             serializerOutput = addressserializer.AddressOutputSerializer(new_address_output)
-            
             return Response(serializerOutput.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
