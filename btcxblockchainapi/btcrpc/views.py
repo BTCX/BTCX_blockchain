@@ -9,6 +9,7 @@ from btcrpc.btcrpcall import BTCRPCall
 from btcrpc.vo import address, address_receive
 from btcrpc.voserializers import addressserializer
 from log import *
+import json
 import logging
 import sys
 
