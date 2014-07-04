@@ -3,6 +3,7 @@ south
 djangorestframework
 python-bitcoinrpc
 unittest2
+simplejson
 #django-sslserver
 #django-crispy-forms
 #django-cryptocoin

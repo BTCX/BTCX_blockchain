@@ -68,8 +68,8 @@ class AddressReceiveOutput(object):
         self._currency = "btc"
         self._amount = 0.0
         self._address = ""
-        self._receivedTime = None
-        self._blockTime = None
+        self._timereceived = None
+        self._blocktime = None
 
     @property
     def address(self):
@@ -77,7 +77,7 @@ class AddressReceiveOutput(object):
 
     @address.setter
     def address(self, value):
-        self._address = vaule
+        self._address = value
 
     @property
     def txid(self):
@@ -93,7 +93,7 @@ class AddressReceiveOutput(object):
 
     @state.setter
     def state(self, value):
-        self._state = vaule
+        self._state = value
 
     @property
     def currency(self):
@@ -109,23 +109,23 @@ class AddressReceiveOutput(object):
 
     @amount.setter
     def amount(self, value):
-        self._amount = vaule
+        self._amount = value
 
     @property
-    def receivedTime(self):
-        return self._receivedTime
+    def timereceived(self):
+        return self._timereceived
 
-    @receivedTime.setter
-    def receivedTime(self, value):
-        self._receivedTime = vaule
+    @timereceived.setter
+    def timereceived(self, value):
+        self._timereceived = value
 
     @property
-    def blockTime(self):
-        return self._blockTime
+    def blocktime(self):
+        return self._blocktime
 
-    @blockTime.setter
-    def blockTime(self, value):
-        self._blockTime = vaule
+    @blocktime.setter
+    def blocktime(self, value):
+        self._blocktime = value
 
 
 class AddressReceiveOutputSerializer(serializers.Serializer):
@@ -135,6 +135,6 @@ class AddressReceiveOutputSerializer(serializers.Serializer):
     currency = serializers.CharField(max_length=20)
     amount = serializers.FloatField()
     address = serializers.CharField(max_length=200)
-    receivedTime = serializers.DateTimeField()
-    blockTime = serializers.DateTimeField()
+    timereceived = serializers.DateTimeField()
+    blocktime = serializers.DateTimeField()
     

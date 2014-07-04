@@ -18,12 +18,12 @@ class BTCRPCall(object):
     def do_set_account(self,address, account):
         print access.setaccount(address, account)
 
-    def do_list_transactions(self, account):
-        return access.listtransactions(account)
-
-    def do_list_transactions(self):
-        return access.listtransactions();
-
+    def do_list_transactions(self, account, count = 10, from_index = 0):
+        try:
+            return access.listtransactions(account, count, from_index)
+        except:
+            print "calling failure"
+    
     def do_received_by_address(self,address = "", minconf = 0):
         return access.getreceivedbyaddress(address, minconf);
 
