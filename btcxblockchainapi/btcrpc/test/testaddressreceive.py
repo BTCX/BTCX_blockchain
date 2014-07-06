@@ -1,16 +1,21 @@
 from django.test import TestCase
 from btcrpc import btcrpcall
-from btcrpc.utils import timeUtil, jsonutil
-#import simplejson as json
+from btcrpc.utils.timeUtil import TimeUtils
+from btcrpc.utils.jsonutil import JsonUtils
 import simplejson
+from btcrpc.log import *
+from btcrpc.vo.api_output_result import AddressReceiveOutputAttributeConst
+
+log = get_log("test_address_receive")
 
 class BTCRPCTestCase(TestCase):
+
     def setUp(self):
         self.btcRPCcall = btcrpcall.BTCRPCall()
 
     
     def test_epochtime_to_datetime(self):
-        epoch_time = timeUtil.TimeUtils.epoch_to_datetime(1347517119)
+        epoch_time = TimeUtils.epoch_to_datetime(1347517119)
         print epoch_time
         self.assertEquals(epoch_time, '2012-09-13 06:18:39')
 
@@ -20,21 +25,33 @@ class BTCRPCTestCase(TestCase):
         #print jsonutil.JsonUtils.is_json(transactions_log)
         
         transactions_log_json = simplejson.dumps(transactions_log, use_decimal=True)
-        print transactions_log_json
+        log.info(transactions_log_json)
 
-        print jsonutil.JsonUtils.is_json(transactions_log_json)        
-
+        log.info(JsonUtils.is_json(transactions_log_json))        
         
 
         #object = simplejson.loads(transactions_log)
-        print transactions_log[0]
+        log.info(transactions_log[0])
         
         for o in transactions_log:
-            print o["amount"]
-            print o["address"]
-            print o["txid"]
-            print timeUtil.TimeUtils.epoch_to_datetime(o["timereceived"])
-            print timeUtil.TimeUtils.epoch_to_datetime(o["blocktime"])
-            print o["confirmations"]
+            log.info(o["amount"])
+            log.info(o["address"])
+            log.info( o["txid"])
+            log.info(TimeUtils.epoch_to_datetime(o["timereceived"]))
+            log.info(TimeUtils.epoch_to_datetime(o["blocktime"]))
+            log.info(o["confirmations"])
+
     def test_address_receive_btc_with_txid(self):
-        pass 
+        transactions_log  = self.btcRPCcall.do_get_transaction("61b34a7c10ddd9f278207b44c5635440c85f5fa082fcf2d440f8b763a3659649")
+        transactions_log_json = simplejson.dumps(transactions_log, use_decimal=True)
+
+        log.info(transactions_log_json)
+
+        attributeConst = AddressReceiveOutputAttributeConst()
+        log.info(transactions_log[attributeConst.TXID])
+        log.info(transactions_log[attributeConst.AMOUNT])
+        log.info(transactions_log["details"][0][attributeConst.ADDRESS])
+        log.info(TimeUtils.epoch_to_datetime(transactions_log[attributeConst.TIMERECEIVED]))
+        log.info(TimeUtils.epoch_to_datetime(transactions_log[attributeConst.BLOCKTIME]))
+          
+    

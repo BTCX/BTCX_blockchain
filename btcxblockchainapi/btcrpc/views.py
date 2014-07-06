@@ -10,7 +10,6 @@ from btcrpc.vo import address, address_receive
 from btcrpc.voserializers import addressserializer
 from log import *
 import simplejson
-import logging
 import sys
 from btcrpc.utils import timeUtil, jsonutil
 from vo.api_output_result import *
@@ -49,10 +48,10 @@ class BTCGetNewAddress(APIView):
             return Response(serializerOutput.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 class BTCCheckAddressReceive(APIView):
 
      def post(self, request):
-
         attributeConst = AddressReceiveOutputAttributeConst()
         print request.DATA
         serializers = address_receive.AddressReceiveInputSerializer(data=request.DATA)
@@ -97,4 +96,10 @@ class BTCCheckAddressReceive(APIView):
         return Response(serializers.errors, status = status.HTTP_400_BAD_REQUEST)
             
 
+  
+class CheckTransaction(APIView):
 
+    def post(self, request, txid):
+        log.info(txid)
+        return Response("this is a test", status = status.HTTP_400_BAD_REQUEST)
+        

@@ -21,6 +21,10 @@ class BTCRPCall(object):
     def do_set_account(self,address, account):
         print access.setaccount(address, account)
 
+
+    def do_get_transaction(self,txid):
+        return access.gettransaction(txid)
+
     def do_list_transactions(self, account, count = 10, from_index = 0):
         try:
             return access.listtransactions(account, count, from_index)
