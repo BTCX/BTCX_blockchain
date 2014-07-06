@@ -13,6 +13,8 @@ import simplejson
 import logging
 import sys
 from btcrpc.utils import timeUtil, jsonutil
+from vo.api_output_result import *
+from vo.confirmation import *
 
 btcRPCcall = BTCRPCall()
 
@@ -51,37 +53,43 @@ class BTCCheckAddressReceive(APIView):
 
      def post(self, request):
 
+        attributeConst = AddressReceiveOutputAttributeConst()
         print request.DATA
         serializers = address_receive.AddressReceiveInputSerializer(data=request.DATA)
         if serializers.is_valid():
-            log.info(serializers.data["apikey"])
-            amount_input = serializers.data["amount"]
-            address_input = serializers.data["address"]
-
+            log.info(serializers.data[attributeConst.APIKEY])
+            amount_input = serializers.data[attributeConst.AMOUNT]
+            address_input = serializers.data[attributeConst.ADDRESS]
+            currency_input = serializers.data[attributeConst.CURRENCY]
+            test_input = serializers.data[attributeConst.TEST]
+            
             transactions_log = btcRPCcall.do_list_transactions(address_input)
-            print transactions_log[0]
+            print transactions_log[0] #it assumes that this only contains one transaction 
             
             transactions_log_json = simplejson.dumps(transactions_log, use_decimal=True)
 
             output_result = address_receive.AddressReceiveOutput()
-            
 
             if jsonutil.JsonUtils.is_json(transactions_log_json):
                 transactions_log = transactions_log[0] 
-                output_result.txid = transactions_log["txid"]
-                output_result.address = transactions_log["address"]
-                output_result.amount = float(transactions_log["amount"])
-                output_result.currency = address_input
-                output_result.timereceived = timeUtil.TimeUtils.epoch_to_datetime(transactions_log["timereceived"])
-                output_result.blocktime = timeUtil.TimeUtils.epoch_to_datetime(transactions_log["blocktime"])
+                output_result.txid = transactions_log[attributeConst.TXID]
+                output_result.address = transactions_log[attributeConst.ADDRESS]
+                output_result.amount = float(transactions_log[attributeConst.AMOUNT])
+                output_result.currency = currency_input
+                output_result.test = test_input
+                output_result.timereceived = \
+                    timeUtil.TimeUtils.epoch_to_datetime(transactions_log[attributeConst.TIMERECEIVED])
+                output_result.blocktime = \
+                    timeUtil.TimeUtils.epoch_to_datetime(transactions_log[attributeConst.BLOCKTIME])
 
-                if (transactions_log["confirmations"] >= 1): #hard coded
-                    output_result.state = "received"
+                log.info(BTC_CONFIRMATION)
+                if (transactions_log[attributeConst.CONFIRMATIONS] >= BTC_CONFIRMATION): #hard coded
+                    output_result.state = STATUS_RECEIVED
                 else:
-                    output_result.state = "pending"
+                    output_result.state = STATUS_PENDING
                 
                 if (float(output_result.amount) != float(amount_input)):
-                    output_result.state = "error, the received btc is not correct"
+                    output_result.state = STATUS_PENDING
                         
             serializerOutput = address_receive.AddressReceiveOutputSerializer(output_result)
 

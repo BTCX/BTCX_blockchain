@@ -2,6 +2,9 @@ from bitcoinrpc.authproxy import AuthServiceProxy
 
 
 btcRPCServer = "http://Ulysseys:8NzhGAbEXoJahLkPpNzmLxHqvQusgYVJWWx1J83y95gQ@127.0.0.1:18332" 
+ltcRPCServer = ""
+dogecoinRPCServer = ""
+
 access = AuthServiceProxy(btcRPCServer)
 
 class BTCRPCall(object):

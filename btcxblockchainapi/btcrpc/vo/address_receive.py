@@ -70,7 +70,8 @@ class AddressReceiveOutput(object):
         self._address = ""
         self._timereceived = None
         self._blocktime = None
-
+        self._message = None
+        
     @property
     def address(self):
         return self._address
@@ -127,6 +128,13 @@ class AddressReceiveOutput(object):
     def blocktime(self, value):
         self._blocktime = value
 
+    @property
+    def message(self):
+        return self._message
+
+    @message.setter
+    def message(self, value):
+        self._message = value
 
 class AddressReceiveOutputSerializer(serializers.Serializer):
 
@@ -137,4 +145,5 @@ class AddressReceiveOutputSerializer(serializers.Serializer):
     address = serializers.CharField(max_length=200)
     timereceived = serializers.DateTimeField()
     blocktime = serializers.DateTimeField()
-    
+    message = serializers.CharField(max_length=200)
+    test = serializers.BooleanField()
