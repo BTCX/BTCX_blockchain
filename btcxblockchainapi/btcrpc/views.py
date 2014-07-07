@@ -6,18 +6,19 @@ from rest_framework.decorators import api_view
 from rest_framework.request import Request
 from rest_framework import request
 from btcrpc.btcrpcall import BTCRPCall
-from btcrpc.vo import address, address_receive
+from btcrpc.vo import address, address_receive, check_receive_transaction
 from btcrpc.voserializers import addressserializer
 from log import *
 import simplejson
 import sys
-from btcrpc.utils import timeUtil, jsonutil
+from btcrpc.utils.timeUtil import TimeUtils
+from btcrpc.utils.jsonutil import JsonUtils
 from vo.api_output_result import *
 from vo.confirmation import *
 
 btcRPCcall = BTCRPCall()
 
-log = get_log("btc_rpc")
+log = get_log("btcrpc_view")
 
 class BTCGetInfoView(APIView):
 
@@ -30,8 +31,7 @@ class BTCGetInfoView(APIView):
 class BTCGetNewAddress(APIView):
 
     def post(self, request, format=None):
-        log.info("what is this")
-        print request.DATA
+        log.info(request.DATA)
         serializer = addressserializer.AddressInputSerializer(data=request.DATA)
         
         if serializer.is_valid():
@@ -53,7 +53,7 @@ class BTCCheckAddressReceive(APIView):
 
      def post(self, request):
         attributeConst = AddressReceiveOutputAttributeConst()
-        print request.DATA
+        log.info(request.DATA)
         serializers = address_receive.AddressReceiveInputSerializer(data=request.DATA)
         if serializers.is_valid():
             log.info(serializers.data[attributeConst.APIKEY])
@@ -69,7 +69,7 @@ class BTCCheckAddressReceive(APIView):
 
             output_result = address_receive.AddressReceiveOutput()
 
-            if jsonutil.JsonUtils.is_json(transactions_log_json):
+            if JsonUtils.is_json(transactions_log_json):
                 transactions_log = transactions_log[0] 
                 output_result.txid = transactions_log[attributeConst.TXID]
                 output_result.address = transactions_log[attributeConst.ADDRESS]
@@ -77,9 +77,9 @@ class BTCCheckAddressReceive(APIView):
                 output_result.currency = currency_input
                 output_result.test = test_input
                 output_result.timereceived = \
-                    timeUtil.TimeUtils.epoch_to_datetime(transactions_log[attributeConst.TIMERECEIVED])
+                    TimeUtils.epoch_to_datetime(transactions_log[attributeConst.TIMERECEIVED])
                 output_result.blocktime = \
-                    timeUtil.TimeUtils.epoch_to_datetime(transactions_log[attributeConst.BLOCKTIME])
+                    TimeUtils.epoch_to_datetime(transactions_log[attributeConst.BLOCKTIME])
 
                 log.info(BTC_CONFIRMATION)
                 if (transactions_log[attributeConst.CONFIRMATIONS] >= BTC_CONFIRMATION): #hard coded
@@ -101,5 +101,34 @@ class CheckTransaction(APIView):
 
     def post(self, request, txid):
         log.info(txid)
-        return Response("this is a test", status = status.HTTP_400_BAD_REQUEST)
+        attributeConst = AddressReceiveOutputAttributeConst()
+        input_serializers = check_receive_transaction.CheckTransactionInputSerializer(data=request.DATA)
+        if input_serializers.is_valid():
+            log.info(input_serializers.data[attributeConst.APIKEY])
+            currency_input = input_serializers.data[attributeConst.CURRENCY]
+            test_input = input_serializers.data[attributeConst.TEST]
+
+            check_transaction_log = btcRPCcall.do_get_transaction(txid)
+            log.info(check_transaction_log)
+            
+            
+            check_transaction_log_json = simplejson.dumps(check_transaction_log, use_decimal=True)
+            
+            #log.info(JsonUtils.is_json(check_transaction_log))
+            #test_json = simplejson.loads(check_transaction_log)
+            #log.info(test_json["error"])
+            
+            if check_transaction_log is not None:
+                if JsonUtils.is_json(check_transaction_log_json):
+                    log.info(check_transaction_log)
+                    log.info(check_transaction_log["details"])
+                    log.info(check_transaction_log["details"][0])
+                    log.info(check_transaction_log["details"][0]["amount"])
+                
+                
+            else:
+                log.info("txid is not valid")
+               
+                    
+        return Response(input_serializers.errors, status = status.HTTP_400_BAD_REQUEST)
         

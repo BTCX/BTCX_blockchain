@@ -1,13 +1,11 @@
 from rest_framework import serializers
 
-class AddressReceiveInputParaMeter(object):
+class CheckTransactionInputParaMeter(object):
     
-    def __init__(self, apikey="", currency="btc", amount=0, address="", test=False):
+    def __init__(self, apikey="", currency="btc", test=False):
        
         self._apikey = apikey
         self._currency = currency
-        self._amount = amount
-        self._address = address
         self._test = test
     
             
@@ -35,33 +33,13 @@ class AddressReceiveInputParaMeter(object):
     def test(self, value):
         self._test = value
 
-
-    @property
-    def amount(self):
-        return self._amount
-
-    @amount.setter
-    def amount(self, value):
-        self._amount = value
-
-    @property
-    def address(self):
-        return self._address
-
-    @address.setter
-    def address(self, value):
-        self._address = value     
-
-class AddressReceiveInputSerializer(serializers.Serializer):
+class CheckTransactionInputSerializer(serializers.Serializer):
 
     apikey = serializers.CharField(max_length=200)
     currency = serializers.CharField(max_length=20)
     test = serializers.BooleanField();
-    address = serializers.CharField(max_length=200)
-    amount = serializers.FloatField()
 
-
-class AddressReceiveOutput(object):
+class CheckTransactionOutput(object):
     def __init__(self):
         self._txid = None
         self._state = "pending"
@@ -70,9 +48,9 @@ class AddressReceiveOutput(object):
         self._address = ""
         self._timereceived = None
         self._blocktime = None
-        self._message = None
+        self._message = ""
         self._test = False
-        
+                
     @property
     def address(self):
         return self._address
@@ -144,9 +122,8 @@ class AddressReceiveOutput(object):
     @test.setter
     def test(self, value):
         self._test = value
-
-        
-class AddressReceiveOutputSerializer(serializers.Serializer):
+    
+class CheckTransactionOutputSerializer(serializers.Serializer):
 
     txid = serializers.CharField(max_length=200)
     state = serializers.CharField(max_length=15)
