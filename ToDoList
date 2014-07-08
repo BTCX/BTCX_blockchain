@@ -17,14 +17,23 @@ subtasks:
 
 
 https://test.blockchain.bt.cx:8443/api/v1/address/
-
 { "apikey" : "this is a test", "currency": "btc", "test": true }
 
 
 
 https://test.blockchain.bt.cx:8443/api/v1/receive/
+{ "apikey" : "xxxxxxxxxxxxxxxxx", "currency" : "btc",  "amount" : 0.72383115, "address" :"n4LSoNto3TobC6ToxstxRXT3V9TpZa1ydi", "test": true }
 
-{ "apikey" : "xxxxxxxxxxxxxxxxx", "currency" : "btc",  "amount" : 0.1, "address" : "18GVZzC9cLwcn21juEjjuebAhawLJcwLWy", "test": true }
+
+
+https://test.blockchain.bt.cx:8443/api/v1/receive/{txid}
+https://test.blockchain.bt.cx:8443/api/v1/receive/61b34a7c10ddd9f278207b44c5635440c85f5fa082fcf2d440f8b763a3659649
+
+{ "apikey" : "xxxxxxxxxxxxxxxxx", "currency" : "btc", "test": true }
+
+
+
+
 
 ./bitcoind listaddressgroupings
 
