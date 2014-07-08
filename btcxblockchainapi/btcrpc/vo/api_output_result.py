@@ -47,3 +47,7 @@ class AddressReceiveOutputAttributeConst(object):
     def CONFIRMATIONS():
         return "confirmations"
    
+
+    @constant
+    def DETAILS():
+        return "details"

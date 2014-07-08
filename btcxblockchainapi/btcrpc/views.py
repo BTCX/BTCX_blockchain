@@ -117,18 +117,31 @@ class CheckTransaction(APIView):
             #log.info(JsonUtils.is_json(check_transaction_log))
             #test_json = simplejson.loads(check_transaction_log)
             #log.info(test_json["error"])
+            output_result = check_receive_transaction.CheckTransactionOutput()
             
             if check_transaction_log is not None:
                 if JsonUtils.is_json(check_transaction_log_json):
                     log.info(check_transaction_log)
-                    log.info(check_transaction_log["details"])
-                    log.info(check_transaction_log["details"][0])
-                    log.info(check_transaction_log["details"][0]["amount"])
-                
-                
+                    log.info(check_transaction_log[attributeConst.DETAILS])
+                    log.info(check_transaction_log[attributeConst.DETAILS][0])
+                    log.info(check_transaction_log[attributeConst.DETAILS][0][attributeConst.AMOUNT])
+                    output_result.txid = check_transaction_log[attributeConst.TXID]
+                    output_result.test = test_input
+                    output_result.address = check_transaction_log[attributeConst.DETAILS][0][attributeConst.ADDRESS]
+                    output_result.currency = currency_input
+                    output_result.amount = check_transaction_log[attributeConst.AMOUNT]
+                    output_result.blocktime = TimeUtils.epoch_to_datetime(check_transaction_log[attributeConst.BLOCKTIME])
+                    output_result.timereceived =  TimeUtils.epoch_to_datetime(check_transaction_log[attributeConst.TIMERECEIVED])
+                    if (check_transaction_log[attributeConst.CONFIRMATIONS] >= BTC_CONFIRMATION): #hard coded
+                        output_result.state = STATUS_RECEIVED
+                    else:
+                        output_result.state = STATUS_PENDING
+                                    
             else:
                 log.info("txid is not valid")
-               
-                    
+                output_result.txid = txid
+                output_result.message = "txid is not valid"
+            serializerOutput = check_receive_transaction.CheckTransactionOutputSerializer(output_result)
+            return Response(serializerOutput.data, status = status.HTTP_200_OK)        
         return Response(input_serializers.errors, status = status.HTTP_400_BAD_REQUEST)
         
