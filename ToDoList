@@ -22,8 +22,8 @@ https://test.blockchain.bt.cx:8443/api/v1/address/
 
 
 https://test.blockchain.bt.cx:8443/api/v1/receive/
-{ "apikey" : "xxxxxxxxxxxxxxxxx", "currency" : "btc",  "amount" : 0.72383115, "address" :"n4LSoNto3TobC6ToxstxRXT3V9TpZa1ydi", "test": true }
-
+{ "apikey" : "xxxxxxxxxxxxxxxxx", "currency" : "btc",  "amount" : 0.72383115, "address" :"n4LSoNto3TobC6ToxstxRXT3V9TpZa1ydi", "test": true, "confirms":0 }
+{ "apikey" : "xxxxxxxxxxxxxxxxx", "currency" : "btc",  "amount" : 0.72383115, "address" :"mnNwwz8AMNLxVBAgrk31oVQb73vszYMzS8", "test": true, "confirms": 0}
 
 
 https://test.blockchain.bt.cx:8443/api/v1/receive/{txid}

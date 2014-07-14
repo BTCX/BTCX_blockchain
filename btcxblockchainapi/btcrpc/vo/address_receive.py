@@ -2,14 +2,14 @@ from rest_framework import serializers
 
 class AddressReceiveInputParaMeter(object):
     
-    def __init__(self, apikey="", currency="btc", amount=0, address="", test=False):
+    def __init__(self, apikey="", currency="btc", amount=0, address="", test=False, confirms = 0):
        
         self._apikey = apikey
         self._currency = currency
         self._amount = amount
         self._address = address
         self._test = test
-    
+        self._confirms = confirms  
             
     @property
     def apikey(self):
@@ -35,7 +35,6 @@ class AddressReceiveInputParaMeter(object):
     def test(self, value):
         self._test = value
 
-
     @property
     def amount(self):
         return self._amount
@@ -52,6 +51,14 @@ class AddressReceiveInputParaMeter(object):
     def address(self, value):
         self._address = value     
 
+    @property
+    def confirms(self):
+        return self._confirms
+
+    @confirms.setter
+    def confirms(self, value):
+        self._confirms = value
+        
 class AddressReceiveInputSerializer(serializers.Serializer):
 
     apikey = serializers.CharField(max_length=200)
@@ -59,19 +66,17 @@ class AddressReceiveInputSerializer(serializers.Serializer):
     test = serializers.BooleanField();
     address = serializers.CharField(max_length=200)
     amount = serializers.FloatField()
-
+    confirms = serializers.IntegerField()
 
 class AddressReceiveOutput(object):
     def __init__(self):
-        self._txid = None
         self._state = "pending"
         self._currency = "btc"
         self._amount = 0.0
         self._address = ""
-        self._timereceived = None
-        self._blocktime = None
         self._message = None
         self._test = False
+        self._amountreceived = 0.0
         
     @property
     def address(self):
@@ -80,14 +85,7 @@ class AddressReceiveOutput(object):
     @address.setter
     def address(self, value):
         self._address = value
-
-    @property
-    def txid(self):
-        return self._txid
-
-    @txid.setter
-    def txid(self, value):
-        self._txid = value
+        
 
     @property
     def state(self):
@@ -112,23 +110,7 @@ class AddressReceiveOutput(object):
     @amount.setter
     def amount(self, value):
         self._amount = value
-
-    @property
-    def timereceived(self):
-        return self._timereceived
-
-    @timereceived.setter
-    def timereceived(self, value):
-        self._timereceived = value
-
-    @property
-    def blocktime(self):
-        return self._blocktime
-
-    @blocktime.setter
-    def blocktime(self, value):
-        self._blocktime = value
-
+    
     @property
     def message(self):
         return self._message
@@ -145,15 +127,21 @@ class AddressReceiveOutput(object):
     def test(self, value):
         self._test = value
 
+    @property
+    def amountreceived(self):
+        return self._amountreceived
+
+    @amountreceived.setter
+    def amountreceived(self, value):
+        self._amountreceived = value
+    
         
 class AddressReceiveOutputSerializer(serializers.Serializer):
 
-    txid = serializers.CharField(max_length=200)
     state = serializers.CharField(max_length=15)
     currency = serializers.CharField(max_length=20)
     amount = serializers.FloatField()
     address = serializers.CharField(max_length=200)
-    timereceived = serializers.DateTimeField()
-    blocktime = serializers.DateTimeField()
     message = serializers.CharField(max_length=200)
     test = serializers.BooleanField()
+    amountreceived = serializers.FloatField()

@@ -20,18 +20,22 @@ btcRPCcall = BTCRPCall()
 
 log = get_log("btcrpc_view")
 
+
 class BTCGetInfoView(APIView):
 
+    
     def get(self, request, *args, **kw):
         
         result = btcRPCcall.do_getinfo()
         response = Response(result, status=status.HTTP_200_OK)
         return response
 
+
 class BTCGetNewAddress(APIView):
 
     def post(self, request, format=None):
         log.info(request.DATA)
+        log.info(request.is_secure())
         serializer = addressserializer.AddressInputSerializer(data=request.DATA)
         
         if serializer.is_valid():
@@ -57,42 +61,38 @@ class BTCCheckAddressReceive(APIView):
         serializers = address_receive.AddressReceiveInputSerializer(data=request.DATA)
         if serializers.is_valid():
             log.info(serializers.data[attributeConst.APIKEY])
-            amount_input = serializers.data[attributeConst.AMOUNT]
+            amount_input = float(serializers.data[attributeConst.AMOUNT])
             address_input = serializers.data[attributeConst.ADDRESS]
             currency_input = serializers.data[attributeConst.CURRENCY]
             test_input = serializers.data[attributeConst.TEST]
-            
-            transactions_log = btcRPCcall.do_list_transactions(address_input)
-            print transactions_log[0] #it assumes that this only contains one transaction 
-            
-            transactions_log_json = simplejson.dumps(transactions_log, use_decimal=True)
+            confirms_input = serializers.data[attributeConst.MINCONF]
 
             output_result = address_receive.AddressReceiveOutput()
-
-            if JsonUtils.is_json(transactions_log_json):
-                transactions_log = transactions_log[0] 
-                output_result.txid = transactions_log[attributeConst.TXID]
-                output_result.address = transactions_log[attributeConst.ADDRESS]
-                output_result.amount = float(transactions_log[attributeConst.AMOUNT])
-                output_result.currency = currency_input
-                output_result.test = test_input
-                output_result.timereceived = \
-                    TimeUtils.epoch_to_datetime(transactions_log[attributeConst.TIMERECEIVED])
-                output_result.blocktime = \
-                    TimeUtils.epoch_to_datetime(transactions_log[attributeConst.BLOCKTIME])
-
-                log.info(BTC_CONFIRMATION)
-                if (transactions_log[attributeConst.CONFIRMATIONS] >= BTC_CONFIRMATION): #hard coded
-                    output_result.state = STATUS_RECEIVED
-                else:
-                    output_result.state = STATUS_PENDING
+            
+            received_amount = float(btcRPCcall.do_received_by_address(address_input, confirms_input))
                 
-                if (float(output_result.amount) != float(amount_input)):
-                    output_result.state = STATUS_PENDING
+            output_result.address = address_input
+            output_result.amount = amount_input
+            output_result.currency = currency_input
+            output_result.test = test_input
+            output_result.amountreceived = received_amount
+
+            if amount_input == received_amount:
+                output_result.state = STATUS_RECEIVED
+                output_result.message = "The amount of btc is received"
+
+            elif amount_input > received_amount:
+                output_result.state = STATUS_PENDING
+                output_result.message = "You received less"
+
+            else :
+                output_result.state = STATUS_RECEIVED
+                output_result.message  = "you received more"
+                
                         
             serializerOutput = address_receive.AddressReceiveOutputSerializer(output_result)
-
             return Response(serializerOutput.data, status = status.HTTP_200_OK)
+
         return Response(serializers.errors, status = status.HTTP_400_BAD_REQUEST)
             
 

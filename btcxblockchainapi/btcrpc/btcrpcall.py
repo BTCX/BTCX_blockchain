@@ -20,21 +20,21 @@ class BTCRPCall(object):
 
     def do_set_account(self,address, account):
         print access.setaccount(address, account)
-
-
+    
     def do_get_transaction(self,txid):
         try:
             return access.gettransaction(txid)
         except:
             #return simplejson.dumps ({u'error' : u'txid is not valid'})
             return None
+
     def do_list_transactions(self, account, count = 10, from_index = 0):
         try:
             return access.listtransactions(account, count, from_index)
         except:
             print "calling failure"
     
-    def do_received_by_address(self,address = "", minconf = 0):
-        return access.getreceivedbyaddress(address, minconf);
-
+    def do_received_by_address(self, address = "", confirms = 0):
+        return access.getreceivedbyaddress(address, confirms);
+        
     
