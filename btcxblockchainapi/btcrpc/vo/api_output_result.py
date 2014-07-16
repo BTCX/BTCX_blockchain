@@ -1,9 +1,9 @@
 from btcrpc.utils.constantutil import constant
 
 
-STATUS_RECEIVED = "received"
+STATUS_COMPLETED = "completed"
 STATUS_PENDING = "pending"
-
+STATUS_FAILED = "failed"
 
 class AddressReceiveOutputAttributeConst(object):
 

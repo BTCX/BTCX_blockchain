@@ -37,4 +37,6 @@ class BTCRPCall(object):
     def do_received_by_address(self, address = "", confirms = 0):
         return access.getreceivedbyaddress(address, confirms);
         
-    
+
+    def do_validate_address(self, address=""):
+        return access.validateaddress(address)    

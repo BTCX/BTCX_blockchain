@@ -16,6 +16,7 @@ from btcrpc.utils.jsonutil import JsonUtils
 from vo.api_output_result import *
 from vo.confirmation import *
 
+
 btcRPCcall = BTCRPCall()
 
 log = get_log("btcrpc_view")
@@ -55,7 +56,7 @@ class BTCGetNewAddress(APIView):
 
 class BTCCheckAddressReceive(APIView):
 
-     def post(self, request):
+    def post(self, request):
         attributeConst = AddressReceiveOutputAttributeConst()
         log.info(request.DATA)
         serializers = address_receive.AddressReceiveInputSerializer(data=request.DATA)
@@ -68,6 +69,16 @@ class BTCCheckAddressReceive(APIView):
             confirms_input = serializers.data[attributeConst.MINCONF]
 
             output_result = address_receive.AddressReceiveOutput()
+
+            address_validation = btcRPCcall.do_validate_address(address_input)
+
+            if address_validation["isvalid"] == False :
+                output_result.state = STATUS_FAILED
+                output_result.address = address_input
+                output_result.message = "The address is not valid"
+                output_result.test = test_input
+                serializerOutput = address_receive.AddressReceiveOutputSerializer(output_result)
+                return Response(serializerOutput.data, status = status.HTTP_400_BAD_REQUEST)
             
             received_amount = float(btcRPCcall.do_received_by_address(address_input, confirms_input))
                 
@@ -78,16 +89,16 @@ class BTCCheckAddressReceive(APIView):
             output_result.amountreceived = received_amount
 
             if amount_input == received_amount:
-                output_result.state = STATUS_RECEIVED
-                output_result.message = "The amount of btc is received"
+                output_result.state = STATUS_COMPLETED
+                output_result.message = "The amount of btc is completed"
 
             elif amount_input > received_amount:
                 output_result.state = STATUS_PENDING
                 output_result.message = "You received less"
 
             else :
-                output_result.state = STATUS_RECEIVED
-                output_result.message  = "you received more"
+                output_result.state = STATUS_COMPLETED
+                output_result.message  = "You received more"
                 
                         
             serializerOutput = address_receive.AddressReceiveOutputSerializer(output_result)
