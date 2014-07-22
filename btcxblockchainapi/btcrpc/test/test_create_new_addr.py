@@ -1,5 +1,5 @@
 from django.test import TestCase
-from btcrpc import btcrpcall
+import btcrpcall
 import unittest
 
 class BTCRPCTestCase(TestCase):
@@ -11,4 +11,3 @@ class BTCRPCTestCase(TestCase):
         for x in xrange(1, 111):
             new_address = self.btcRPCcall.do_get_new_address()
             print new_address
-            

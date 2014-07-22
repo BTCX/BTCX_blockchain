@@ -1,11 +1,7 @@
 from bitcoinrpc.authproxy import AuthServiceProxy
-import simplejson
+from btcxblockchainapi.servers_settings import BTC_RPC_SERVER
 
-btcRPCServer = "http://Ulysseys:8NzhGAbEXoJahLkPpNzmLxHqvQusgYVJWWx1J83y95gQ@127.0.0.1:18332" 
-ltcRPCServer = ""
-dogecoinRPCServer = ""
-
-access = AuthServiceProxy(btcRPCServer)
+access = AuthServiceProxy(BTC_RPC_SERVER)
 
 class BTCRPCall(object):
 
@@ -18,10 +14,10 @@ class BTCRPCall(object):
     def do_get_new_address(self):
         return access.getnewaddress();
 
-    def do_set_account(self,address, account):
+    def do_set_account(self, address, account):
         print access.setaccount(address, account)
     
-    def do_get_transaction(self,txid):
+    def do_get_transaction(self, txid):
         try:
             return access.gettransaction(txid)
         except:

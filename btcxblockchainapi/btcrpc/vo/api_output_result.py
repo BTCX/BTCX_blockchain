@@ -8,49 +8,49 @@ STATUS_FAILED = "failed"
 class AddressReceiveOutputAttributeConst(object):
 
     @constant
-    def APIKEY():
+    def APIKEY(self):
         return "apikey"
 
     @constant
-    def CURRENCY():
+    def CURRENCY(self):
         return "currency"
 
     @constant
-    def TEST():
+    def TEST(self):
         return "test"
 
     @constant
-    def AMOUNT():
+    def AMOUNT(self):
         return "amount"
 
     @constant
-    def TXID():
+    def TXID(self):
         return "txid"
 
     @constant
-    def ADDRESS():
+    def ADDRESS(self):
         return "address"
 
     @constant
-    def TIMERECEIVED():
+    def TIMERECEIVED(self):
         return "timereceived"
 
     @constant
-    def BLOCKTIME():
+    def BLOCKTIME(self):
         return "blocktime"
 
     @constant
-    def STATUS():
+    def STATUS(self):
         return "status"
 
     @constant
-    def CONFIRMATIONS():
+    def CONFIRMATIONS(self):
         return "confirmations"
    
     @constant
-    def DETAILS():
+    def DETAILS(self):
         return "details"
 
     @constant
-    def MINCONF():
+    def MINCONF(self):
         return "confirms"

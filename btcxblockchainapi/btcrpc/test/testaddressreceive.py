@@ -1,10 +1,10 @@
 from django.test import TestCase
-from btcrpc import btcrpcall
+import btcrpcall
 from btcrpc.utils.timeUtil import TimeUtils
 from btcrpc.utils.jsonutil import JsonUtils
 import simplejson
-from btcrpc.log import *
-from btcrpc.vo.api_output_result import AddressReceiveOutputAttributeConst
+from log import *
+from vo.api_output_result import AddressReceiveOutputAttributeConst
 
 log = get_log("test_address_receive")
 

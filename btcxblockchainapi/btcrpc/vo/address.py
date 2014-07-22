@@ -15,19 +15,19 @@ class AddressInputParameter(object):
 
     @property
     def currency(self):
-        return this._currency
+        return self._currency
 
     @currency.setter
     def currency(self, value):
-        this._currency = value
+        self._currency = value
         
     @property
     def test(self):
-        return this._test
+        return self._test
 
     @test.setter
     def test(self, value):
-        this._test = value
+        self._test = value
 
         
 class AddressOutputResult(object):

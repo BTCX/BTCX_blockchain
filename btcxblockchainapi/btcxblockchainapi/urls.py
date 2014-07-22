@@ -4,9 +4,9 @@ from rest_framework.urlpatterns import format_suffix_patterns
 #from quickstart import views
 #from btcrpc import views
 
-from quickstart.views import *
-from btcrpc.views import *
 
+from btcrpc.views import *
+from quickstart.views import *
 
 
 from django.contrib import admin
