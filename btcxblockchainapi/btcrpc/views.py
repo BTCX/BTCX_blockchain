@@ -18,12 +18,11 @@ from vo.confirmation import *
 
 
 btcRPCcall = BTCRPCall()
-
+attributeConst = AddressReceiveOutputAttributeConst()
 log = get_log("btcrpc_view")
 
 
 class BTCGetInfoView(APIView):
-
     
     def get(self, request, *args, **kw):
         
@@ -57,7 +56,6 @@ class BTCGetNewAddress(APIView):
 class BTCCheckAddressReceive(APIView):
 
     def post(self, request):
-        attributeConst = AddressReceiveOutputAttributeConst()
         log.info(request.DATA)
         serializers = address_receive.AddressReceiveInputSerializer(data=request.DATA)
         if serializers.is_valid():
@@ -106,6 +104,15 @@ class BTCCheckAddressReceive(APIView):
 
         return Response(serializers.errors, status = status.HTTP_400_BAD_REQUEST)
             
+
+class CheckAmountReceived(APIView):
+
+    def post(self, request, address):
+        log.info(address)
+        log.info(request.is_secure())
+        #serializer = addressserializer.AddressInputSerializer(data=request.DATA)
+        
+        return Response(serializers.errors, status = status.HTTP_400_BAD_REQUEST)
 
   
 class CheckTransaction(APIView):
