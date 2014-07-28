@@ -1,3 +1,6 @@
+from rest_framework import serializers
+
+
 class AddressInputParameter(object):
 
     def __init__(self, apikey="", currency="btc", test=False):
@@ -29,6 +32,13 @@ class AddressInputParameter(object):
     def test(self, value):
         self._test = value
 
+
+class AddressInputSerializer(serializers.Serializer):
+
+    apikey = serializers.CharField(max_length=200)
+    currency = serializers.CharField(max_length=20)
+    test = serializers.BooleanField()
+
         
 class AddressOutputResult(object):
         
@@ -42,8 +52,8 @@ class AddressOutputResult(object):
 
     @address.setter
     def address(self, value):
-        self._address= value
+        self._address = value
 
 
-
-    
+class AddressOutputSerializer(serializers.Serializer):
+    address = serializers.CharField(max_length=180)

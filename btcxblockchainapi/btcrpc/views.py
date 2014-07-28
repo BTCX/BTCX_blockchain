@@ -7,7 +7,6 @@ from rest_framework.request import Request
 from rest_framework import request
 from btcrpcall import BTCRPCall
 from vo import address, address_receive, check_receive_transaction
-from voserializers import addressserializer
 from log import *
 import simplejson
 import sys
@@ -36,7 +35,7 @@ class BTCGetNewAddress(APIView):
     def post(self, request, format=None):
         log.info(request.DATA)
         log.info(request.is_secure())
-        serializer = addressserializer.AddressInputSerializer(data=request.DATA)
+        serializer = address.AddressInputSerializer(data=request.DATA)
         
         if serializer.is_valid():
             log.info(serializer.data["apikey"])
@@ -48,7 +47,7 @@ class BTCGetNewAddress(APIView):
 
             #set an account name same as address
             btcRPCcall.do_set_account(new_address,new_address)
-            serializerOutput = addressserializer.AddressOutputSerializer(new_address_output)
+            serializerOutput = address.AddressOutputSerializer(new_address_output)
             return Response(serializerOutput.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -70,7 +69,7 @@ class BTCCheckAddressReceive(APIView):
 
             address_validation = btcRPCcall.do_validate_address(address_input)
 
-            if address_validation["isvalid"] == False :
+            if address_validation["isvalid"]:
                 output_result.state = STATUS_FAILED
                 output_result.address = address_input
                 output_result.message = "The address is not valid"
@@ -104,7 +103,7 @@ class BTCCheckAddressReceive(APIView):
 
         return Response(serializers.errors, status = status.HTTP_400_BAD_REQUEST)
             
-
+"""
 class CheckAmountReceived(APIView):
 
     def post(self, request, address):
@@ -113,7 +112,7 @@ class CheckAmountReceived(APIView):
         #serializer = addressserializer.AddressInputSerializer(data=request.DATA)
         
         return Response(serializers.errors, status = status.HTTP_400_BAD_REQUEST)
-
+"""
   
 class CheckTransaction(APIView):
 
@@ -151,7 +150,7 @@ class CheckTransaction(APIView):
                     output_result.blocktime = TimeUtils.epoch_to_datetime(check_transaction_log[attributeConst.BLOCKTIME])
                     output_result.timereceived =  TimeUtils.epoch_to_datetime(check_transaction_log[attributeConst.TIMERECEIVED])
                     if (check_transaction_log[attributeConst.CONFIRMATIONS] >= BTC_CONFIRMATION): #hard coded
-                        output_result.state = STATUS_RECEIVED
+                        output_result.state = STATUS_COMPLETED
                     else:
                         output_result.state = STATUS_PENDING
                                     
