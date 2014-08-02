@@ -1,6 +1,11 @@
 from django.test import TestCase
-import btcrpcall
+from btcrpc import btcrpcall
+from btcrpc.vo import addresses
 import unittest
+from btcrpc.log import *
+
+
+log = get_log("create new address or addresses tests")
 
 class BTCRPCTestCase(TestCase):
 
@@ -11,3 +16,9 @@ class BTCRPCTestCase(TestCase):
         for x in xrange(1, 111):
             new_address = self.btcRPCCall.do_get_new_address()
             print new_address
+
+    def test_serializer_for_creating_new_addresses(self):
+        data = {"addresses": [{'address':"mkRRcxbKLpy8zm1K8ARmRZ5gAuPq1ipufM", 'address':"mwtg7rSERQRCbsHLnon7dhN86kur5o77V5"}],"test": True}
+        addresses_serializer = addresses.NewAddressesSerializer(data=data)
+        log.info(addresses_serializer.is_valid())
+        log.info(addresses_serializer.errors)
