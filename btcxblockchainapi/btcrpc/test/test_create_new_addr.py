@@ -17,8 +17,9 @@ class BTCRPCTestCase(TestCase):
             new_address = self.btcRPCCall.do_get_new_address()
             print new_address
 
+    #python manage.py test btcrpc.test.test_create_new_addr.BTCRPCTestCase.test_serializer_for_creating_new_addresses
     def test_serializer_for_creating_new_addresses(self):
-        data = {"addresses": [{'address':"mkRRcxbKLpy8zm1K8ARmRZ5gAuPq1ipufM", 'address':"mwtg7rSERQRCbsHLnon7dhN86kur5o77V5"}],"test": True}
+        data = {"addresses": ["mkRRcxbKLpy8zm1K8ARmRZ5gAuPq1ipufM", "mwtg7rSERQRCbsHLnon7dhN86kur5o77V5"], "test": True}
         addresses_serializer = addresses.NewAddressesSerializer(data=data)
         log.info(addresses_serializer.is_valid())
         log.info(addresses_serializer.errors)

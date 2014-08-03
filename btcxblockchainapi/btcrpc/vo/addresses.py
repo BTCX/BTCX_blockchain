@@ -74,8 +74,10 @@ class NewAddressSerializer(serializers.Serializer):
 
 class NewAddresses(object):
 
-    def __init__(self):
-        self._addresses = None
+    _addresses = []
+
+    def __init__(self, addresses):
+        self._addresses = addresses
         self._test = False
 
 
@@ -95,8 +97,23 @@ class NewAddresses(object):
     def set_test(self, value):
         self._test = value
 
+
+class AddressesField(serializers.WritableField):
+    def from_native(self, data):
+        if isinstance(data, list):
+            return NewAddresses(data)
+        else:
+            msg = self.error_messages['invalid']
+            raise serializers.ValidationError(msg)
+
+    def to_native(self, obj):
+        return obj.addresses
+
+
 #check http://stackoverflow.com/questions/17289039/how-can-i-define-a-list-field-in-django-rest-framework
 class NewAddressesSerializer(serializers.Serializer):
     test = serializers.BooleanField()
-    addresses = NewAddressSerializer(many=True)
+    addresses = AddressesField()
+
+
 
