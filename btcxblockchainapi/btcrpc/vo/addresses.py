@@ -3,22 +3,22 @@ from rest_framework import serializers
 __author__ = 'twan'
 
 
-
 class NewAddressesPostParameters(object):
 
-    def __init__(self, api_key="", currency="btc", quantity=1, test=False):
+    def __init__(self, api_key="not_used", currency="btc", quantity=1, test=False):
         self._api_key = api_key
         self._currency = currency
         self._quantity = quantity
         self._test = test
 
     @property
-    def apikey(self):
-        return self._apikey
+    def api_key(self):
+        return self._api_key
 
-    @apikey.setter
-    def apikey(self, value):
-        self._apikey = value
+    @api_key.setter
+    def api_key(self, value):
+        self._api_key = value
+
 
     @property
     def currency(self):
@@ -47,7 +47,7 @@ class NewAddressesPostParameters(object):
 
 class NewAddressesPostParametersSerializer(serializers.Serializer):
 
-    api_key = serializers.CharField(max_length=200)
+    #api_key = serializers.CharField(max_length=200)
     currency = serializers.CharField(max_length=20)
     test = serializers.BooleanField()
     quantity = serializers.IntegerField(max_value=50)
@@ -74,26 +74,26 @@ class NewAddressSerializer(serializers.Serializer):
 
 class NewAddresses(object):
 
-    _addresses = []
+    #addresses = []
 
-    def __init__(self, addresses):
-        self._addresses = addresses
-        self._test = False
+    def __init__(self, addresses=[], test=False):
+        self.addresses = addresses
+        self.test = test
 
 
     @property
-    def addresses(self):
-        return self._addresses
+    def _addresses(self):
+        return self.addresses
 
-    @addresses.setter
+    @_addresses.setter
     def set_addresses(self, value):
-        self._addresses = value
+        self.addresses = value
 
     @property
-    def test(self):
+    def _test(self):
         return self._test
 
-    @test.setter
+    @_test.setter
     def set_test(self, value):
         self._test = value
 

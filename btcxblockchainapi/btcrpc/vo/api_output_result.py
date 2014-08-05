@@ -5,6 +5,7 @@ STATUS_COMPLETED = "completed"
 STATUS_PENDING = "pending"
 STATUS_FAILED = "failed"
 
+
 class AddressReceiveOutputAttributeConst(object):
 
     @constant
@@ -54,3 +55,7 @@ class AddressReceiveOutputAttributeConst(object):
     @constant
     def MINCONF(self):
         return "confirms"
+
+    @constant
+    def QUANTITY(self):
+        return "quantity"

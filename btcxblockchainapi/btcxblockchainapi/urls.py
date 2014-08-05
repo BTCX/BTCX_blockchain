@@ -27,10 +27,11 @@ urlpatterns = patterns('',
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^api/v1/status/$', MyRESTView.as_view(), name="server_status"),
     url(r'^api/v1/information/$', BTCGetInfoView.as_view(), name="BTC_Get_Information"),
-    url(r'^api/v1/address/$', BTCGetNewAddress.as_view(), name="BTC_Create_New_Address"),
+    #url(r'^api/v1/address/$', BTCGetNewAddress.as_view(), name="BTC_Create_New_Address"),
+    url(r'^api/v1/address/$', CreateNewAddresses.as_view(), name="BTC_Create_New_Address"),
     url(r'^api/v1/receive/$', BTCCheckAddressReceive.as_view(), name="BTC_Check_Address_For_Bitcoin_Receieving"),
     #url(r'^api/v1/receive/(?P<txid>[A-Za-z0-9]+)/$', CheckTransaction.as_view(), name = "Check a receive transaction"),
-    url(r'^api/v1/receive/(?P<address>[A-Za-z0-9]+)/$', CheckAmountReceived.as_view(), name = "Check amount received from a address"),
+    #url(r'^api/v1/receive/(?P<address>[A-Za-z0-9]+)/$', CheckAmountReceived.as_view(), name = "Check amount received from a address"),
     )
 
 #urlpatterns = format_suffix_patterns(urlpatterns)

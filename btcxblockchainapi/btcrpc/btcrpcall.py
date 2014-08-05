@@ -15,7 +15,7 @@ class BTCRPCall(object):
         return access.getnewaddress();
 
     def do_set_account(self, address, account):
-        print access.setaccount(address, account)
+        return access.setaccount(address, account)
     
     def do_get_transaction(self, txid):
         try:
