@@ -4,6 +4,7 @@ djangorestframework
 python-bitcoinrpc
 unittest2
 simplejson
+ddt
 #django-sslserver
 #django-crispy-forms
 #django-cryptocoin
