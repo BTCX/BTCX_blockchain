@@ -69,7 +69,7 @@ class BTCCheckAddressReceive(APIView):
 
             address_validation = btcRPCCall.do_validate_address(address_input)
 
-            if address_validation["isvalid"]:
+            if address_validation["isvalid"] is False:
                 output_result.state = STATUS_FAILED
                 output_result.address = address_input
                 output_result.message = "The address is not valid"
