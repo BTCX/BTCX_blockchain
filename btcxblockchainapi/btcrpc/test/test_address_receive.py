@@ -1,5 +1,5 @@
 from django.test import TestCase
-from btcrpc import btcrpcall
+from btcrpc import btc_rpc_call
 from btcrpc.utils.timeUtil import TimeUtils
 from btcrpc.utils.jsonutil import JsonUtils
 import simplejson
@@ -14,7 +14,7 @@ log = get_log("test_address_receive")
 class BTCRPCTestCase(TestCase):
 
     def setUp(self):
-        self.btc_RPC_call = btcrpcall.BTCRPCall()
+        self.btc_RPC_call = btc_rpc_call.BTCRPCall()
 
     @data(1347517119)
     def test_epoch_time_to_datetime(self, value):
@@ -61,9 +61,19 @@ class BTCRPCTestCase(TestCase):
 
     def test_post_serializer_for_multi_receive(self):
         test_data = {"transactions": [{"currency": "btc", "address": "mkRRcxbKLpy8zm1K8ARmRZ5gAuPq1ipufM", "amount": 0.1},
-                                    {"currency": "btc", "address": "mwtg7rSERQRCbsHLnon7dhN86kur5o77V5", "amount": 0.2}],
-                                "test": True}
+                                    {"currency": "btc", "address": "mwtg7rSERQRCbsHLnon7dhN86kur5o77V5", "amount": 0.2}],"test": True}
         log.info(test_data)
         post_serializer = PostParametersSerializer(data=test_data)
         self.assertTrue(post_serializer.is_valid())
         log.info(post_serializer.errors)
+
+    def test_response_serializer_for_multi_receive(self):
+        test_data = [{"currency": "btc", "address": "mkRRcxbKLpy8zm1K8ARmRZ5gAuPq1ipufM", "received": 0.0, "risk": "high",
+                      "txids": ["51b78168d94ec307e2855697209275d477e05d8647caf29cb9e38fb6a4661145", "22e889379baded3814fa28d2d4a678fd810d76edc96c91589496aadf4600eaa6"]},
+                     {"currency": "btc", "address": "mwtg7rSERQRCbsHLnon7dhN86kur5o77V5", "received": 0.0, "risk": "low",
+                      "txids": ["2deaf5db1545124a0868ab55cd6fd8b0dcaffb527731078e5088fe1c703b05a8"]},]
+
+        response_serializer = ReceiveInformationResponseSerializer(data=test_data, many=True)
+        log.info(response_serializer.is_valid())
+        self.assertTrue(response_serializer.is_valid())
+        log.info(response_serializer.errors)

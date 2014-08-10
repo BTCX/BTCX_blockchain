@@ -2,4 +2,4 @@ BTC_RPC_SERVER = "http://Ulysseys:8NzhGAbEXoJahLkPpNzmLxHqvQusgYVJWWx1J83y95gQ@1
 LTC_RPC_SERVER = ""
 DOGE_COIN_RPC_SERVER = ""
 
-Digtial_Cryptocurrency_Server = {"btc" : BTC_RPC_SERVER, "ltc" : LTC_RPC_SERVER, "dogecoin" : DOGE_COIN_RPC_SERVER}
+Digital_Crypto_Currency_Server = {"btc" : BTC_RPC_SERVER, "ltc" : LTC_RPC_SERVER, "dogecoin" : DOGE_COIN_RPC_SERVER}

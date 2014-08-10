@@ -1,5 +1,5 @@
 from django.test import TestCase
-from btcrpc import btcrpcall
+from btcrpc import btc_rpc_call
 from btcrpc.vo import addresses
 from btcrpc.log import *
 from rest_framework.response import Response
@@ -13,7 +13,7 @@ log = get_log("create new address or addresses tests")
 class BTCRPCTestCase(TestCase):
 
     def setUp(self):
-        self.btcRPCCall = btcrpcall.BTCRPCall()
+        self.btcRPCCall = btc_rpc_call.BTCRPCall()
 
     def test_create_new_address(self):
         for x in xrange(1, 111):

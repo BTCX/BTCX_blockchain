@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.request import Request
 from rest_framework import request
-from btcrpcall import BTCRPCall
+from btc_rpc_call import BTCRPCall
 from vo import address, address_receive, check_receive_transaction, addresses
 from log import *
 import simplejson

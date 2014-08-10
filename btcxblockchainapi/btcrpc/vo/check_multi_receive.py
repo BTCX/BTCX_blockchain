@@ -20,8 +20,39 @@ class TransactionSerializer(serializers.Serializer):
 
 class PostParametersSerializer(serializers.Serializer):
     transactions = TransactionSerializer(many=True)
+    test = serializers.BooleanField()
 
 
-class ReceiveInformation(object):
+class TransactionIds(object):
+
+    def __init__(self, txids=[]):
+        self.txids = txids
+
+class TxIdsField(serializers.WritableField):
+    def from_native(self, data):
+        if isinstance(data, list):
+            return TransactionIds(data)
+        else:
+            msg = self.error_messages['invalid']
+            raise serializers.ValidationError(msg)
+
+    def to_native(self, obj):
+        return obj.txids
+
+class ReceiveInformationResponse(object):
     def __init__(self, api_key="",  currency="btc", address="", received=0.0, risk="low", txids=[]):
         self.api_key = api_key
+        self.currency = currency
+        self.address = address
+        self.received = received
+        self.risk = risk
+        self.txids = txids
+
+
+class ReceiveInformationResponseSerializer(serializers.Serializer):
+    currency = serializers.CharField(max_length=20)
+    address = serializers.CharField(max_length=128)
+    received = serializers.Decimal()
+    risk = serializers.CharField(max_length=10) # high, medium, low
+    txids = TxIdsField()
+
