@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.request import Request
 from rest_framework import request
-from btc_rpc_call import BTCRPCall
+from btc_rpc_call import BTCRPCCall
 from vo import address, address_receive, check_receive_transaction, addresses
 from log import *
 import simplejson
@@ -16,7 +16,7 @@ from vo.api_output_result import *
 from vo.confirmation import *
 
 
-btcRPCCall = BTCRPCall()
+btcRPCCall = BTCRPCCall()
 attributeConst = AddressReceiveOutputAttributeConst()
 log = get_log("btcrpc_view")
 
@@ -77,7 +77,7 @@ class BTCCheckAddressReceive(APIView):
                 serializerOutput = address_receive.AddressReceiveOutputSerializer(output_result)
                 return Response(serializerOutput.data, status = status.HTTP_400_BAD_REQUEST)
             
-            received_amount = float(btcRPCCall.do_received_by_address(address_input, confirms_input))
+            received_amount = float(btcRPCCall.amount_received_by_address(address_input, confirms_input))
                 
             output_result.address = address_input
             output_result.amount = amount_input
