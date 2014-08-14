@@ -7,6 +7,7 @@ from btcrpc.log import *
 from btcrpc.vo.api_output_result import AddressReceiveOutputAttributeConst
 from ddt import ddt, data
 from btcrpc.vo.check_multi_receive import *
+from btcrpc.constants import riskconstants
 
 log = get_log("test_address_receive")
 
@@ -14,7 +15,7 @@ log = get_log("test_address_receive")
 class BTCRPCTestCase(TestCase):
 
     def setUp(self):
-        self.btc_RPC_call = btc_rpc_call.BTCRPCall()
+        self.btc_RPC_call = btc_rpc_call.BTCRPCCall()
 
     @data(1347517119)
     def test_epoch_time_to_datetime(self, value):
@@ -77,3 +78,42 @@ class BTCRPCTestCase(TestCase):
         log.info(response_serializer.is_valid())
         self.assertTrue(response_serializer.is_valid())
         log.info(response_serializer.errors)
+
+    def test_receive_amount_for_risk(self):
+        #address="n3AKNG5vNXtQS4Ci7YQVQHRs5fuX3M3wor"
+        address="mopxUEXSLv8Auc8AgAdHAjBwwUQeWjsGN2"
+        expected_amount = 0.2
+
+        result = float(btc_rpc_call.BTCRPCCall.amount_received_by_address(self,
+                                                                          address=address,
+                                                                          confirms=riskconstants.btc_risk_confirms['low']))
+
+        if result >= expected_amount:
+            log.info("received with 6 confirmed")
+            log.info(result)
+            log.info("low")
+            return
+
+        result = float(btc_rpc_call.BTCRPCCall.amount_received_by_address(self,
+                                                                          address=address,
+                                                                          confirms=riskconstants.btc_risk_confirms['medium']))
+
+        if result >= expected_amount:
+            log.info("received with 1 confirmed")
+            log.info(result)
+            log.info("medium")
+            return
+
+        result = float(btc_rpc_call.BTCRPCCall.amount_received_by_address(self,
+                                                                          address=address,
+                                                                          confirms=riskconstants.btc_risk_confirms['high']))
+
+        if result >= expected_amount:
+            log.info("received with 0 confirmed")
+            log.info(result)
+            log.info("high")
+            return
+        else:
+            log.info("received amount is not enough")
+            log.info(result)
+            log.info("high")

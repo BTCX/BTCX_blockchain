@@ -13,7 +13,7 @@ log = get_log("create new address or addresses tests")
 class BTCRPCTestCase(TestCase):
 
     def setUp(self):
-        self.btcRPCCall = btc_rpc_call.BTCRPCall()
+        self.btcRPCCall = btc_rpc_call.BTCRPCCall()
 
     def test_create_new_address(self):
         for x in xrange(1, 111):
