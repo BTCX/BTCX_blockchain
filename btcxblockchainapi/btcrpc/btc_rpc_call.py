@@ -29,16 +29,20 @@ class BTCRPCCall(object):
             return None
 
     @staticmethod
-    def do_list_transactions(self, account, count = 10, from_index = 0):
+    def do_list_transactions(self, account, count=10, from_index=0):
         try:
             return access.listtransactions(account, count, from_index)
         except:
             print "calling failure"
 
     @staticmethod
-    def amount_received_by_address(self, address = "", confirms = 0):
+    def amount_received_by_address(self, address="", confirms=0):
         return access.getreceivedbyaddress(address, confirms);
         
     @staticmethod
     def do_validate_address(self, address=""):
-        return access.validateaddress(address)    
+        return access.validateaddress(address)
+
+    @staticmethod
+    def list_transactions(account="", count=10, from_index=0):
+        return access.listtransactions(account, count, from_index)
