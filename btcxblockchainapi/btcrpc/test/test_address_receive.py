@@ -84,8 +84,7 @@ class BTCRPCTestCase(TestCase):
         address="mopxUEXSLv8Auc8AgAdHAjBwwUQeWjsGN2"
         expected_amount = 0.2
 
-        result = float(btc_rpc_call.BTCRPCCall.amount_received_by_address(self,
-                                                                          address=address,
+        result = float(btc_rpc_call.BTCRPCCall.amount_received_by_address(address=address,
                                                                           confirms=riskconstants.btc_risk_confirms['low']))
 
         if result >= expected_amount:
@@ -94,8 +93,7 @@ class BTCRPCTestCase(TestCase):
             log.info("low")
             return
 
-        result = float(btc_rpc_call.BTCRPCCall.amount_received_by_address(self,
-                                                                          address=address,
+        result = float(btc_rpc_call.BTCRPCCall.amount_received_by_address(address=address,
                                                                           confirms=riskconstants.btc_risk_confirms['medium']))
 
         if result >= expected_amount:
@@ -104,8 +102,7 @@ class BTCRPCTestCase(TestCase):
             log.info("medium")
             return
 
-        result = float(btc_rpc_call.BTCRPCCall.amount_received_by_address(self,
-                                                                          address=address,
+        result = float(btc_rpc_call.BTCRPCCall.amount_received_by_address(address=address,
                                                                           confirms=riskconstants.btc_risk_confirms['high']))
 
         if result >= expected_amount:
@@ -117,3 +114,23 @@ class BTCRPCTestCase(TestCase):
             log.info("received amount is not enough")
             log.info(result)
             log.info("high")
+
+    def test_list_transactions_info(self):
+
+        log.info("test example 1:")
+        address = "mopxUEXSLv8Auc8AgAdHAjBwwUQeWjsGN2"
+
+        transactions = btc_rpc_call.BTCRPCCall.list_transactions(account=address)
+
+        for transaction in transactions:
+            log.info(transaction["txid"])
+
+
+
+        log.info("test example 2:")
+        address = "n3AKNG5vNXtQS4Ci7YQVQHRs5fuX3M3wor"
+
+        transactions = btc_rpc_call.BTCRPCCall.list_transactions(account=address)
+
+        for transaction in transactions:
+            log.info(transaction["txid"])

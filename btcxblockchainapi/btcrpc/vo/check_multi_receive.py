@@ -15,12 +15,13 @@ class PostParameters(object):
 class TransactionSerializer(serializers.Serializer):
     currency = serializers.CharField(max_length=20)
     address = serializers.CharField(max_length=128)
-    amount = serializers.Decimal()
+    amount = serializers.DecimalField()
 
 
 class PostParametersSerializer(serializers.Serializer):
     transactions = TransactionSerializer(many=True)
     test = serializers.BooleanField()
+
 
 
 class TransactionIds(object):
@@ -52,7 +53,7 @@ class ReceiveInformationResponse(object):
 class ReceiveInformationResponseSerializer(serializers.Serializer):
     currency = serializers.CharField(max_length=20)
     address = serializers.CharField(max_length=128)
-    received = serializers.Decimal()
+    received = serializers.FloatField()
     risk = serializers.CharField(max_length=10) # high, medium, low
     txids = TxIdsField()
 

@@ -10,18 +10,19 @@ class BTCRPCCall(object):
         pass
 
     @staticmethod
-    def do_getinfo(self):
+    def do_getinfo():
         return access.getinfo()
 
     @staticmethod
-    def do_get_new_address(self):
+    def do_get_new_address():
         return access.getnewaddress();
+
     @staticmethod
-    def do_set_account(self, address, account):
+    def do_set_account(address, account):
         return access.setaccount(address, account)
 
     @staticmethod
-    def do_get_transaction(self, txid):
+    def do_get_transaction(txid):
         try:
             return access.gettransaction(txid)
         except:
@@ -29,18 +30,18 @@ class BTCRPCCall(object):
             return None
 
     @staticmethod
-    def do_list_transactions(self, account, count=10, from_index=0):
+    def do_list_transactions(account, count=10, from_index=0):
         try:
             return access.listtransactions(account, count, from_index)
         except:
             print "calling failure"
 
     @staticmethod
-    def amount_received_by_address(self, address="", confirms=0):
+    def amount_received_by_address(address="", confirms=0):
         return access.getreceivedbyaddress(address, confirms);
         
     @staticmethod
-    def do_validate_address(self, address=""):
+    def do_validate_address(address=""):
         return access.validateaddress(address)
 
     @staticmethod
