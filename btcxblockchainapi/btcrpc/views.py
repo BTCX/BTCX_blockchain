@@ -119,7 +119,7 @@ class CheckMultiAddressesReceive(APIView):
                 address_validation = btc_RPC_Call.do_validate_address(address=transaction["address"])
 
                 if address_validation["isvalid"] is False:
-                    return Response(transaction["address"] + " is a not valid address",
+                    return Response(transaction["address"] + " is not a valid address",
                                     status=status.HTTP_400_BAD_REQUEST)
 
                 received_with_risk = self.__receive_amount_for_risk(wallet_address=transaction["address"],
