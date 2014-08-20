@@ -15,7 +15,7 @@ class PostParameters(object):
 class TransactionSerializer(serializers.Serializer):
     currency = serializers.CharField(max_length=20)
     address = serializers.CharField(max_length=128)
-    amount = serializers.DecimalField()
+    amount = serializers.FloatField()
 
 
 class PostParametersSerializer(serializers.Serializer):
