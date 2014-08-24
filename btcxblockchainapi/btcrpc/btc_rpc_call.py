@@ -47,3 +47,15 @@ class BTCRPCCall(object):
     @staticmethod
     def list_transactions(account="", count=10, from_index=0):
         return access.listtransactions(account, count, from_index)
+
+    @staticmethod
+    def send_from(from_account="", to_address="", amount=0, minconf=1):
+        return access.sendfrom(from_account, to_address, amount, minconf)
+
+    @staticmethod
+    def get_received_amount_by_account(account="", minconf=1):
+        return access.getreceivedbyaccount(account, minconf)
+
+    @staticmethod
+    def get_balance(account="", minconf=1):
+        return access.getbalance(account, minconf)

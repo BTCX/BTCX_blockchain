@@ -1,13 +1,12 @@
 from django.test import TestCase
+from ddt import ddt, data
+
 from btcrpc import btc_rpc_call
 from btcrpc.utils.timeUtil import TimeUtils
-from btcrpc.utils.jsonutil import JsonUtils
-import simplejson
 from btcrpc.log import *
-from btcrpc.vo.api_output_result import AddressReceiveOutputAttributeConst
-from ddt import ddt, data
 from btcrpc.vo.check_multi_receive import *
 from btcrpc.constants import riskconstants
+
 
 log = get_log("test_address_receive")
 
@@ -134,3 +133,14 @@ class BTCRPCTestCase(TestCase):
 
         for transaction in transactions:
             log.info(transaction["txid"])
+
+    def test_balance_with_a_account(self):
+
+        account = "mfhz9hpDawwxjpyAnLAdVq2j74mckeSrsi"
+        log.info(btc_rpc_call.BTCRPCCall.get_balance(account))
+
+        account = "mopxUEXSLv8Auc8AgAdHAjBwwUQeWjsGN2"
+        log.info(btc_rpc_call.BTCRPCCall.get_balance(account))
+
+        account = "mjuJVCKpMyuLSXvuV5SPcbunsJonqSsuxK"
+        log.info(btc_rpc_call.BTCRPCCall.get_balance(account))
