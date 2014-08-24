@@ -1,18 +1,14 @@
-from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.decorators import api_view
-from rest_framework.request import Request
-from rest_framework import request
+import simplejson
+
 from btc_rpc_call import BTCRPCCall
 from vo import address, address_receive, check_receive_transaction, addresses, check_multi_receive
 from log import *
-import simplejson
-import sys
 from utils.timeUtil import TimeUtils
 from utils.jsonutil import JsonUtils
-from vo.api_output_result import *
+from btcrpc.constants.api_output_result import *
 from vo.confirmation import *
 from btcrpc.constants import riskconstants
 
