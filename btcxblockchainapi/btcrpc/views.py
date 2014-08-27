@@ -39,7 +39,7 @@ class BTCGetNewAddress(APIView):
             log.info(serializer.data["currency"])
             log.info(serializer.data["test"])
             new_address_output = address.AddressOutputResult()
-            new_address =  btc_RPC_Call.do_get_new_address()
+            new_address = btc_RPC_Call.do_get_new_address()
             new_address_output.address = new_address
 
             #set an account name same as address

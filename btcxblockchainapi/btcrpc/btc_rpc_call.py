@@ -1,61 +1,53 @@
 from bitcoinrpc.authproxy import AuthServiceProxy
-from btcxblockchainapi.servers_settings import BTC_RPC_SERVER
-
-access = AuthServiceProxy(BTC_RPC_SERVER)
+from btcxblockchainapi.servers_settings import Digital_Crypto_Currency_Server
 
 
 class BTCRPCCall(object):
 
-    def __init__(self):
-        pass
+    def __init__(self, wallet="receive", currency="btc", test=True):
+        btc_rpc_servers = Digital_Crypto_Currency_Server["currency"]
+        btc_rpc_server = btc_rpc_servers[wallet]
+        if btc_rpc_server["test"] == test:
+            self.access = AuthServiceProxy(btc_rpc_server["host"])
+        else:
+            print "there is no a proper wallet "
 
-    @staticmethod
-    def do_getinfo():
-        return access.getinfo()
+    def do_getinfo(self):
+        return self.access.getinfo()
 
-    @staticmethod
-    def do_get_new_address():
-        return access.getnewaddress();
+    def do_get_new_address(self):
+        return self.access.getnewaddress();
 
-    @staticmethod
-    def do_set_account(address, account):
-        return access.setaccount(address, account)
+    def do_set_account(self, address, account):
+        return self.access.setaccount(address, account)
 
-    @staticmethod
-    def do_get_transaction(txid):
+    def do_get_transaction(self, txid):
         try:
-            return access.gettransaction(txid)
-        except:
+            return self.access.gettransaction(txid)
+        except RuntimeError:
             #return simplejson.dumps ({u'error' : u'txid is not valid'})
             return None
 
-    @staticmethod
-    def do_list_transactions(account, count=10, from_index=0):
+    def do_list_transactions(self, account, count=10, from_index=0):
         try:
-            return access.listtransactions(account, count, from_index)
-        except:
+            return self.access.listtransactions(account, count, from_index)
+        except RuntimeError:
             print "calling failure"
 
-    @staticmethod
-    def amount_received_by_address(address="", confirms=0):
-        return access.getreceivedbyaddress(address, confirms);
-        
-    @staticmethod
-    def do_validate_address(address=""):
-        return access.validateaddress(address)
+    def amount_received_by_address(self, address="", confirms=0):
+        return self.access.getreceivedbyaddress(address, confirms);
 
-    @staticmethod
-    def list_transactions(account="", count=10, from_index=0):
-        return access.listtransactions(account, count, from_index)
+    def do_validate_address(self, address=""):
+        return self.access.validateaddress(address)
 
-    @staticmethod
-    def send_from(from_account="", to_address="", amount=0, minconf=1):
-        return access.sendfrom(from_account, to_address, amount, minconf)
+    def list_transactions(self, account="", count=10, from_index=0):
+        return self.access.listtransactions(account, count, from_index)
 
-    @staticmethod
-    def get_received_amount_by_account(account="", minconf=1):
-        return access.getreceivedbyaccount(account, minconf)
+    def send_from(self, from_account="", to_address="", amount=0, minconf=1):
+        return self.access.sendfrom(from_account, to_address, amount, minconf)
 
-    @staticmethod
-    def get_balance(account="", minconf=1):
-        return access.getbalance(account, minconf)
+    def get_received_amount_by_account(self, account="", minconf=1):
+        return self.access.getreceivedbyaccount(account, minconf)
+
+    def get_balance(self, account="", minconf=1):
+        return self.access.getbalance(account, minconf)
