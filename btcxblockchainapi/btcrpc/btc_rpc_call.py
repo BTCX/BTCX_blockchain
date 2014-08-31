@@ -5,7 +5,7 @@ from btcxblockchainapi.servers_settings import Digital_Crypto_Currency_Server
 class BTCRPCCall(object):
 
     def __init__(self, wallet="receive", currency="btc", test=True):
-        btc_rpc_servers = Digital_Crypto_Currency_Server["currency"]
+        btc_rpc_servers = Digital_Crypto_Currency_Server[currency]
         btc_rpc_server = btc_rpc_servers[wallet]
         if btc_rpc_server["test"] == test:
             self.access = AuthServiceProxy(btc_rpc_server["host"])
