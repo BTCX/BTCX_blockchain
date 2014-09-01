@@ -7,6 +7,7 @@ from rest_framework.urlpatterns import format_suffix_patterns
 
 from btcrpc.views import *
 from quickstart.views import *
+from btcrpc.view.balance import *
 
 
 from django.contrib import admin
@@ -31,6 +32,7 @@ urlpatterns = patterns('',
     url(r'^api/v1/address/$', CreateNewAddresses.as_view(), name="BTC_Create_New_Address"),
     #url(r'^api/v1/receive/$', BTCCheckAddressReceive.as_view(), name="BTC_Check_Address_For_Bitcoin_Receieving"),
     url(r'^api/v1/receive/$', CheckMultiAddressesReceive.as_view(), name="BTC_Check_Address_For_Bitcoin_Receieving"),
+    url(r'^api/v1/balance/$', GetBalanceView.as_view(), name="BTC_GET_BALANCE_FOR_A_ADDRESS"),
 
     #url(r'^api/v1/receive/(?P<txid>[A-Za-z0-9]+)/$', CheckTransaction.as_view(), name = "Check a receive transaction"),
     #url(r'^api/v1/receive/(?P<address>[A-Za-z0-9]+)/$', CheckAmountReceived.as_view(), name = "Check amount received from a address"),

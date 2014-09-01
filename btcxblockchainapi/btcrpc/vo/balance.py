@@ -22,7 +22,7 @@ class GetBalancePostParametersSerializer(serializers.Serializer):
 
 class GetBalanceResponse(object):
 
-    def __init__(self, balance="", message=""):
+    def __init__(self, balance=0.0, message=""):
         self.balance = balance
         self.message = message
 

@@ -133,7 +133,7 @@ class CheckMultiAddressesReceive(APIView):
                 log.info(test)
 
             response_serializer = check_multi_receive.ReceiveInformationResponseSerializer(data=response_list,
-                                                                                               many=True)
+                                                                                           many=True)
             if response_serializer.is_valid():
                 return Response(response_serializer.data, status=status.HTTP_201_CREATED)
             else:
