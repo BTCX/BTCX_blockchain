@@ -3,9 +3,10 @@ __author__ = 'sikamedia'
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from log import *
+from btcrpc.log import *
 
 log = get_log("send currency view")
+
 
 class SendCurrencyView(APIView):
 

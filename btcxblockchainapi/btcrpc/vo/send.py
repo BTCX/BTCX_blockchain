@@ -37,6 +37,7 @@ class SendFromResponse(object):
 
 
 class SendFromResponseSerializer(serializers.Serializer):
+
     txid = serializers.CharField(max_length=128)
     status = serializers.CharField(max_length=16)
     fee = serializers.FloatField()
