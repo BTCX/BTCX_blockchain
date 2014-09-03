@@ -6,6 +6,7 @@ from rest_framework import status
 from btcrpc.log import *
 from btcrpc.btc_rpc_call import *
 from btcrpc.vo import balance
+from btcrpc.utils import constantutil
 
 log = get_log("send currency view")
 
@@ -16,7 +17,9 @@ class GetBalanceView(APIView):
     def post(request):
         log.info(request.DATA)
         log.info(request.is_secure())
-        btc_rpc_call = BTCRPCCall(wallet="send", test=True)
+        btc_rpc_call = BTCRPCCall(wallet="send")
+        #check is testnet or not
+        test_net = constantutil.check_service_is_test_net(btc_rpc_call)
         serializer = balance.GetBalancePostParametersSerializer(data=request.DATA)
 
         if serializer.is_valid():
@@ -25,11 +28,13 @@ class GetBalanceView(APIView):
             if address_valid['isvalid'] is True:
                 balance_output = btc_rpc_call.get_balance(account=serializer.data["address"])
                 log.info(balance_output)
-                balance_output_response = balance.GetBalanceResponse(balance=float(balance_output), message="")
+                balance_output_response = balance.GetBalanceResponse(balance=float(balance_output),
+                                                                     message="", test=test_net)
                 balance_output_response_serializer = balance.GetBalanceResponseSerializer(balance_output_response)
                 return Response(data=balance_output_response_serializer.data, status=status.HTTP_201_CREATED)
             else:
-                balance_output_response = balance.GetBalanceResponse(balance=0.0, message="Address is not valid")
+                balance_output_response = balance.GetBalanceResponse(balance=0.0,
+                                                                     message="Address is not valid", test=test_net)
                 balance_output_response_serializer = balance.GetBalanceResponseSerializer(balance_output_response)
                 return Response(data=balance_output_response_serializer.data, status=status.HTTP_400_BAD_REQUEST)
         return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
