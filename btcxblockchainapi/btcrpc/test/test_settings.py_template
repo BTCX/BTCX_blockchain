@@ -1,0 +1,6 @@
+__author__ = 'sikamedia'
+__Date__ = '04/09/14'
+
+#test send
+FROM_ACCOUNT="mopxUEXSLv8Auc8AgAdHAjBwwUQeWjsGN2"
+TO_ADDRESS="mfhz9hpDawwxjpyAnLAdVq2j74mckeSrsi"
