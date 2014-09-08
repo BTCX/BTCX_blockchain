@@ -3,10 +3,12 @@ __author__ = 'sikamedia'
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from btcrpc.log import *
-from btcrpc.btc_rpc_call import *
+
+from btcrpc.utils.log import *
+from btcrpc.utils.btc_rpc_call import *
 from btcrpc.vo import balance
 from btcrpc.utils import constantutil
+
 
 log = get_log("send currency view")
 
@@ -31,7 +33,7 @@ class GetBalanceView(APIView):
                 balance_output_response = balance.GetBalanceResponse(balance=float(balance_output),
                                                                      message="", test=is_test_net)
                 balance_output_response_serializer = balance.GetBalanceResponseSerializer(balance_output_response)
-                return Response(data=balance_output_response_serializer.data, status=status.HTTP_201_CREATED)
+                return Response(data=balance_output_response_serializer.data, status=status.HTTP_200_OK)
             else:
                 balance_output_response = balance.GetBalanceResponse(balance=0.0,
                                                                      message="Address is not valid", test=is_test_net)

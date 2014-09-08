@@ -21,7 +21,6 @@ class SendFromPostParametersSerializer(serializers.Serializer):
     amount = serializers.FloatField()
     fromAddress = serializers.CharField(max_length=128)
     toAddress = serializers.CharField(max_length=128)
-    test = serializers.BooleanField()
     feeLimit = serializers.FloatField()
     wallet = serializers.CharField()
 

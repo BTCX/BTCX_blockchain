@@ -1,4 +1,4 @@
-from btcrpc.btc_rpc_call import BTCRPCCall
+from btcrpc.utils.btc_rpc_call import BTCRPCCall
 
 def constant(f):
     def fset(self, value):

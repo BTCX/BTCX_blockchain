@@ -1,9 +1,9 @@
 from django.test import TestCase
 from ddt import ddt, data
 
-from btcrpc import btc_rpc_call
+from btcrpc.utils import btc_rpc_call
 from btcrpc.utils.timeUtil import TimeUtils
-from btcrpc.log import *
+from btcrpc.utils.log import *
 from btcrpc.vo.check_multi_receive import *
 from btcrpc.constants import riskconstants
 

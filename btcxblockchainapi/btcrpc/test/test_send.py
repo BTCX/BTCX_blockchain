@@ -1,10 +1,12 @@
+from btcrpc.utils import btc_rpc_call
+
 __author__ = 'sikamedia'
 
 from django.test import TestCase
-from btcrpc.log import *
-from btcrpc import btc_rpc_call
-from test_settings import *
 from bitcoinrpc.authproxy import JSONRPCException
+
+from btcrpc.utils.log import *
+from test_settings import *
 
 
 log = get_log("send digital currency")

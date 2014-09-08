@@ -1,10 +1,9 @@
 from django.test import TestCase
-from btcrpc import btc_rpc_call
-from btcrpc.vo import addresses
-from btcrpc.log import *
-from rest_framework.response import Response
-from rest_framework import status
 import simplejson as json
+
+from btcrpc.utils import btc_rpc_call
+from btcrpc.vo import addresses
+from btcrpc.utils.log import *
 
 
 log = get_log("create new address or addresses tests")
