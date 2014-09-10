@@ -1,5 +1,5 @@
 from bitcoinrpc.authproxy import AuthServiceProxy
-from btcxblockchainapi.servers_settings import Digital_Crypto_Currency_Server
+from btcxblockchainapi.servers_settings import *
 
 
 class BTCRPCCall(object):
