@@ -4,7 +4,7 @@ from rest_framework import status
 import simplejson
 
 from btcrpc.utils.btc_rpc_call import BTCRPCCall
-from vo import address, address_receive, check_receive_transaction, addresses, check_multi_receive
+from vo import address, address_receive, check_receive_transaction, addresses, check_multi_receives
 from btcrpc.utils.log import *
 from utils.timeUtil import TimeUtils
 from utils.jsonutil import JsonUtils
@@ -104,7 +104,7 @@ class CheckMultiAddressesReceive(APIView):
 
     def post(self, request):
         log.info(request.DATA)
-        post_serializers = check_multi_receive.PostParametersSerializer(data=request.DATA)
+        post_serializers = check_multi_receives.PostParametersSerializer(data=request.DATA)
         response_list = []
         if post_serializers.is_valid():
             log.info(post_serializers.data["transactions"])
@@ -121,7 +121,7 @@ class CheckMultiAddressesReceive(APIView):
                 received_with_risk = self.__receive_amount_for_risk(wallet_address=transaction["address"],
                                                                     expected_amount=transaction["amount"])
                 tx_ids = self.__get_txIds(transaction["address"])
-                response = check_multi_receive.ReceiveInformationResponse(currency=transaction["currency"],
+                response = check_multi_receives.ReceiveInformationResponse(currency=transaction["currency"],
                                                                           address=transaction["address"],
                                                                           received=received_with_risk["result"],
                                                                           risk=received_with_risk["risk"],
@@ -132,7 +132,7 @@ class CheckMultiAddressesReceive(APIView):
             for test in response_list:
                 log.info(test)
 
-            response_serializer = check_multi_receive.ReceiveInformationResponseSerializer(data=response_list,
+            response_serializer = check_multi_receives.ReceiveInformationResponseSerializer(data=response_list,
                                                                                            many=True)
             if response_serializer.is_valid():
                 return Response(response_serializer.data, status=status.HTTP_201_CREATED)
@@ -243,27 +243,3 @@ class CheckTransaction(APIView):
             serializerOutput = check_receive_transaction.CheckTransactionOutputSerializer(output_result)
             return Response(serializerOutput.data, status = status.HTTP_200_OK)        
         return Response(input_serializers.errors, status = status.HTTP_400_BAD_REQUEST)
-
-
-class CreateNewAddresses(APIView):
-
-    def post(self, request):
-        log.info(request.DATA)
-        serializers_input = addresses.NewAddressesPostParametersSerializer(data=request.DATA)
-        if serializers_input.is_valid():
-            log.info(serializers_input.data["quantity"])
-            new_addresses = []
-            for x in xrange(0, int(serializers_input.data[attributeConst.QUANTITY])):
-                new_address = btc_RPC_Call.do_get_new_address()
-                btc_RPC_Call.do_set_account(new_address,new_address)
-                new_addresses.append(new_address)
-
-            new_addresses_response = addresses.NewAddresses(new_addresses)
-            new_addresses_response.test = True
-
-            addresses_serializer = addresses.NewAddressesSerializer(data=new_addresses_response.__dict__)
-            if addresses_serializer.is_valid():
-                return Response(addresses_serializer.data, status=status.HTTP_201_CREATED)
-            else:
-                return Response(addresses_serializer.errors, status=status.HTTP_406_NOT_ACCEPTABLE)
-        return Response(serializers_input.errors, status=status.HTTP_400_BAD_REQUEST)

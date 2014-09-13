@@ -5,11 +5,11 @@ __author__ = 'twan'
 
 class NewAddressesPostParameters(object):
 
-    def __init__(self, api_key="not_used", currency="btc", quantity=1, test=False):
+    def __init__(self, api_key="not_used", currency="btc", quantity=1, wallet=""):
         self._api_key = api_key
         self._currency = currency
         self._quantity = quantity
-        self._test = test
+        self._wallet = wallet
 
     @property
     def api_key(self):
@@ -29,14 +29,6 @@ class NewAddressesPostParameters(object):
         self._currency = value
 
     @property
-    def test(self):
-        return self._test
-
-    @test.setter
-    def test(self, value):
-        self._test = value
-
-    @property
     def quantity(self):
         return self._quantity
 
@@ -49,8 +41,8 @@ class NewAddressesPostParametersSerializer(serializers.Serializer):
 
     #api_key = serializers.CharField(max_length=200)
     currency = serializers.CharField(max_length=20)
-    test = serializers.BooleanField()
     quantity = serializers.IntegerField(max_value=50)
+    wallet = serializers.CharField()
 
 
 class NewAddress(object):

@@ -23,7 +23,7 @@ class AddressInputParameter(object):
     @currency.setter
     def currency(self, value):
         self._currency = value
-        
+
     @property
     def test(self):
         return self._test

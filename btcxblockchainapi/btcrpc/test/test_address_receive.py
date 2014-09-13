@@ -4,7 +4,7 @@ from ddt import ddt, data
 from btcrpc.utils import btc_rpc_call
 from btcrpc.utils.timeUtil import TimeUtils
 from btcrpc.utils.log import *
-from btcrpc.vo.check_multi_receive import *
+from btcrpc.vo.check_multi_receives import *
 from btcrpc.constants import riskconstants
 
 

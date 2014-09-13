@@ -9,6 +9,7 @@ from btcrpc.views import *
 from quickstart.views import *
 from btcrpc.view.balance import *
 from btcrpc.view.send import *
+from btcrpc.view.addresses import *
 
 
 from django.contrib import admin
