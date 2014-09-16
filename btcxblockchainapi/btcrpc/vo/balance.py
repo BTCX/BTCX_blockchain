@@ -10,6 +10,7 @@ class GetBalancePostParameter(object):
         self.currency = currency
         self.address = address
 
+
 class GetBalancePostParametersSerializer(serializers.Serializer):
 
     currency = serializers.CharField(max_length=20)

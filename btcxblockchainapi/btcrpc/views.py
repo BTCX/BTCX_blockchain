@@ -2,8 +2,10 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 import simplejson
+from rest_framework import viewsets
 
 from btcrpc.utils.btc_rpc_call import BTCRPCCall
+from btcrpc.vo.balance import GetBalancePostParameter
 from vo import address, address_receive, check_receive_transaction, addresses, check_multi_receives
 from btcrpc.utils.log import *
 from utils.timeUtil import TimeUtils
@@ -99,91 +101,6 @@ class BTCCheckAddressReceive(APIView):
 
         return Response(serializers.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-class CheckMultiAddressesReceive(APIView):
-
-    def post(self, request):
-        log.info(request.DATA)
-        post_serializers = check_multi_receives.PostParametersSerializer(data=request.DATA)
-        response_list = []
-        if post_serializers.is_valid():
-            log.info(post_serializers.data["transactions"])
-            transactions = post_serializers.data["transactions"]
-            for transaction in transactions:
-                log.info(transaction)
-
-                address_validation = btc_RPC_Call.do_validate_address(address=transaction["address"])
-
-                if address_validation["isvalid"] is False:
-                    return Response(transaction["address"] + " is not a valid address",
-                                    status=status.HTTP_400_BAD_REQUEST)
-
-                received_with_risk = self.__receive_amount_for_risk(wallet_address=transaction["address"],
-                                                                    expected_amount=transaction["amount"])
-                tx_ids = self.__get_txIds(transaction["address"])
-                response = check_multi_receives.ReceiveInformationResponse(currency=transaction["currency"],
-                                                                          address=transaction["address"],
-                                                                          received=received_with_risk["result"],
-                                                                          risk=received_with_risk["risk"],
-                                                                          txids=tx_ids)
-                response_list.append(response.__dict__)
-            log.info(response_list)
-
-            for test in response_list:
-                log.info(test)
-
-            response_serializer = check_multi_receives.ReceiveInformationResponseSerializer(data=response_list,
-                                                                                           many=True)
-            if response_serializer.is_valid():
-                return Response(response_serializer.data, status=status.HTTP_201_CREATED)
-            else:
-                return Response(response_serializer.errors, status=status.HTTP_406_NOT_ACCEPTABLE)
-        return Response(post_serializers.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def __receive_amount_for_risk(self, wallet_address="", expected_amount=0):
-
-
-        result = float(btc_RPC_Call.amount_received_by_address(address=wallet_address,
-                                                               confirms=riskconstants.btc_risk_confirms['low']))
-
-        if result >= expected_amount:
-            log.info("received with 6 confirmed")
-            log.info(result)
-            log.info("low")
-            return {"result": result, "risk": 'low'}
-
-        result = float(btc_RPC_Call.amount_received_by_address(address=wallet_address,
-                                                               confirms=riskconstants.btc_risk_confirms['medium']))
-
-        if result >= expected_amount:
-            log.info("received with 1 confirmed")
-            log.info(result)
-            log.info("medium")
-            return {"result": result, "risk": 'medium'}
-
-        result = float(btc_RPC_Call.amount_received_by_address(address=wallet_address,
-                                                               confirms=riskconstants.btc_risk_confirms['high']))
-
-        if result >= expected_amount:
-            log.info("received with 0 confirmed")
-            log.info(result)
-            log.info("high")
-            return {"result": result, "risk": 'high'}
-        else:
-            log.info("received amount is not enough")
-            log.info(result)
-            return {"result": result, "risk": 'high'}
-
-    def __get_txIds(self, account=""):
-
-        txIds = []
-        transactions = btc_RPC_Call.list_transactions(account=account)
-        for transaction in transactions:
-            txIds.append(transaction["txid"])
-        return txIds
-
-
-            
 """
 class CheckAmountReceived(APIView):
 

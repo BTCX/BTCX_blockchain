@@ -7,14 +7,13 @@ from rest_framework.response import Response
 from rest_framework import status
 from quickstart.serverstatus import ServerStatus
 #from serverstatus import ServerStatus
- 
 
 
 # Create your views here.
-
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+
 
 class GroupViewSet(viewsets.ModelViewSet):
     queryset = Group.objects.all()
@@ -39,4 +38,3 @@ class MyRESTView(APIView):
 
     def post(self, request, *args, **kw):
         pass
-    
