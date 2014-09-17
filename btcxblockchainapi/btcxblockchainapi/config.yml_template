@@ -1,0 +1,19 @@
+btc:
+  receive:
+    host: 127.0.0.1
+    username: bitcoinrpc
+    key: 6CuNvnTogKqCqCA9SKrr3XBDNCPt6gVThUxUAnGWawve
+    port: 18332
+    protocol: http
+  send:
+    host: 127.0.0.1
+    username: bitcoinrpc
+    key: 6CuNvnTogKqCqCA9SKrr3XBDNCPt6gVThUxUAnGWawve
+    port: 18332
+    protocol: http
+
+
+ltc:
+
+dogecoin:
+
