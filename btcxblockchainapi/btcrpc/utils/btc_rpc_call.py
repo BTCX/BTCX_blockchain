@@ -1,13 +1,14 @@
 from bitcoinrpc.authproxy import AuthServiceProxy
-from btcxblockchainapi.servers_settings import Digital_Crypto_Currency_Server
+from btcrpc.utils.config_file_reader import ConfigFileReader
 
 
 class BTCRPCCall(object):
 
     def __init__(self, wallet="receive", currency="btc"):
-        btc_rpc_servers = Digital_Crypto_Currency_Server[currency]
-        btc_rpc_server = btc_rpc_servers[wallet]
-        self.access = AuthServiceProxy(btc_rpc_server["service"])
+        yml_config_reader = ConfigFileReader()
+        url = yml_config_reader.get_rpc_server(currency=currency, wallet=wallet)
+
+        self.access = AuthServiceProxy(url)
 
     def do_getinfo(self):
         return self.access.getinfo()
