@@ -39,7 +39,7 @@ class TxIdsField(serializers.WritableField):
             raise serializers.ValidationError(msg)
 
     def to_native(self, obj):
-        return obj
+        return obj.txids
 
 
 class ReceiveInformationResponse(object):
@@ -61,6 +61,7 @@ class ReceiveInformationResponseSerializer(serializers.Serializer):
 
 
 class ReceivesInformationResponse(object):
+
     def __init__(self, receives=[], test=False):
         self.receives = receives
         self.test = test
@@ -69,3 +70,14 @@ class ReceivesInformationResponse(object):
 class ReceivesInformationResponseSerializer(serializers.Serializer):
     receives = ReceiveInformationResponseSerializer(many=True)
     test = serializers.BooleanField()
+
+    def restore_object(self, attrs, instance=None):
+
+        if instance is not None:
+            instance.receives = attrs.get('receives', instance.receives)
+            instance.test = attrs.get('test', instance.test)
+            return instance
+        return ReceivesInformationResponse(**attrs)
+
+    class Meta:
+         fields = ('receives', 'test')

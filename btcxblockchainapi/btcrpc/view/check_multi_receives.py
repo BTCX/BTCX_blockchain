@@ -51,20 +51,16 @@ class CheckMultiAddressesReceive(APIView):
                                                                            txs=tx_ids)
                 response_list.append(response.__dict__)
 
-            log.info(response_list)
-
-            for test in response_list:
-                log.info(test)
-
             receives_response = check_multi_receives.ReceivesInformationResponse(receives=response_list,
                                                                                  test=is_test_net)
+            response_dict = receives_response.__dict__
 
-            response_serializer = check_multi_receives.ReceivesInformationResponseSerializer(receives_response)
+            response_serializer = check_multi_receives.ReceivesInformationResponseSerializer(data=response_dict)
 
-            log.info(response_serializer.is_valid())
-            log.info(response_serializer.errors)
-
-            return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+            if response_serializer.is_valid():
+                return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+            else:
+                return Response(response_serializer.errors, status=status.HTTP_406_NOT_ACCEPTABLE)
 
         return Response(post_serializers.errors, status=status.HTTP_400_BAD_REQUEST)
 
