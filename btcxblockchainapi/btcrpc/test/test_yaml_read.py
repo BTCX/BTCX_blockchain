@@ -9,6 +9,7 @@ __Date__ = '2014-09-17'
 log = get_log("YAML test")
 config_file = './btcxblockchainapi/config.yml'
 
+
 class YAMLTestCase(TestCase):
 
     def setUp(self):
