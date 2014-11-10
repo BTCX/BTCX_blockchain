@@ -49,3 +49,9 @@ class BTCRPCCall(object):
 
     def get_balance(self, account="", minconf=1):
         return self.access.getbalance(account, minconf)
+
+    def move(self, from_account="", to_account="", minconf=1):
+        return self.access.move(from_account, to_account, minconf)
+
+    def list_accounts(self, confirmations):
+        return self.access.listaccounts(confirmations)
