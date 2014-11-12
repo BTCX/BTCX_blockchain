@@ -22,8 +22,8 @@ class ConfigFileReader():
 
     def get_rpc_server(self, currency, wallet):
 
-        btc_servers = self.server_map[currency]
-        receive = btc_servers[wallet]
+        servers = self.server_map[currency]
+        receive = servers[wallet]
         username = receive['username']
         key = receive['key']
         protocol = receive['protocol']
@@ -41,3 +41,21 @@ class ConfigFileReader():
         url_list.append(str(port))
         url = ''.join(url_list)
         return url
+    
+    def get_min_transfer_confirmations(self, currency):
+
+        currency_config = self.server_map[currency]
+        min_transfer_confirmations = currency_config['min_transfer_confirmations']
+        return min_transfer_confirmations
+
+    def get_min_transfer_amount(self, currency):
+
+        currency_config = self.server_map[currency]
+        min_transfer_amount = currency_config['min_transfer_amount']
+        return min_transfer_amount
+
+    def get_safe_address_to_be_transferred(self, currency):
+
+        currency_config = self.server_map[currency]
+        safe_address_to_be_transferred = currency_config['safe_address_to_be_transferred']
+        return safe_address_to_be_transferred

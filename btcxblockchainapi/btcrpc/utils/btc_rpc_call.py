@@ -53,5 +53,8 @@ class BTCRPCCall(object):
     def move(self, from_account="", to_account="", minconf=1):
         return self.access.move(from_account, to_account, minconf)
 
-    def list_accounts(self, confirmations):
+    def list_accounts(self, confirmations=1):
         return self.access.listaccounts(confirmations)
+
+    def list_received_by_address(self, confirmations=1, include_empty=False):
+        return self.access.listreceivedbyaddress(confirmations, include_empty)

@@ -15,6 +15,7 @@ class YAMLTestCase(TestCase):
     def setUp(self):
         server_config = open(config_file)
         self.server_map = yaml.safe_load(server_config)
+        self.yml_config = ConfigFileReader()
 
     def test_read_yml(self):
 
@@ -51,3 +52,16 @@ class YAMLTestCase(TestCase):
         receive_url = yml_reader_receive.get_rpc_server(currency='btc', wallet='receive')
         log.info(receive_url)
         self.assertEqual(id(yml_reader_send), id(yml_reader_receive))
+
+    def test_get_min_transfer_confirmations(self):
+        min_transfer_confirmations = self.yml_config.get_min_transfer_confirmations(currency='btc')
+        log.info('Minimum transfer confirmations : %d' % min_transfer_confirmations)
+
+    def test_get_min_transfer_amount(self):
+        min_transfer_amount = self.yml_config.get_min_transfer_amount(currency='btc')
+        log.info('Minimum transfer amount : %f' % min_transfer_amount)
+
+    def test_get_safe_address_to_be_transferred(self):
+        safe_address_to_be_transferred = self.yml_config.get_safe_address_to_be_transferred(currency='btc')
+        log.info('Safe address to be transferred : %s' % safe_address_to_be_transferred)
+
