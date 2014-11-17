@@ -23,7 +23,7 @@ class CreateNewAddresses(APIView):
         if serializer_input.is_valid():
             currency = serializer_input.data["currency"]
             wallet = serializer_input.data["wallet"]
-            btc_rpc_call = BTCRPCCall(wallet=wallet,currency=currency)
+            btc_rpc_call = BTCRPCCall(wallet=wallet, currency=currency)
             #check is testnet or not
             is_test_net = constantutil.check_service_is_test_net(btc_rpc_call)
 

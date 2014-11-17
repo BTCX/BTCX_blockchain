@@ -33,7 +33,7 @@ class BTCRPCCall(object):
             print "calling failure"
 
     def amount_received_by_address(self, address="", confirms=0):
-        return self.access.getreceivedbyaddress(address, confirms);
+        return self.access.getreceivedbyaddress(address, confirms)
 
     def do_validate_address(self, address=""):
         return self.access.validateaddress(address)
@@ -50,11 +50,14 @@ class BTCRPCCall(object):
     def get_balance(self, account="", minconf=1):
         return self.access.getbalance(account, minconf)
 
-    def move(self, from_account="", to_account="", minconf=1):
-        return self.access.move(from_account, to_account, minconf)
+    def move(self, from_account="", to_account="", amount=0, minconf=1):
+        return self.access.move(from_account, to_account, amount, minconf)
 
     def list_accounts(self, confirmations=1):
         return self.access.listaccounts(confirmations)
 
     def list_received_by_address(self, confirmations=1, include_empty=False):
         return self.access.listreceivedbyaddress(confirmations, include_empty)
+
+    def get_addresses_by_account(self, account):
+        return self.access.getaddressesbyaccount(account)
