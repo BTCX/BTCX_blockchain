@@ -24,6 +24,8 @@ class BTCCurrencyTransfer(AbstractDigitalCurrencyTransfer):
     def __init__(self):
 
         self.yml_config = ConfigFileReader()
+        self.fee = self.yml_config.get_reserved_fee_for_transferring(currency='btc')
+        self.confirms = self.yml_config.get_min_transfer_confirmations(currency='btc')
         self.btc_rpc_call = BTCRPCCall(wallet='receive', currency='btc')
         self.coin_to_be_send_dict = self.__init_dict_of_accounts()
 
@@ -33,17 +35,20 @@ class BTCCurrencyTransfer(AbstractDigitalCurrencyTransfer):
 
     def __init_dict_of_accounts(self):
 
-        confirms = self.yml_config.get_min_transfer_confirmations(currency='btc')
-        lists_received_by_account = self.btc_rpc_call.list_accounts(confirms)
+        lists_received_by_account = self.btc_rpc_call.list_accounts(self.confirms)
 
         dict_coin_to_be_send = {}
 
         for received_account, amount in lists_received_by_account.iteritems():
 
-            amount_balance = self.btc_rpc_call.get_balance(received_account, confirms)
+            amount_balance = self.btc_rpc_call.get_balance(received_account, self.confirms)
 
             if amount_balance > 0:
                 dict_coin_to_be_send[received_account] = amount_balance
+
+            if amount_balance < 0:
+                logger_file.error("Minus value is in the account %s ", received_account)
+                raise SystemExit("Minus value is in an account!!")
 
         return dict_coin_to_be_send
 
@@ -58,19 +63,19 @@ class BTCCurrencyTransfer(AbstractDigitalCurrencyTransfer):
         min_transfer = self.yml_config.get_min_transfer_amount(currency='btc')
 
         total_amount = self.__get_total_amount_in_wallet()
-
-        logger_file.info(total_amount)
         balance_amount = (self.btc_rpc_call.do_getinfo())['balance']
 
         amount_thresh = abs(balance_amount - total_amount)
 
         if amount_thresh > 0.0001:
-            logger_file.error("There is something wrong with balance!!! %s != %s", total_amount, amount_thresh)
-            raise SystemExit("Balance is not correct!!")
+            logger_file.error("%d confirmed amount %s  != the total receiving balance %s, need more confirms",
+                              int(self.confirms), total_amount, balance_amount)
+
+        logger_file.info("Total amount of coins to be transfer: %f" % total_amount)
 
         if total_amount >= min_transfer:
             logger_file.info("Init transferring...")
-            logger_file.info("Creating a temporary address...")
+            logger_file.info("Creating a temporary address for moving coins...")
             btc_account = self.__create_an_address_with_account_assigned()
             logger_file.info("Starting to move coins to %s", btc_account)
 
@@ -86,7 +91,7 @@ class BTCCurrencyTransfer(AbstractDigitalCurrencyTransfer):
 
             send_to_address = self.yml_config.get_safe_address_to_be_transferred(currency='btc')
 
-            amount_to_transfer = float(total_amount) - 0.001
+            amount_to_transfer = float(total_amount) - float(self.fee)
 
             logger_file.info("Starting transferring %f coins to address: %s from account: %s", amount_to_transfer,
                              send_to_address, btc_account)
@@ -95,6 +100,19 @@ class BTCCurrencyTransfer(AbstractDigitalCurrencyTransfer):
             logger_file.info("Transfer is done")
         else:
             logger_file.info("It is not ready to do the coin transferring!")
+
+    def main_test(self):
+
+        total_amount = self.__get_total_amount_in_wallet()
+        logger_file.info(total_amount)
+
+        balance_amount = (self.btc_rpc_call.do_getinfo())['balance']
+        logger_file.info(balance_amount)
+
+        logger_file.info(len(self.coin_to_be_send_dict))
+
+        for received_account, amount in self.coin_to_be_send_dict.iteritems():
+            logger_file.info("account: %s, amount: %f", received_account, amount)
 
 
 if __name__ == "__main__":

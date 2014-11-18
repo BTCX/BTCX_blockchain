@@ -11,7 +11,10 @@ btc:
     key: 6CuNvnTogKqCqCA9SKrr3XBDNCPt6gVThUxUAnGWawve
     port: 18332
     protocol: http
-
+  min_transfer_confirmations: 7
+  min_transfer_amount: 0.16
+  reserved_fee: 0.001
+  safe_address_to_be_transferred: mm1XcXjGauKUSXyiCHV24cQBoRWtUmPsPd
 
 ltc:
 

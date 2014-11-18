@@ -59,3 +59,9 @@ class ConfigFileReader():
         currency_config = self.server_map[currency]
         safe_address_to_be_transferred = currency_config['safe_address_to_be_transferred']
         return safe_address_to_be_transferred
+
+    def get_reserved_fee_for_transferring(self, currency):
+        currency_config = self.server_map[currency]
+        fee = currency_config['reserved_fee']
+        return fee
+
