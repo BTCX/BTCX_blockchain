@@ -31,7 +31,10 @@ class BTCCurrencyTransfer(AbstractDigitalCurrencyTransfer):
 
     def __get_total_amount_in_wallet(self):
 
-        return reduce(lambda (coin_value), y: coin_value + y, self.coin_to_be_send_dict.values())
+        if self.coin_to_be_send_dict.values():
+            return reduce(lambda (coin_value), y: coin_value + y, self.coin_to_be_send_dict.values())
+        else:
+            return 0
 
     def __init_dict_of_accounts(self):
 
