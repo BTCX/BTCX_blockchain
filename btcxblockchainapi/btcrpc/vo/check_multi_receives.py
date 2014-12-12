@@ -30,15 +30,15 @@ class TransactionIds(object):
         self.txids = tx_ids
 
 
-class TxIdsField(serializers.WritableField):
-    def from_native(self, data):
+class TxIdsField(serializers.Field):
+    def to_internal_value(self, data):
         if isinstance(data, list):
             return TransactionIds(data)
         else:
             msg = self.error_messages['invalid']
             raise serializers.ValidationError(msg)
 
-    def to_native(self, obj):
+    def to_representation(self, obj):
         return obj.txids
 
 
@@ -71,7 +71,7 @@ class ReceivesInformationResponseSerializer(serializers.Serializer):
     receives = ReceiveInformationResponseSerializer(many=True)
     test = serializers.BooleanField()
 
-    def restore_object(self, attrs, instance=None):
+    def update(self, attrs, instance=None):
 
         if instance is not None:
             instance.receives = attrs.get('receives', instance.receives)

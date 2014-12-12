@@ -44,11 +44,13 @@ class CheckMultiAddressesReceive(APIView):
                                                                     btc_service=btc_rpc_call)
                 tx_ids = self.__get_txIds(transaction["address"], btc_service=btc_rpc_call)
                 log.info(tx_ids)
-                response = check_multi_receives.ReceiveInformationResponse(currency=transaction["currency"],
-                                                                           address=transaction["address"],
-                                                                           received=received_with_risk["result"],
-                                                                           risk=received_with_risk["risk"],
-                                                                           txs=tx_ids)
+                response = check_multi_receives.\
+                    ReceiveInformationResponse(currency=transaction["currency"],
+                                               address=transaction["address"],
+                                               received=format(received_with_risk["result"], '8f'),
+                                               risk=received_with_risk["risk"],
+                                               txs=tx_ids)
+
                 response_list.append(response.__dict__)
 
             receives_response = check_multi_receives.ReceivesInformationResponse(receives=response_list,
@@ -100,11 +102,17 @@ class CheckMultiAddressesReceive(APIView):
             log.info(result)
             return {"result": result, "risk": 'high'}
 
+
     def __get_txIds(self, account="", btc_service=BTCRPCCall()):
 
         if not isinstance(btc_service, BTCRPCCall):
             raise TypeError("Expected object BTCRPCCall, got %s" % (type(btc_service),))
 
         transactions = btc_service.list_transactions(account=account)
-        txIds = map(lambda transaction: transaction["txid"], transactions)
+        transactions_with_tx_id = []
+        for transaction in transactions:
+            if 'txid' in transaction:
+                transactions_with_tx_id.append(transaction)
+
+        txIds = map(lambda transaction: transaction['txid'], transactions_with_tx_id)
         return txIds

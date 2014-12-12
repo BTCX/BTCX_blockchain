@@ -90,15 +90,15 @@ class NewAddresses(object):
         self._test = value
 
 
-class AddressesField(serializers.WritableField):
-    def from_native(self, data):
+class AddressesField(serializers.Field):
+    def to_internal_value(self, data):
         if isinstance(data, list):
             return NewAddresses(data)
         else:
             msg = self.error_messages['invalid']
             raise serializers.ValidationError(msg)
 
-    def to_native(self, obj):
+    def to_representation(self, obj):
         return obj.addresses
 
 
