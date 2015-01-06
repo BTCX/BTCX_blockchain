@@ -10,11 +10,13 @@ from rest_framework.response import Response
 from rest_framework import status
 from btcrpc.utils.log import *
 from btcrpc.vo.send import *
+from rest_framework.permissions import IsAdminUser
 
 log = get_log("send currency view")
 
 
 class SendCurrencyView(APIView):
+    permission_classes = (IsAdminUser,)
 
     def post(self, request):
 

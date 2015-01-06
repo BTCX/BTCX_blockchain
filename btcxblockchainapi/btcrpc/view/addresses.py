@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from btcrpc.utils import constantutil
 from btcrpc.utils.btc_rpc_call import BTCRPCCall
+from rest_framework.permissions import IsAdminUser
 
 from btcrpc.views import attributeConst
 from btcrpc.vo import addresses
@@ -15,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 class CreateNewAddresses(APIView):
+    permission_classes = (IsAdminUser,)
 
     def post(self, request):
 
