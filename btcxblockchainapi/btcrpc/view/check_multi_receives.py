@@ -47,7 +47,7 @@ class CheckMultiAddressesReceive(APIView):
                 response = check_multi_receives.\
                     ReceiveInformationResponse(currency=transaction["currency"],
                                                address=transaction["address"],
-                                               received=format(received_with_risk["result"], '8f'),
+                                               received=format(received_with_risk["result"], '.8f'),
                                                risk=received_with_risk["risk"],
                                                txs=tx_ids)
 
