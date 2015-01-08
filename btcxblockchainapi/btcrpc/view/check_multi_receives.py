@@ -6,6 +6,7 @@ from btcrpc.utils.log import get_log
 from btcrpc.vo import check_multi_receives
 from rest_framework.response import Response
 from rest_framework import status
+from decimal import *
 import simplejson
 from rest_framework.parsers import JSONParser
 from StringIO import StringIO
@@ -44,10 +45,13 @@ class CheckMultiAddressesReceive(APIView):
                                                                     btc_service=btc_rpc_call)
                 tx_ids = self.__get_txIds(transaction["address"], btc_service=btc_rpc_call)
                 log.info(tx_ids)
+                log.info(Decimal(format((received_with_risk["result"]), '0.8f')))
+                log.info(type((received_with_risk["result"])))
+                log.info(type(Decimal.from_float(received_with_risk["result"])))
                 response = check_multi_receives.\
                     ReceiveInformationResponse(currency=transaction["currency"],
                                                address=transaction["address"],
-                                               received=format(received_with_risk["result"], '.8f'),
+                                               received=format(received_with_risk["result"], '0.8f'),
                                                risk=received_with_risk["risk"],
                                                txs=tx_ids)
 

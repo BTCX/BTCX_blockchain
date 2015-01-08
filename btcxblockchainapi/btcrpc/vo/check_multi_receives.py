@@ -1,4 +1,5 @@
 from btcrpc.utils.log import get_log
+from decimal import *
 
 __author__ = 'sikamedia'
 
@@ -6,6 +7,7 @@ from rest_framework import serializers
 
 
 log = get_log("CheckMultiAddressesReceive vo")
+
 
 class PostParameters(object):
 
@@ -23,7 +25,7 @@ class TransactionSerializer(serializers.Serializer):
 class PostParametersSerializer(serializers.Serializer):
     transactions = TransactionSerializer(many=True)
 
-
+"""
 class TransactionIds(object):
 
     def __init__(self, tx_ids=[]):
@@ -40,6 +42,7 @@ class TxIdsField(serializers.Field):
 
     def to_representation(self, obj):
         return obj.txids
+"""
 
 
 class ReceiveInformationResponse(object):
@@ -55,9 +58,12 @@ class ReceiveInformationResponse(object):
 class ReceiveInformationResponseSerializer(serializers.Serializer):
     currency = serializers.CharField(max_length=20)
     address = serializers.CharField(max_length=128)
-    received = serializers.FloatField()
+    received = serializers.CharField()
     risk = serializers.CharField(max_length=10)  # high, medium, low
-    txids = TxIdsField()
+    txids = serializers.ListField(child=serializers.CharField(max_length=128))
+
+    class Meta:
+        fields = ('currency', 'address', 'received', 'risk', 'txids')
 
 
 class ReceivesInformationResponse(object):
@@ -67,6 +73,11 @@ class ReceivesInformationResponse(object):
         self.test = test
 
 
+class ReceivesInformationResponseSerializer(serializers.Serializer):
+    receives = serializers.ListField(child=ReceiveInformationResponseSerializer())
+    test = serializers.BooleanField()
+
+"""
 class ReceivesInformationResponseSerializer(serializers.Serializer):
     receives = ReceiveInformationResponseSerializer(many=True)
     test = serializers.BooleanField()
@@ -81,3 +92,4 @@ class ReceivesInformationResponseSerializer(serializers.Serializer):
 
     class Meta:
          fields = ('receives', 'test')
+"""
