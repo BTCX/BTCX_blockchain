@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
-from btcrpc.constants import riskconstants
 from btcrpc.utils import constantutil
 from btcrpc.utils.btc_rpc_call import BTCRPCCall
+from btcrpc.utils.config_file_reader import ConfigFileReader
 from btcrpc.utils.log import get_log
 from btcrpc.vo import check_multi_receives
 from rest_framework.response import Response
@@ -17,6 +17,10 @@ __Date__ = '2014-09-11'
 
 
 log = get_log("CheckMultiAddressesReceive view")
+yml_config = ConfigFileReader()
+risk_low_confirmations = yml_config.get_confirmations_mapping_to_risk(currency='btc', risk='low')
+risk_medium_confirmations = yml_config.get_confirmations_mapping_to_risk(currency='btc', risk='medium')
+risk_high_confirmations = yml_config.get_confirmations_mapping_to_risk(currency='btc', risk='high')
 
 
 class CheckMultiAddressesReceive(APIView):
@@ -75,8 +79,7 @@ class CheckMultiAddressesReceive(APIView):
         if not isinstance(btc_service, BTCRPCCall):
             raise TypeError("Expected object BTCRPCCall, got %s" % (type(btc_service),))
 
-        result = float(btc_service.amount_received_by_address(address=wallet_address,
-                                                              confirms=riskconstants.btc_risk_confirms['low']))
+        result = float(btc_service.amount_received_by_address(address=wallet_address, confirms=risk_low_confirmations))
 
         if result >= expected_amount:
             log.info("received with 6 confirmed")
@@ -85,7 +88,7 @@ class CheckMultiAddressesReceive(APIView):
             return {"result": result, "risk": 'low'}
 
         result = float(btc_service.amount_received_by_address(address=wallet_address,
-                                                              confirms=riskconstants.btc_risk_confirms['medium']))
+                                                              confirms=risk_medium_confirmations))
 
         if result >= expected_amount:
             log.info("received with 1 confirmed")
@@ -93,8 +96,7 @@ class CheckMultiAddressesReceive(APIView):
             log.info("medium")
             return {"result": result, "risk": 'medium'}
 
-        result = float(btc_service.amount_received_by_address(address=wallet_address,
-                                                              confirms=riskconstants.btc_risk_confirms['high']))
+        result = float(btc_service.amount_received_by_address(address=wallet_address, confirms=risk_high_confirmations))
 
         if result >= expected_amount:
             log.info("received with 0 confirmed")

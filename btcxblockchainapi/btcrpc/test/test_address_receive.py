@@ -2,13 +2,18 @@ from django.test import TestCase
 from ddt import ddt, data
 
 from btcrpc.utils import btc_rpc_call
+from btcrpc.utils.config_file_reader import ConfigFileReader
 from btcrpc.utils.timeUtil import TimeUtils
 from btcrpc.utils.log import *
 from btcrpc.vo.check_multi_receives import *
-from btcrpc.constants import riskconstants
 
 
 log = get_log("test_address_receive")
+yml_config = ConfigFileReader()
+risk_low_confirmations = yml_config.get_confirmations_mapping_to_risk(currency='btc', risk='low')
+risk_medium_confirmations = yml_config.get_confirmations_mapping_to_risk(currency='btc', risk='medium')
+risk_high_confirmations = yml_config.get_confirmations_mapping_to_risk(currency='btc', risk='high')
+
 
 @ddt
 class BTCRPCTestCase(TestCase):
@@ -83,8 +88,8 @@ class BTCRPCTestCase(TestCase):
         address="mopxUEXSLv8Auc8AgAdHAjBwwUQeWjsGN2"
         expected_amount = 0.2
 
-        result = float(btc_rpc_call.BTCRPCCall.amount_received_by_address(address=address,
-                                                                          confirms=riskconstants.btc_risk_confirms['low']))
+        result = float(btc_rpc_call.BTCRPCCall().amount_received_by_address(address=address,
+                                                                            confirms=risk_low_confirmations))
 
         if result >= expected_amount:
             log.info("received with 6 confirmed")
@@ -92,8 +97,8 @@ class BTCRPCTestCase(TestCase):
             log.info("low")
             return
 
-        result = float(btc_rpc_call.BTCRPCCall.amount_received_by_address(address=address,
-                                                                          confirms=riskconstants.btc_risk_confirms['medium']))
+        result = float(btc_rpc_call.BTCRPCCall().amount_received_by_address(address=address,
+                                                                            confirms=risk_medium_confirmations))
 
         if result >= expected_amount:
             log.info("received with 1 confirmed")
@@ -101,8 +106,8 @@ class BTCRPCTestCase(TestCase):
             log.info("medium")
             return
 
-        result = float(btc_rpc_call.BTCRPCCall.amount_received_by_address(address=address,
-                                                                          confirms=riskconstants.btc_risk_confirms['high']))
+        result = float(btc_rpc_call.BTCRPCCall().amount_received_by_address(address=address,
+                                                                            confirms=risk_high_confirmations))
 
         if result >= expected_amount:
             log.info("received with 0 confirmed")
@@ -119,28 +124,30 @@ class BTCRPCTestCase(TestCase):
         log.info("test example 1:")
         address = "mopxUEXSLv8Auc8AgAdHAjBwwUQeWjsGN2"
 
-        transactions = btc_rpc_call.BTCRPCCall.list_transactions(account=address)
+        transactions = btc_rpc_call.BTCRPCCall().list_transactions(account=address)
 
         for transaction in transactions:
-            log.info(transaction["txid"])
+            if 'txid' in transaction:
+                log.info(transaction['txid'])
 
 
 
         log.info("test example 2:")
         address = "n3AKNG5vNXtQS4Ci7YQVQHRs5fuX3M3wor"
 
-        transactions = btc_rpc_call.BTCRPCCall.list_transactions(account=address)
+        transactions = btc_rpc_call.BTCRPCCall().list_transactions(account=address)
 
         for transaction in transactions:
-            log.info(transaction["txid"])
+            if transaction['category'] is 'move':
+                log.info(transaction['txid'])
 
     def test_balance_with_a_account(self):
 
         account = "mfhz9hpDawwxjpyAnLAdVq2j74mckeSrsi"
-        log.info(btc_rpc_call.BTCRPCCall.get_balance(account))
+        log.info(btc_rpc_call.BTCRPCCall().get_balance(account=account))
 
         account = "mopxUEXSLv8Auc8AgAdHAjBwwUQeWjsGN2"
-        log.info(btc_rpc_call.BTCRPCCall.get_balance(account))
+        log.info(btc_rpc_call.BTCRPCCall().get_balance(account=account))
 
         account = "mjuJVCKpMyuLSXvuV5SPcbunsJonqSsuxK"
-        log.info(btc_rpc_call.BTCRPCCall.get_balance(account))
+        log.info(btc_rpc_call.BTCRPCCall().get_balance(account=account))

@@ -12,7 +12,6 @@ from utils.timeUtil import TimeUtils
 from utils.jsonutil import JsonUtils
 from btcrpc.constants.api_output_result import *
 from vo.confirmation import *
-from btcrpc.constants import riskconstants
 
 
 btc_RPC_Call = BTCRPCCall()

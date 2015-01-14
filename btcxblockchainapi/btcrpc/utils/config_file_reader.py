@@ -23,12 +23,12 @@ class ConfigFileReader():
     def get_rpc_server(self, currency, wallet):
 
         servers = self.server_map[currency]
-        receive = servers[wallet]
-        username = receive['username']
-        key = receive['key']
-        protocol = receive['protocol']
-        host = receive['host']
-        port = receive['port']
+        wallet_server = servers[wallet]
+        username = wallet_server['username']
+        key = wallet_server['key']
+        protocol = wallet_server['protocol']
+        host = wallet_server['host']
+        port = wallet_server['port']
         url_list = list()
         url_list.append(protocol)
         url_list.append('://')
@@ -64,4 +64,9 @@ class ConfigFileReader():
         currency_config = self.server_map[currency]
         fee = currency_config['reserved_fee']
         return fee
+
+    def get_confirmations_mapping_to_risk(self, currency, risk):
+        currency_config = self.server_map[currency]
+        return currency_config['risk_confirmations'][risk]
+
 

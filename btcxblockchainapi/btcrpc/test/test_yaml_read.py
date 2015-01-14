@@ -8,6 +8,9 @@ __Date__ = '2014-09-17'
 
 log = get_log("YAML test")
 config_file = './btcxblockchainapi/config.yml'
+risk_low_confirmations = 6
+risk_medium_confirmations = 1
+risk_high_confirmations = 0
 
 
 class YAMLTestCase(TestCase):
@@ -65,3 +68,17 @@ class YAMLTestCase(TestCase):
         safe_address_to_be_transferred = self.yml_config.get_safe_address_to_be_transferred(currency='btc')
         log.info('Safe address to be transferred : %s' % safe_address_to_be_transferred)
 
+    def test_get_risk_confirmations_low(self):
+        risk_low_confirmations_from_config = self.yml_config.get_confirmations_mapping_to_risk(currency='btc',
+                                                                                               risk='low')
+        self.assertEqual(risk_low_confirmations, risk_low_confirmations_from_config)
+
+    def test_get_risk_confirmations_medium(self):
+        risk_low_confirmations_from_config = self.yml_config.get_confirmations_mapping_to_risk(currency='btc',
+                                                                                               risk='medium')
+        self.assertEqual(risk_medium_confirmations, risk_low_confirmations_from_config)
+
+    def test_get_risk_confirmations_high(self):
+        risk_low_confirmations_from_config = self.yml_config.get_confirmations_mapping_to_risk(currency='btc',
+                                                                                               risk='high')
+        self.assertEqual(risk_high_confirmations, risk_low_confirmations_from_config)
