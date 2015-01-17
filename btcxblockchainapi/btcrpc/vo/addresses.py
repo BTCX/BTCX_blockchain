@@ -89,7 +89,7 @@ class NewAddresses(object):
     def set_test(self, value):
         self._test = value
 
-
+"""
 class AddressesField(serializers.Field):
     def to_internal_value(self, data):
         if isinstance(data, list):
@@ -100,12 +100,13 @@ class AddressesField(serializers.Field):
 
     def to_representation(self, obj):
         return obj.addresses
+"""
 
 
 #check http://stackoverflow.com/questions/17289039/how-can-i-define-a-list-field-in-django-rest-framework
 class NewAddressesSerializer(serializers.Serializer):
     test = serializers.BooleanField()
-    addresses = AddressesField()
+    addresses = serializers.ListField(child=serializers.CharField(max_length=128))
 
 
 

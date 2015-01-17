@@ -26,7 +26,7 @@ class CreateNewAddresses(APIView):
             currency = serializer_input.data["currency"]
             wallet = serializer_input.data["wallet"]
             btc_rpc_call = BTCRPCCall(wallet=wallet, currency=currency)
-            #check is testnet or not
+            #check is on testnet or not.
             is_test_net = constantutil.check_service_is_test_net(btc_rpc_call)
 
             logger.info("quantity is " + str(serializer_input.data["quantity"]) + ".")
