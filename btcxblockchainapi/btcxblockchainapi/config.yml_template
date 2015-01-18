@@ -1,4 +1,7 @@
 btc:
+  wallets:
+    - receive
+    - send
   receive:
     host: 127.0.0.1
     username: bitcoinrpc

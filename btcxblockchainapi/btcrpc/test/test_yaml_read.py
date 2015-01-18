@@ -25,6 +25,7 @@ class YAMLTestCase(TestCase):
         log.info(self.server_map)
         expect_url = "http://bitcoinrpc:6CuNvnTogKqCqCA9SKrr3XBDNCPt6gVThUxUAnGWawve@127.0.0.1:18332"
         btc_servers = self.server_map['btc']
+        wallets = btc_servers['wallets']
         receive = btc_servers['receive']
         username = receive['username']
         key = receive['key']
@@ -44,6 +45,7 @@ class YAMLTestCase(TestCase):
 
         url = ''.join(url_list)
         log.info(url)
+        log.info("wallets are %s ." % wallets)
         self.assertEquals(url, expect_url)
 
     def test_singleton_yml_reader(self):
