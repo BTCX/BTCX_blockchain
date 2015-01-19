@@ -27,7 +27,7 @@ class SendCurrencyView(APIView):
         if serializer.is_valid():
 
             currency = serializer.data["currency"]
-            btc_rpc_call = BTCRPCCall(wallet=serializer.data["wallet"],currency=currency)
+            btc_rpc_call = BTCRPCCall(wallet=serializer.data["wallet"], currency=currency)
              #check is testnet or not
             is_test_net = constantutil.check_service_is_test_net(btc_rpc_call)
 
