@@ -41,6 +41,12 @@ class ConfigFileReader():
         url_list.append(str(port))
         url = ''.join(url_list)
         return url
+
+    def get_wallet_list(self, currency):
+
+        currency_config = self.server_map[currency]
+        wallet_list = currency_config['wallets']
+        return wallet_list
     
     def get_min_transfer_confirmations(self, currency):
 
