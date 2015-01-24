@@ -50,6 +50,9 @@ class BTCRPCCall(object):
     def get_balance(self, account="", minconf=1):
         return self.access.getbalance(account, minconf)
 
+    def get_wallet_balance(self):
+        return self.access.getbalance()
+
     def move(self, from_account="", to_account="", amount=0, minconf=1):
         return self.access.move(from_account, to_account, amount, minconf)
 

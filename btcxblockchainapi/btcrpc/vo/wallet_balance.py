@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 __author__ = 'sikamedia'
 __Date__ = '2015-01-17'
 
@@ -18,9 +20,8 @@ class GetWalletBalancePostParameterSerializer(serializers.Serializer):
 
 class WalletBalanceResponse(object):
 
-    def __init__(self, wallet="", pending=0, balance=0, test=False):
+    def __init__(self, wallet="", balance=Decimal(0), test=False):
         self.wallet = wallet
-        self.pending = pending
         self.balance = balance
         self.test = test
 
@@ -28,8 +29,7 @@ class WalletBalanceResponse(object):
 class WalletBalanceResponseSerializer(serializers.Serializer):
 
     wallet = serializers.CharField(max_length=32)
-    pending = serializers.CharField()
-    balance = serializers.CharField()
+    balance = serializers.DecimalField(max_digits=18, decimal_places=8, coerce_to_string=False)
     test = serializers.BooleanField()
 
 
