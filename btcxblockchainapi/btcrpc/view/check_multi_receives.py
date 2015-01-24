@@ -49,13 +49,11 @@ class CheckMultiAddressesReceive(APIView):
                                                                     btc_service=btc_rpc_call)
                 tx_ids = self.__get_txIds(transaction["address"], btc_service=btc_rpc_call)
                 log.info(tx_ids)
-                log.info(Decimal(format((received_with_risk["result"]), '0.8f')))
-                log.info(type((received_with_risk["result"])))
-                log.info(type(Decimal.from_float(received_with_risk["result"])))
+                log.info(Decimal(received_with_risk["result"]))
                 response = check_multi_receives.\
                     ReceiveInformationResponse(currency=transaction["currency"],
                                                address=transaction["address"],
-                                               received=format(received_with_risk["result"], '0.8f'),
+                                               received=Decimal(received_with_risk["result"]),
                                                risk=received_with_risk["risk"],
                                                txs=tx_ids)
 
