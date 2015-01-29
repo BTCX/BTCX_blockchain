@@ -58,7 +58,7 @@ class ReceiveInformationResponse(object):
 class ReceiveInformationResponseSerializer(serializers.Serializer):
     currency = serializers.CharField(max_length=20)
     address = serializers.CharField(max_length=128)
-    received = serializers.DecimalField(max_digits=18, decimal_places=8, coerce_to_string=False)
+    received = serializers.DecimalField(max_digits=128, decimal_places=64, coerce_to_string=False)
     risk = serializers.CharField(max_length=10)  # high, medium, low
     txids = serializers.ListField(child=serializers.CharField(max_length=128))
 
