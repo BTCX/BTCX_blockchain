@@ -4,8 +4,6 @@ from rest_framework.response import Response
 from rest_framework import status
 import simplejson
 from rest_framework import viewsets
-from ws4redis.publisher import RedisPublisher
-from ws4redis.redis_store import RedisMessage
 
 from btcrpc.utils.btc_rpc_call import BTCRPCCall
 from btcrpc.vo.balance import GetBalancePostParameter
