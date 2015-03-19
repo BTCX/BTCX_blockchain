@@ -76,6 +76,6 @@ class SendCurrencyView(APIView):
             return Response(data=send_response_serializer.data, status=status.HTTP_200_OK)
 
     def __send_to(self, send_status="", message="", test=False):
-        response = SendFromResponse(status=send_status,message=message, test=test)
+        response = SendFromResponse(status=send_status, message=message, test=test)
         response_serializer = SendFromResponseSerializer(response)
         return response_serializer

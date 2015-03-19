@@ -4,6 +4,7 @@ from rest_framework.urlpatterns import format_suffix_patterns
 #from quickstart import views
 #from btcrpc import views
 from btcrpc.view.check_wallets_balance import CheckWalletsBalance
+from btcrpc.view.transfer import TransferCurrencyView
 from btcrpc.views import *
 from quickstart.views import *
 from btcrpc.view.balance import *
@@ -37,6 +38,9 @@ urlpatterns = patterns('',
     url(r'^api/v1/balance/$', GetBalanceView.as_view(), name="BTC_GET_BALANCE_FOR_A_ADDRESS"),
     url(r'^api/v1/send/$', SendCurrencyView.as_view(), name="BTC_SEND_To_A_ADDRESS"),
     url(r'^api/v1/wallet/balance/$', CheckWalletsBalance.as_view(), name="Check_Wallets_Balance"),
+    url(r'^api/v1/transfer/$', TransferCurrencyView.as_view(), name="Transfer_currency_to_a_fixed_address"),
+    #url(r'^ws/foo$', WalletNotificationView.as_view(), name="Wallets_Balance_notification"),
+
     #url(r'^api/v1/receive/(?P<txid>[A-Za-z0-9]+)/$', CheckTransaction.as_view(), name = "Check a receive transaction"),
     #url(r'^api/v1/receive/(?P<address>[A-Za-z0-9]+)/$', CheckAmountReceived.as_view(), name = "Check amount received from a address"),
     )

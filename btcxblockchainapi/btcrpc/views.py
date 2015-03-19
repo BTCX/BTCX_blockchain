@@ -1,8 +1,11 @@
+from django.views.generic.base import View, TemplateView
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 import simplejson
 from rest_framework import viewsets
+from ws4redis.publisher import RedisPublisher
+from ws4redis.redis_store import RedisMessage
 
 from btcrpc.utils.btc_rpc_call import BTCRPCCall
 from btcrpc.vo.balance import GetBalancePostParameter
@@ -18,6 +21,18 @@ btc_RPC_Call = BTCRPCCall()
 attributeConst = AddressReceiveOutputAttributeConst()
 log = get_log("btcrpc_view")
 
+"""
+class WalletNotificationView(View):
+
+    def __init__(self):
+        self.redis_publisher = RedisPublisher(facility='foo', broadcast=True)
+
+    def get(self, request):
+        #data_for_websocket = json.dumps({'some': 'data'})
+        #self.redis_publisher.publish_message(RedisMessage(data_for_websocket))
+        welcome = RedisMessage('Hello everybody')  # create a welcome message to be sent to everybody
+        self.redis_publisher.publish_message(welcome)
+"""
 
 class BTCGetInfoView(APIView):
     

@@ -1,5 +1,4 @@
 from btcrpc.utils.log import get_log
-from decimal import *
 
 __author__ = 'sikamedia'
 
