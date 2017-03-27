@@ -121,4 +121,3 @@ class BTCCurrencyTransfer(AbstractDigitalCurrencyTransfer):
 if __name__ == "__main__":
     run_transfer = BTCCurrencyTransfer()
     run_transfer.main()
-

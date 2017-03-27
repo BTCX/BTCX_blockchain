@@ -1,4 +1,4 @@
-from django.conf.urls import patterns, include, url
+from django.conf.urls import url, include
 from rest_framework import routers
 from rest_framework.urlpatterns import format_suffix_patterns
 #from quickstart import views
@@ -21,7 +21,7 @@ router.register(r'users',  UserViewSet)
 router.register(r'groups', GroupViewSet)
 #router.register(r'api/v1/status', views.MyRESTView)
 
-urlpatterns = patterns('',
+urlpatterns = ['',
     # Examples:
     # url(r'^$', 'btcxblockchainapi.views.home', name='home'),
     # url(r'^blog/', include('blog.urls')),
@@ -43,6 +43,6 @@ urlpatterns = patterns('',
 
     #url(r'^api/v1/receive/(?P<txid>[A-Za-z0-9]+)/$', CheckTransaction.as_view(), name = "Check a receive transaction"),
     #url(r'^api/v1/receive/(?P<address>[A-Za-z0-9]+)/$', CheckAmountReceived.as_view(), name = "Check amount received from a address"),
-    )
+    ]
 
 #urlpatterns = format_suffix_patterns(urlpatterns)

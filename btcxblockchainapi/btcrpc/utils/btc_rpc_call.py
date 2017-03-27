@@ -19,9 +19,9 @@ class BTCRPCCall(object):
     def do_set_account(self, address, account):
         return self.access.setaccount(address, account)
 
-    def do_get_transaction(self, txid):
+    def do_get_transaction(self, tx_id):
         try:
-            return self.access.gettransaction(txid)
+            return self.access.gettransaction(tx_id)
         except RuntimeError:
             #return simplejson.dumps ({u'error' : u'txid is not valid'})
             return None
