@@ -1,4 +1,4 @@
-1. install pip
+1. install pip (Strongly recommend to install Anaconda python)
 2. Go to the btcxblockchainapi folder
 3. make install -> install all required packages for application
 4. make initdb  -> init DB
