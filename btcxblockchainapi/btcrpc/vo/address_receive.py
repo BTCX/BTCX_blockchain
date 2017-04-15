@@ -1,10 +1,10 @@
 from rest_framework import serializers
 
 class AddressReceiveInputParaMeter(object):
-    
-    def __init__(self, apikey="", currency="btc", amount=0, address="", test=False, confirms = 0):
+
+    def __init__(self, api_key="", currency="btc", amount=0, address="", test=False, confirms = 0):
        
-        self._apikey = apikey
+        self._api_key = api_key
         self._currency = currency
         self._amount = amount
         self._address = address
@@ -12,12 +12,12 @@ class AddressReceiveInputParaMeter(object):
         self._confirms = confirms  
             
     @property
-    def apikey(self):
-        return self._apikey
+    def api_key(self):
+        return self._api_key
 
-    @apikey.setter
-    def apikey(self, value):
-        self._apikey = value
+    @api_key.setter
+    def api_key(self, value):
+        self._api_key = value
 
     @property
     def currency(self):
@@ -61,7 +61,7 @@ class AddressReceiveInputParaMeter(object):
         
 class AddressReceiveInputSerializer(serializers.Serializer):
 
-    apikey = serializers.CharField(max_length=200)
+    api_key = serializers.CharField(max_length=200)
     currency = serializers.CharField(max_length=20)
     test = serializers.BooleanField();
     address = serializers.CharField(max_length=200)
@@ -76,7 +76,7 @@ class AddressReceiveOutput(object):
         self._address = ""
         self._message = None
         self._test = False
-        self._amountreceived = 0.0
+        self._amount_received = 0.0
         
     @property
     def address(self):
@@ -128,12 +128,12 @@ class AddressReceiveOutput(object):
         self._test = value
 
     @property
-    def amountreceived(self):
-        return self._amountreceived
+    def amount_received(self):
+        return self._amount_received
 
-    @amountreceived.setter
-    def amountreceived(self, value):
-        self._amountreceived = value
+    @amount_received.setter
+    def amount_received(self, value):
+        self._amount_received = value
     
         
 class AddressReceiveOutputSerializer(serializers.Serializer):
@@ -144,4 +144,4 @@ class AddressReceiveOutputSerializer(serializers.Serializer):
     address = serializers.CharField(max_length=200)
     message = serializers.CharField(max_length=200)
     test = serializers.BooleanField()
-    amountreceived = serializers.FloatField()
+    amount_received = serializers.FloatField()

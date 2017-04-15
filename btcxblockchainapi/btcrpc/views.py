@@ -94,7 +94,7 @@ class BTCCheckAddressReceive(APIView):
             output_result.amount = amount_input
             output_result.currency = currency_input
             output_result.test = test_input
-            output_result.amountreceived = received_amount
+            output_result.amount_received = received_amount
 
             if amount_input == received_amount:
                 output_result.state = STATUS_COMPLETED
