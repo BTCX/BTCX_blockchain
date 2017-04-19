@@ -1,45 +1,38 @@
 btc:
-  receive:
-    name: recieve1
+  receive_1:
     host: 172.16.0.5
-    username: username1
     key: pass1
+    min_transfer_amount: 0.16
+    min_transfer_confirmations: 2
     port: 8332
     protocol: http
-    min_transfer_confirmations: 2
-    min_transfer_amount: 0.16
+    risk_confirmations:
+      high: 0
+      low: 2
+      medium: 1
     safe_address_to_be_transferred: 1btcaddress
-    risk_confirmations:
-      high: 0
-      medium: 1
-      low: 2
-  receive:
-    name: recieve_backup
+    type: recieve
+    username: username1
+  receive_2:
     host: 172.16.0.8
-    username: username2
     key: pass2
+    min_transfer_amount: 0.16
+    min_transfer_confirmations: 2
     port: 8332
     protocol: http
-    min_transfer_confirmations: 2
-    min_transfer_amount: 0.16
-    safe_address_to_be_transferred: 1btcaddress2
     risk_confirmations:
       high: 0
-      medium: 1
       low: 2
-  send:
-    name: send_1
+      medium: 1
+    safe_address_to_be_transferred: 1btcaddress2
+    type: recieve
+    username: username2
+  send_1:
     host: 172.16.0.6
-    username: username3
     key: pass3
+    min_transfer_amount: 0.16
+    min_transfer_confirmations: 2
     port: 8332
     protocol: http
-    min_transfer_confirmations: 2
-    min_transfer_amount: 0.16
-
-ltc:
-
-dogecoin:
-
-
-eth:
+    type: send
+    username: username3
