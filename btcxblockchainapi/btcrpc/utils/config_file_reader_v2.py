@@ -12,13 +12,13 @@ class ConfigFileReader(object):
         self.server_map = yaml.safe_load(server_config)
 
     def get_rpc_server(self, currency, wallet):
-        servers = self.server_map[currency]
-        wallet_server = servers[wallet]
-        username = wallet_server['username']
-        key = wallet_server['key']
-        protocol = wallet_server['protocol']
-        host = wallet_server['host']
-        port = wallet_server['port']
+        wallets = self.server_map[currency]
+        wallet_config = wallets[wallet]
+        username = wallet_config['username']
+        key = wallet_config['key']
+        protocol = wallet_config['protocol']
+        host = wallet_config['host']
+        port = wallet_config['port']
         url_list = list()
         url_list.append(protocol)
         url_list.append('://')
@@ -31,3 +31,7 @@ class ConfigFileReader(object):
         url_list.append(str(port))
         url = ''.join(url_list)
         return url
+
+    def get_wallet_list(self, currency):
+        wallets = self.server_map[currency]
+        return wallets.keys()
