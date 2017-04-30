@@ -26,8 +26,8 @@ risk_high_confirmations = yml_config.get_confirmations_mapping_to_risk(currency=
 class CheckMultiAddressesReceive(APIView):
 
     def post(self, request):
-        log.info(request.DATA)
-        post_serializers = check_multi_receives.PostParametersSerializer(data=request.DATA)
+        log.info(request.data)
+        post_serializers = check_multi_receives.PostParametersSerializer(data=request.data)
         btc_rpc_call = BTCRPCCall()
         is_test_net = constantutil.check_service_is_test_net(btc_rpc_call)
 
