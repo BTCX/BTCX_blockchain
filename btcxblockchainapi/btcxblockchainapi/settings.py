@@ -38,7 +38,7 @@ INSTALLED_APPS = (
     'ethereum.apps.EthereumConfig'
     #'sslserver',
 )
-0
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',

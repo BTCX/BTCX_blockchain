@@ -62,5 +62,3 @@ class ConfigFileReader(object):
     def get_confirmations_mapping_to_risk(self, currency, risk):
         currency_config = self.server_map[currency]
         return currency_config['risk_confirmations'][risk]
-
-
