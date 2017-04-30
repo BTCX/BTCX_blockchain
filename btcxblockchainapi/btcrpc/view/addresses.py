@@ -20,7 +20,7 @@ class CreateNewAddresses(APIView):
 
     def post(self, request):
 
-        serializer_input = addresses.NewAddressesPostParametersSerializer(data=request.DATA)
+        serializer_input = addresses.NewAddressesPostParametersSerializer(data=request.data)
 
         if serializer_input.is_valid():
             currency = serializer_input.data["currency"]
