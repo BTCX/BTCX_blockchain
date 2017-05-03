@@ -64,3 +64,6 @@ class BTCRPCCall(object):
 
     def get_addresses_by_account(self, account):
         return self.access.getaddressesbyaccount(account)
+
+    def set_tx_fee(self, amount):
+        return self.access.settxfee(amount)

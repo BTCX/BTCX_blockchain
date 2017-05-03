@@ -1,8 +1,6 @@
 from bitcoinrpc.authproxy import JSONRPCException
 from btcrpc.vo import send
 
-__author__ = 'sikamedia'
-
 from btcrpc.utils.btc_rpc_call import BTCRPCCall
 from btcrpc.utils import constantutil
 from rest_framework.views import APIView
@@ -11,9 +9,15 @@ from rest_framework import status
 from btcrpc.utils.log import *
 from btcrpc.vo.send import *
 from rest_framework.permissions import IsAdminUser
+import sherlock
+from sherlock import MCLock
+from pylibmc import ConnectionError
+from sherlock.lock import LockTimeoutException, LockException
 
 log = get_log("send currency view")
 
+# define a locker for btcrpc.view.send
+lock = MCLock(__name__)
 
 class SendCurrencyView(APIView):
     permission_classes = (IsAdminUser,)
@@ -28,7 +32,7 @@ class SendCurrencyView(APIView):
 
             currency = serializer.data["currency"]
             btc_rpc_call = BTCRPCCall(wallet=serializer.data["wallet"], currency=currency)
-             #check is testnet or not
+            # check is testnet or not
             is_test_net = constantutil.check_service_is_test_net(btc_rpc_call)
 
             from_account = serializer.data["fromAddress"]
@@ -60,6 +64,9 @@ class SendCurrencyView(APIView):
                 return Response(data=response_serializer.data, status=status.HTTP_406_NOT_ACCEPTABLE)
 
             try:
+
+                is_set_tx_fee = btc_rpc_call.set_tx_fee(fee_limit)
+                log.info(is_set_tx_fee)
                 send_response_tx_id = btc_rpc_call.send_from(from_account=from_account,
                                                              to_address=to_address, amount=float(send_amount))
 
@@ -68,7 +75,7 @@ class SendCurrencyView(APIView):
                 send_response = SendFromResponse(tx_id=send_response_tx_id, status="OK",
                                                  fee=abs(transaction["fee"]), test=is_test_net)
                 send_response_serializer = SendFromResponseSerializer(send_response)
-            except JSONRPCException as ex:
+            except (JSONRPCException, LockTimeoutException, ConnectionError, LockException) as ex:
                 log.info("Error: %s" % ex.error['message'])
                 send_response = SendFromResponse(status="NOK", message=ex.error['message'], test=is_test_net)
                 send_response_serializer = SendFromResponseSerializer(send_response)

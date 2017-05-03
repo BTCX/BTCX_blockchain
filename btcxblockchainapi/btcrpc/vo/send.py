@@ -39,6 +39,6 @@ class SendFromResponseSerializer(serializers.Serializer):
 
     txid = serializers.CharField(max_length=128)
     status = serializers.CharField(max_length=16)
-    fee = serializers.FloatField()
+    fee = serializers.DecimalField(max_digits=18, decimal_places=8, coerce_to_string=True)
     message = serializers.CharField(max_length=64)
     test = serializers.BooleanField()

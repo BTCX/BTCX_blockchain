@@ -37,7 +37,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'rest_framework',
     'btcrpc',
-    #'sslserver',
+    # 'sslserver',
 )
 
 REST_FRAMEWORK = {
@@ -45,6 +45,17 @@ REST_FRAMEWORK = {
     'PAGINATE_BY': 10,
 }
 
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': '127.0.0.1:11211',
+    }
+}
+
+import sherlock
+# Global configuration of defaults
+sherlock.configure(expire=120, timeout=20)
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
