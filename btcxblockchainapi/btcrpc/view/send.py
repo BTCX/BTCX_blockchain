@@ -1,23 +1,25 @@
-from bitcoinrpc.authproxy import JSONRPCException
-from btcrpc.vo import send
-
-from btcrpc.utils.btc_rpc_call import BTCRPCCall
-from btcrpc.utils import constantutil
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from btcrpc.utils.log import *
-from btcrpc.vo.send import *
-from rest_framework.permissions import IsAdminUser
 import sherlock
+from bitcoinrpc.authproxy import JSONRPCException
+from pylibmc import ConnectionError, ServerDown
+from rest_framework import status
+from rest_framework.permissions import IsAdminUser
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from sherlock import MCLock
-from pylibmc import ConnectionError
 from sherlock.lock import LockTimeoutException, LockException
+
+from btcrpc.utils import constantutil
+from btcrpc.utils.btc_rpc_call import BTCRPCCall
+from btcrpc.utils.log import *
+from btcrpc.vo import send
+from btcrpc.vo.send import *
 
 log = get_log("send currency view")
 
 # define a locker for btcrpc.view.send
 lock = MCLock(__name__)
+sherlock.configure(expire=120, timeout=20)
+
 
 class SendCurrencyView(APIView):
     permission_classes = (IsAdminUser,)
@@ -65,22 +67,45 @@ class SendCurrencyView(APIView):
 
             try:
 
-                is_set_tx_fee = btc_rpc_call.set_tx_fee(fee_limit)
-                log.info(is_set_tx_fee)
-                send_response_tx_id = btc_rpc_call.send_from(from_account=from_account,
-                                                             to_address=to_address, amount=float(send_amount))
+                if lock.locked() is False:
+                    lock.acquire()
 
-                transaction = btc_rpc_call.do_get_transaction(send_response_tx_id)
-                log.info(abs(transaction["fee"]))
-                send_response = SendFromResponse(tx_id=send_response_tx_id, status="OK",
-                                                 fee=abs(transaction["fee"]), test=is_test_net)
-                send_response_serializer = SendFromResponseSerializer(send_response)
-            except (JSONRPCException, LockTimeoutException, ConnectionError, LockException) as ex:
+                    btc_rpc_call.set_tx_fee(fee_limit)
+                    send_response_tx_id = btc_rpc_call.send_from(from_account=from_account,
+                                                                 to_address=to_address, amount=float(send_amount))
+                    lock.release()
+
+                    transaction = btc_rpc_call.do_get_transaction(send_response_tx_id)
+                    log.info(abs(transaction["fee"]))
+                    send_response = SendFromResponse(tx_id=send_response_tx_id, status="OK",
+                                                     fee=abs(transaction["fee"]), test=is_test_net)
+                    send_response_serializer = SendFromResponseSerializer(send_response)
+                    return Response(data=send_response_serializer.data, status=status.HTTP_200_OK)
+                else:
+                    send_response_serializer_NOK = self.__send_to(send_status="NOK",
+                                                              message="Distribute lock is taken, send action is blocked",
+                                                              test=is_test_net)
+            except (JSONRPCException) as ex:
+                if lock.locked() is True:
+                    lock.release()
                 log.info("Error: %s" % ex.error['message'])
                 send_response = SendFromResponse(status="NOK", message=ex.error['message'], test=is_test_net)
-                send_response_serializer = SendFromResponseSerializer(send_response)
+                send_response_serializer_NOK = SendFromResponseSerializer(send_response)
+            except (LockTimeoutException, LockException):
+                log.info("Error: %s" % "LockTimeoutException or LockException")
+                send_response = SendFromResponse(status="NOK",
+                                                 message="LockTimeoutException or LockException",
+                                                 test=is_test_net)
+                send_response_serializer_NOK = SendFromResponseSerializer(send_response)
 
-            return Response(data=send_response_serializer.data, status=status.HTTP_200_OK)
+            except (ConnectionError, ServerDown):
+                log.info("Error: ConnectionError or ServerDown exception")
+                send_response = SendFromResponse(status="NOK",
+                                                 message="Memcached server might be shutdown, or it is not reachable",
+                                                 test=is_test_net)
+                send_response_serializer_NOK = SendFromResponseSerializer(send_response)
+
+            return Response(data=send_response_serializer_NOK.data, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
     def __send_to(self, send_status="", message="", test=False):
         response = SendFromResponse(status=send_status, message=message, test=test)
