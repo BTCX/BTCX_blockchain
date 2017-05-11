@@ -1,4 +1,3 @@
-import sherlock
 from bitcoinrpc.authproxy import JSONRPCException
 from pylibmc import ConnectionError, ServerDown
 from rest_framework import status
@@ -18,8 +17,6 @@ log = get_log("send currency view")
 
 # define a locker for btcrpc.view.send
 lock = MCLock(__name__)
-sherlock.configure(expire=120, timeout=20)
-
 
 class SendCurrencyView(APIView):
     permission_classes = (IsAdminUser,)
@@ -39,7 +36,7 @@ class SendCurrencyView(APIView):
 
             from_account = serializer.data["fromAddress"]
             to_address = serializer.data["toAddress"]
-            fee_limit = serializer.data["feeLimit"]
+            fee_limit = serializer.data["txFee"]
             send_amount = serializer.data["amount"]
 
             balance = btc_rpc_call.get_balance(account=from_account)
