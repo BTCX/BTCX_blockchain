@@ -77,7 +77,7 @@ class CheckMultiAddressesReceive(APIView):
         if not isinstance(btc_service, BTCRPCCall):
             raise TypeError("Expected object BTCRPCCall, got %s" % (type(btc_service),))
 
-        result = float(btc_service.amount_received_by_address(address=wallet_address, confirms=risk_low_confirmations))
+        result = Decimal(btc_service.amount_received_by_address(address=wallet_address, confirms=risk_low_confirmations))
 
         if result >= expected_amount:
             log.info("received with 6 confirmed")
@@ -85,7 +85,7 @@ class CheckMultiAddressesReceive(APIView):
             log.info("low")
             return {"result": result, "risk": 'low'}
 
-        result = float(btc_service.amount_received_by_address(address=wallet_address,
+        result = Decimal(btc_service.amount_received_by_address(address=wallet_address,
                                                               confirms=risk_medium_confirmations))
 
         if result >= expected_amount:
@@ -94,7 +94,7 @@ class CheckMultiAddressesReceive(APIView):
             log.info("medium")
             return {"result": result, "risk": 'medium'}
 
-        result = float(btc_service.amount_received_by_address(address=wallet_address, confirms=risk_high_confirmations))
+        result = Decimal(btc_service.amount_received_by_address(address=wallet_address, confirms=risk_high_confirmations))
 
         if result >= expected_amount:
             log.info("received with 0 confirmed")

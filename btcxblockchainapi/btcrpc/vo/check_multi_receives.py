@@ -57,7 +57,7 @@ class ReceiveInformationResponse(object):
 class ReceiveInformationResponseSerializer(serializers.Serializer):
     currency = serializers.CharField(max_length=20)
     address = serializers.CharField(max_length=128)
-    received = serializers.DecimalField(max_digits=256, decimal_places=128, coerce_to_string=False) # somehow it complains about not enough decimal places with only 64. 128 works though, but then max digits must be increased as well, else it complains about too many (more than 0) digits before the decimal point. The number that caused this error was 0.0001
+    received = serializers.DecimalField(max_digits=10, decimal_places=8, coerce_to_string=True)
     risk = serializers.CharField(max_length=10)  # high, medium, low
     txids = serializers.ListField(child=serializers.CharField(max_length=128))
 
