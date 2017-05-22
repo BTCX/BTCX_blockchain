@@ -85,18 +85,18 @@ class SendCurrencyView(APIView):
             except (JSONRPCException) as ex:
                 if lock.locked() is True:
                     lock.release()
-                log.info("Error: %s" % ex.error['message'])
+                log.error("Error: %s" % ex.error['message'])
                 send_response = SendFromResponse(status="NOK", message=ex.error['message'], test=is_test_net)
                 send_response_serializer_NOK = SendFromResponseSerializer(send_response)
             except (LockTimeoutException, LockException):
-                log.info("Error: %s" % "LockTimeoutException or LockException")
+                log.error("Error: %s" % "LockTimeoutException or LockException")
                 send_response = SendFromResponse(status="NOK",
                                                  message="LockTimeoutException or LockException",
                                                  test=is_test_net)
                 send_response_serializer_NOK = SendFromResponseSerializer(send_response)
 
             except (ConnectionError, ServerDown):
-                log.info("Error: ConnectionError or ServerDown exception")
+                log.error("Error: ConnectionError or ServerDown exception")
                 send_response = SendFromResponse(status="NOK",
                                                  message="Memcached server might be shutdown, or it is not reachable",
                                                  test=is_test_net)
