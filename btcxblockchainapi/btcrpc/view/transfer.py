@@ -1,21 +1,24 @@
-from decimal import Decimal, ROUND_DOWN
+from decimal import Decimal
+
 from bitcoinrpc.authproxy import JSONRPCException
 from rest_framework import status
 from rest_framework.permissions import IsAdminUser
+from rest_framework.response import Response
 from rest_framework.views import APIView
+from sherlock import MCLock
+from sherlock.lock import LockTimeoutException, LockException
+from pylibmc import ConnectionError, ServerDown
+
 from btcrpc.utils import constantutil
 from btcrpc.utils.btc_rpc_call import BTCRPCCall
 from btcrpc.utils.config_file_reader import ConfigFileReader
-from btcrpc.vo import transfers
-from rest_framework.response import Response
-
-__author__ = 'sikamedia'
-__Date__ = '2015-03-18'
-
-
 from btcrpc.utils.log import *
+from btcrpc.vo import transfers
 
 log = get_log("Transfer Bitcoin")
+
+# define a locker for btcrpc.view.send
+lock = MCLock(__name__)
 
 
 class TransferCurrencyView(APIView):
@@ -24,10 +27,7 @@ class TransferCurrencyView(APIView):
     def post(self, request):
         post_serializer = transfers.PostParametersSerializer(data=request.DATA)
 
-        # from_account_balance = btc_rpc_call.get_balance(account=serializer)
-
         yml_config = ConfigFileReader()
-
 
         if post_serializer.is_valid():
 
@@ -43,7 +43,7 @@ class TransferCurrencyView(APIView):
                 log.info(transfer)
                 currency = transfer["currency"]
                 from_address = transfer["from_address"]
-
+                txFee = transfer["txFee"]
                 send_amount = transfer["amount"]
                 log.info(send_amount)
 
@@ -57,29 +57,65 @@ class TransferCurrencyView(APIView):
 
                 log.info("%s, %s" % (from_address_is_valid, to_address_is_valid))
 
-                if from_address_is_valid and to_address_is_valid:
+                balance = btc_rpc_call.get_balance(account=from_address)
+
+                canTransfer = (send_amount + txFee) <= balance
+
+                #check if send amount + optional transaction fee > balance
+
+                if from_address_is_valid and to_address_is_valid and canTransfer:
                     try:
-
-                        send_response_tx_id = btc_rpc_call.send_from(from_account=from_address,
-                                                                     to_address=to_address, amount=send_amount)
-
-                        response = transfers.TransferInformationResponse(currency=currency,
-                                                                         from_address=from_address,
+                        if lock.locked() is False:
+                            lock.acquire()
+                            btc_rpc_call.set_tx_fee(txFee)
+                            send_response_tx_id = btc_rpc_call.send_from(from_account=from_address,
                                                                          to_address=to_address,
-                                                                         amount=Decimal(str(send_amount)),
-                                                                         status="ok",
-                                                                         txid=send_response_tx_id)
+                                                                         amount=send_amount)
+                            lock.release()
 
-                        response_list.append(response.__dict__)
+                            transaction = btc_rpc_call.do_get_transaction(send_response_tx_id)
+
+                            response = transfers.TransferInformationResponse(currency=currency,
+                                                                             from_address=from_address,
+                                                                             to_address=to_address,
+                                                                             amount=Decimal(str(send_amount)),
+                                                                             fee=abs(transaction["fee"]),
+                                                                             message="Transfer is done",
+                                                                             status="ok",
+                                                                             txid=send_response_tx_id)
+
                     except JSONRPCException as ex:
-                        log.info("Error: %s" % ex.error['message'])
+                        if lock.locked() is True:
+                            lock.release()
+                        log.error("Error: %s" % ex.error['message'])
+                        response = transfers.TransferInformationResponse(currency=currency,
+                                                                        from_address=from_address,
+                                                                        to_address=to_address,
+                                                                        amount=Decimal(str(send_amount)),
+                                                                        message=ex.error['message'],
+                                                                        status="fail",
+                                                                        txid="")
+                    except (LockTimeoutException, LockException):
+                        log.error("Error: %s" % "LockTimeoutException or LockException")
                         response = transfers.TransferInformationResponse(currency=currency,
                                                                          from_address=from_address,
                                                                          to_address=to_address,
                                                                          amount=Decimal(str(send_amount)),
+                                                                         message="LockTimeoutException or LockException",
                                                                          status="fail",
                                                                          txid="")
-                        response_list.append(response.__dict__)
+                    except (ConnectionError, ServerDown):
+                        log.error("Error: ConnectionError or ServerDown exception")
+                        response = transfers.TransferInformationResponse(currency=currency,
+                                                                         from_address=from_address,
+                                                                         to_address=to_address,
+                                                                         amount=Decimal(str(send_amount)),
+                                                                         message="Error: ConnectionError or ServerDown exception",
+                                                                         status="fail",
+                                                                         txid="")
+
+
+                    response_list.append(response.__dict__)
 
                 else:
                     log.info("do nothing")
@@ -87,6 +123,10 @@ class TransferCurrencyView(APIView):
                                                                      from_address=from_address,
                                                                      to_address=to_address,
                                                                      amount=Decimal(str(send_amount)),
+                                                                     message="from_address is not valid, " +
+                                                                             "or to_address is not valid" +
+                                                                             "or balance is not enough, can not be transferred"
+                                ,
                                                                      status="fail",
                                                                      txid="")
                     response_list.append(response.__dict__)
@@ -97,7 +137,7 @@ class TransferCurrencyView(APIView):
 
             response_dict = transfers_response.__dict__
 
-        response_serializer = transfers.TransfersInformationResponseSerializer(data=response_dict)
+            response_serializer = transfers.TransfersInformationResponseSerializer(data=response_dict)
 
         if response_serializer.is_valid():
             return Response(response_serializer.data, status=status.HTTP_200_OK)
