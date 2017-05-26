@@ -42,7 +42,16 @@ class TxIdsField(serializers.Field):
     def to_representation(self, obj):
         return obj.txids
 """
+class TxIdTransaction(object):
+    def __init__(self, txid, received, confirmations):
+        self.txid = txid
+        self.received = received
+        self.confirmations = confirmations
 
+class TxIdTransactionSerializer(serializers.Serializer):
+    txid = serializers.CharField(max_length=128)
+    received = serializers.DecimalField(max_digits=18, decimal_places=12, coerce_to_string=True)
+    confirmations = serializers.IntegerField()
 
 class ReceiveInformationResponse(object):
     def __init__(self, currency="btc", address="", received=0.0, risk="low", txs=[]):
@@ -57,9 +66,9 @@ class ReceiveInformationResponse(object):
 class ReceiveInformationResponseSerializer(serializers.Serializer):
     currency = serializers.CharField(max_length=20)
     address = serializers.CharField(max_length=128)
-    received = serializers.DecimalField(max_digits=10, decimal_places=8, coerce_to_string=True)
+    received = serializers.DecimalField(max_digits=18, decimal_places=12, coerce_to_string=True)
     risk = serializers.CharField(max_length=10)  # high, medium, low
-    txids = serializers.ListField(child=serializers.CharField(max_length=128))
+    txids = TxIdTransactionSerializer(many=True)
 
     class Meta:
         fields = ('currency', 'address', 'received', 'risk', 'txids')

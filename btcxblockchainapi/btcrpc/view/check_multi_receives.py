@@ -12,8 +12,6 @@ from rest_framework.parsers import JSONParser
 from StringIO import StringIO
 from django.http import HttpResponse
 
-__author__ = 'sikamedia'
-__Date__ = '2014-09-11'
 
 
 log = get_log("CheckMultiAddressesReceive view")
@@ -48,14 +46,13 @@ class CheckMultiAddressesReceive(APIView):
                                                                     expected_amount=transaction["amount"],
                                                                     btc_service=btc_rpc_call)
                 tx_ids = self.__get_txIds(transaction["address"], btc_service=btc_rpc_call)
-                log.info(tx_ids)
+                log.debug(tx_ids)
                 log.info(Decimal(received_with_risk["result"]))
-                response = check_multi_receives.\
-                    ReceiveInformationResponse(currency=transaction["currency"],
-                                               address=transaction["address"],
-                                               received=Decimal(received_with_risk["result"]),
-                                               risk=received_with_risk["risk"],
-                                               txs=tx_ids)
+                response = check_multi_receives.ReceiveInformationResponse(currency=transaction["currency"],
+                                                                           address=transaction["address"],
+                                                                           received=Decimal(received_with_risk["result"]),
+                                                                           risk=received_with_risk["risk"],
+                                                                           txs=tx_ids)
 
                 response_list.append(response.__dict__)
 
@@ -112,11 +109,15 @@ class CheckMultiAddressesReceive(APIView):
         if not isinstance(btc_service, BTCRPCCall):
             raise TypeError("Expected object BTCRPCCall, got %s" % (type(btc_service),))
 
-        transactions = btc_service.list_transactions(account=account)
+        transactions = btc_service.list_transactions(account=account, count=88)
         transactions_with_tx_id = []
-        for transaction in transactions:
-            if 'txid' in transaction:
-                transactions_with_tx_id.append(transaction)
 
-        txIds = map(lambda transaction: transaction['txid'], transactions_with_tx_id)
-        return txIds
+        for transaction in transactions:
+            if 'txid' in transaction and transaction['category'] == 'receive':
+                transaction_with_tx_id = check_multi_receives.TxIdTransaction(txid=transaction['txid'],
+                                                                              received=transaction['amount'],
+                                                                              confirmations=transaction['confirmations'])
+                transactions_with_tx_id.append(transaction_with_tx_id.__dict__)
+
+        # txIds = map(lambda transaction: transaction['txid'], transactions_with_tx_id)
+        return transactions_with_tx_id
