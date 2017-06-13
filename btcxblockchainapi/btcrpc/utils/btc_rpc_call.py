@@ -1,5 +1,11 @@
-from bitcoinrpc.authproxy import AuthServiceProxy
+from bitcoinrpc.authproxy import AuthServiceProxy, JSONRPCException
 from btcrpc.utils.config_file_reader import ConfigFileReader
+import json
+import socket, errno
+
+from btcrpc.utils.log import *
+
+log = get_log("BTCRPCCall:")
 
 
 class BTCRPCCall(object):
@@ -67,3 +73,18 @@ class BTCRPCCall(object):
 
     def set_tx_fee(self, amount):
         return self.access.settxfee(amount)
+
+    # amount is type of dictionary
+    def send_many(self, from_account="", minconf=1, **amounts):
+        log.info("From account: %s", from_account)
+        log.info("To accounts: %s", json.dumps(amounts))
+        amounts_string = json.dumps(amounts['amounts'])
+        amounts_object = json.loads(amounts_string)
+        try:
+            return True, self.access.sendmany(from_account, amounts_object, minconf)
+        except JSONRPCException as ex:
+            return False, ex
+        except socket.error as e:
+            return False, e
+
+
