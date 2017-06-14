@@ -9,11 +9,7 @@ from btcrpc.views import attributeConst
 from btcrpc.vo import addresses
 import logging
 
-__author__ = 'sikamedia'
-__Date__ = '2014-09-11'
-
 logger = logging.getLogger(__name__)
-
 
 class CreateNewAddresses(APIView):
     permission_classes = (IsAdminUser,)
@@ -26,7 +22,7 @@ class CreateNewAddresses(APIView):
             currency = serializer_input.data["currency"]
             wallet = serializer_input.data["wallet"]
             btc_rpc_call = BTCRPCCall(wallet=wallet, currency=currency)
-            #check is on testnet or not.
+            # check is on testnet or not.
             is_test_net = constantutil.check_service_is_test_net(btc_rpc_call)
 
             logger.info("quantity is " + str(serializer_input.data["quantity"]) + ".")

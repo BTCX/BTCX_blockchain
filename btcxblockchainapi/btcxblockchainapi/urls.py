@@ -21,6 +21,8 @@ router.register(r'users',  UserViewSet)
 router.register(r'groups', GroupViewSet)
 #router.register(r'api/v1/status', views.MyRESTView)
 
+api_python_root = '^api/v1/'
+
 urlpatterns = [
     # Examples:
     # url(r'^$', 'btcxblockchainapi.views.home', name='home'),
