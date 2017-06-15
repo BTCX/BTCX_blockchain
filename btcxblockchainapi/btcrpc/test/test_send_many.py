@@ -9,21 +9,37 @@ import socket, errno
 log = get_log("send many tests")
 
 
-class BTCRPCSENDMANY(TestCase):
-    def setUp(self):
-        log.info("init btc wallet")
-        self.btcRPCCall = btc_rpc_call.BTCRPCCall()
+class BTCSendMany(TestCase):
+  def setUp(self):
+    log.info("init btc wallet")
+    self.btcRPCCall = btc_rpc_call.BTCRPCCall()
 
-    def test_send_many_success(self):
+  def test_send_many_success(self):
 
-        isSuccess, result = self.btcRPCCall.send_many(from_account=FROM_ACCOUNT, amounts=AMOUNTS)
+    isSuccess, result = self.btcRPCCall.send_many(from_account=FROM_ACCOUNT_SEND_MANY, amounts=AMOUNTS_1)
 
-        if (isSuccess):
-            log.info(result)
-        elif result is not None and isinstance(result, JSONRPCException):
-            log.info("Error: %s" % result.error['message'])
-        elif result is not None and isinstance(result, socket.error):
-            log.info(result.errno == errno.ECONNREFUSED)
-            log.info(result.message)
-        else:
-            log.info("Please Check what happens!!!")
+    if (isSuccess):
+      log.info(result)
+    elif result is not None and isinstance(result, JSONRPCException):
+      log.info("Error: %s" % result.error['message'])
+    elif result is not None and isinstance(result, socket.error):
+      log.info(result.errno == errno.ECONNREFUSED)
+      log.info(result.message)
+    else:
+      log.info("Please Check what happens!!!")
+
+  def test_send_many_failure_1(self):
+
+    log.info(type(AMOUNTS_2))
+
+    isSuccess, result = self.btcRPCCall.send_many(from_account=FROM_ACCOUNT_SEND_MANY, amounts=AMOUNTS_2)
+
+    if (isSuccess):
+      log.info(result)
+    elif result is not None and isinstance(result, JSONRPCException):
+      log.info("Error: %s" % result.error['message'])
+    elif result is not None and isinstance(result, socket.error):
+      log.info(result.errno == errno.ECONNREFUSED)
+      log.info(result.message)
+    else:
+      log.info("Please Check what happens!!!")
