@@ -1,6 +1,8 @@
-__author__ = 'sikamedia'
-__Date__ = '04/09/14'
-
-#test send
+# test send
 FROM_ACCOUNT="mopxUEXSLv8Auc8AgAdHAjBwwUQeWjsGN2"
 TO_ADDRESS="mfhz9hpDawwxjpyAnLAdVq2j74mckeSrsi"
+
+# send many
+AMOUNTS = {"mijEcztC32yyxSyB5YKjMCqjr5sMaw8V7h": 0.01,
+           "mp4snhnywtAz3H4QP3aMd46LXRpYDgYmWZ": 0.02,
+           "mw41DFRdcAxHyXaKZWiVQie3YvSM93Fh8i": 0.015}
