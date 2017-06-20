@@ -16,8 +16,8 @@ class SendManyPostParametersSerializer(serializers.Serializer):
 
 class SendManyResponse(object):
 
-  def __init__(self, txid, status, fee, message="", test=False):
-    self.txid = txid
+  def __init__(self, tx_id=" ", status=0, fee=0, message="", test=False):
+    self.txid = tx_id
     self.status = status
     self.fee = fee
     self.message = message
@@ -25,7 +25,7 @@ class SendManyResponse(object):
 
 class SendManyResponseSerializer(serializers.Serializer):
   txid = serializers.CharField(max_length=128)
-  status = serializers.CharField(max_length=20)
+  status = serializers.IntegerField()
   fee = serializers.DecimalField(max_digits=16, decimal_places=8, coerce_to_string=True)
   message = serializers.CharField(max_length=256)
   test = serializers.BooleanField()
