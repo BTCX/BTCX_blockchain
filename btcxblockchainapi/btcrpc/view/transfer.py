@@ -57,13 +57,13 @@ class TransferCurrencyView(APIView):
 
                 log.info("%s, %s" % (from_address_is_valid, to_address_is_valid))
 
-                balance = btc_rpc_call.get_balance(account=from_address)
+                # balance = btc_rpc_call.get_balance(account=from_address)
 
-                canTransfer = (send_amount + txFee) <= balance
+                # canTransfer = (send_amount + txFee) <= balance
 
                 #check if send amount + optional transaction fee > balance
 
-                if from_address_is_valid and to_address_is_valid and canTransfer:
+                if from_address_is_valid and to_address_is_valid:
                     try:
                         if lock.locked() is False:
                             lock.acquire()
@@ -124,9 +124,7 @@ class TransferCurrencyView(APIView):
                                                                      to_address=to_address,
                                                                      amount=Decimal(str(send_amount)),
                                                                      message="from_address is not valid, " +
-                                                                             "or to_address is not valid" +
-                                                                             "or balance is not enough, can not be transferred"
-                                ,
+                                                                             "or to_address is not valid",
                                                                      status="fail",
                                                                      txid="")
                     response_list.append(response.__dict__)
