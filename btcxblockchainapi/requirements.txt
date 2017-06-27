@@ -5,4 +5,5 @@ unittest2
 simplejson
 ddt
 pyyaml
+web3
 
