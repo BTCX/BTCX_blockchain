@@ -22,6 +22,8 @@ SECRET_KEY = 'qe$apa%^*h+g5viw&l%=$zoxb-uijiqxbusj^t=xg+6(*na9tl'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+TEMPLATE_DEBUG = True
+
 ALLOWED_HOSTS = []
 
 # Application definition
@@ -37,6 +39,8 @@ INSTALLED_APPS = (
     'btcrpc',
     'ethereum.apps.EthereumConfig'
     #'sslserver',
+    'commonapi',
+    # 'sslserver',
 )
 
 TEMPLATES = [
@@ -62,6 +66,18 @@ REST_FRAMEWORK = {
     'PAGINATE_BY': 10,
 }
 
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': '127.0.0.1:11211',
+    }
+}
+
+
+import sherlock
+# Global configuration of defaults
+sherlock.configure(expire=120, timeout=20)
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',

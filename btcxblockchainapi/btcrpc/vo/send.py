@@ -5,13 +5,13 @@ from rest_framework import serializers
 class SendFromPostParameter(object):
 
     def __init__(self, api_key="", currency="", amount=0, from_address="", to_address="",
-                 fee_limit=0.0, wallet=""):
+                 tx_fee=0.0, wallet=""):
         self.api_key = api_key
         self.currency = currency
         self.amount = amount
         self.fromAddress = from_address
         self.toAddress = to_address
-        self.feeLimit = fee_limit
+        self.txFee = tx_fee
         self.wallet = wallet
 
 
@@ -21,7 +21,7 @@ class SendFromPostParametersSerializer(serializers.Serializer):
     amount = serializers.FloatField()
     fromAddress = serializers.CharField(max_length=128)
     toAddress = serializers.CharField(max_length=128)
-    feeLimit = serializers.FloatField()
+    txFee = serializers.FloatField()
     wallet = serializers.CharField()
 
 
@@ -39,6 +39,6 @@ class SendFromResponseSerializer(serializers.Serializer):
 
     txid = serializers.CharField(max_length=128)
     status = serializers.CharField(max_length=16)
-    fee = serializers.FloatField()
-    message = serializers.CharField(max_length=64)
+    fee = serializers.DecimalField(max_digits=18, decimal_places=8, coerce_to_string=True)
+    message = serializers.CharField(max_length=256)
     test = serializers.BooleanField()

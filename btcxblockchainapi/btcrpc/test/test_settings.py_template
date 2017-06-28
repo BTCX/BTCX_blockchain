@@ -1,6 +1,15 @@
-__author__ = 'sikamedia'
-__Date__ = '04/09/14'
-
-#test send
+# test send
 FROM_ACCOUNT="mopxUEXSLv8Auc8AgAdHAjBwwUQeWjsGN2"
 TO_ADDRESS="mfhz9hpDawwxjpyAnLAdVq2j74mckeSrsi"
+
+# send many
+FROM_ACCOUNT_SEND_MANY ="miRHZ49tMQ1wV2VWTrTDR2HiQZDF6pDHtA"
+AMOUNTS_1 = {"mjp7RpxisretjnneLSeTB64oBnz7T2uwuN": 0.01,
+           "mkRfKt35fZSLdNWK6z4NZNdV9JeVpnkyAo": 0.02,
+           "mtDGmuCkxPSBo9igkpoQmiW3bmfk5jt5hg": 0.015}
+
+# send many
+
+AMOUNTS_2 = {"mjp7RpxisretjnneLSeTB64oBnz7T2uwuN": 0.01,
+           "here it is wrong address": 0.02,
+           "mtDGmuCkxPSBo9igkpoQmiW3bmfk5jt5hg": 0.015}

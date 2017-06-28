@@ -1,6 +1,7 @@
 django
 djangorestframework
 python-bitcoinrpc
+sherlock
 unittest2
 simplejson
 ddt

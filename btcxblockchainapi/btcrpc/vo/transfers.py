@@ -21,6 +21,7 @@ class TransfersSerializer(serializers.Serializer):
     currency = serializers.CharField(max_length=20)
     amount = serializers.FloatField()
     from_address = serializers.CharField(max_length=128)
+    txFee = serializers.FloatField()
 
 
 class PostParametersSerializer(serializers.Serializer):
@@ -28,12 +29,15 @@ class PostParametersSerializer(serializers.Serializer):
 
 
 class TransferInformationResponse(object):
-    def __init__(self, currency="btc", from_address="", to_address="", amount=Decimal(0), status="", txid=""):
+    def __init__(self, currency="btc", from_address="", to_address="", amount=Decimal(0), message="",
+                 fee=0.0, status="", txid=""):
         #self.api_key = api_key
         self.currency = currency
         self.from_address = from_address
         self.to_address = to_address
         self.amount = amount
+        self.message = message
+        self.fee = fee
         self.status = status
         self.txid = txid
 
@@ -43,7 +47,8 @@ class TransferInformationResponseSerializer(serializers.Serializer):
     from_address = serializers.CharField(max_length=128)
     to_address = serializers.CharField(max_length=128)
     amount = serializers.DecimalField(max_digits=16, decimal_places=8, coerce_to_string=True)
-    #amount = serializers.FloatField()
+    fee = serializers.DecimalField(max_digits=18, decimal_places=8, coerce_to_string=True)
+    message = serializers.CharField(max_length=256, allow_blank=True)
     status = serializers.CharField(max_length=10)  # ok/fail
     txid = serializers.CharField(max_length=128, allow_blank=True)
 
