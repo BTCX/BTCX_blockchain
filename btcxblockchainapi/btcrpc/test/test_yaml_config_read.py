@@ -83,3 +83,6 @@ class FooTestCase(unittest.TestCase):
         log.info(wallets)
         log.info(test_function_parameters)
         self.assertEqual(set(wallets), set(test_function_parameters))
+
+    if __name__ == '__main__':
+        unittest.main()
