@@ -1,18 +1,15 @@
+from datetime import datetime
+from decimal import *
+
+from rest_framework import status
+from rest_framework.response import Response
 from rest_framework.views import APIView
+
 from btcrpc.utils import constantutil
 from btcrpc.utils.btc_rpc_call import BTCRPCCall
 from btcrpc.utils.config_file_reader import ConfigFileReader
 from btcrpc.utils.log import get_log
 from btcrpc.vo import check_multi_receives
-from rest_framework.response import Response
-from rest_framework import status
-from decimal import *
-import simplejson
-from rest_framework.parsers import JSONParser
-from StringIO import StringIO
-from django.http import HttpResponse
-
-
 
 log = get_log("CheckMultiAddressesReceive view")
 yml_config = ConfigFileReader()
@@ -53,7 +50,6 @@ class CheckMultiAddressesReceive(APIView):
 
                 log.info(Decimal(received_with_risk["result"]))
 
-
                 response = check_multi_receives.ReceiveInformationResponse(currency=transaction["currency"],
                                                                            address=transaction_address,
                                                                            received=Decimal(received_with_risk["result"]),
@@ -91,7 +87,7 @@ class CheckMultiAddressesReceive(APIView):
             log.info("tx_id confirmation is %d.", tx_id["confirmations"])
             if tx_id["confirmations"] == RISK_HIGH_CONFIRMATIONS:
                 high_risk_counter += 1
-            if tx_id["confirmations"] >= RISK_MEDIUM_CONFIRMATIONS:
+            if tx_id["confirmations"] >= RISK_MEDIUM_CONFIRMATIONS and tx_id["confirmations"] < RISK_LOW_CONFIRMATIONS:
                 medium_risk_counter += 1
             if tx_id["confirmations"] >= RISK_LOW_CONFIRMATIONS:
                 low_risk_counter += 1
@@ -130,7 +126,8 @@ class CheckMultiAddressesReceive(APIView):
             if 'txid' in transaction and transaction['category'] == 'receive':
                 transaction_with_tx_id = check_multi_receives.TxIdTransaction(txid=transaction['txid'],
                                                                               received=transaction['amount'],
-                                                                              confirmations=transaction['confirmations'])
+                                                                              confirmations=transaction['confirmations'],
+                                                                              date= datetime.fromtimestamp(transaction['time']))
                 transactions_with_tx_id.append(transaction_with_tx_id.__dict__)
 
         # txIds = map(lambda transaction: transaction['txid'], transactions_with_tx_id)
