@@ -47,7 +47,7 @@ class TransferInformationResponseSerializer(serializers.Serializer):
     from_address = serializers.CharField(max_length=128)
     to_address = serializers.CharField(max_length=128)
     amount = serializers.DecimalField(max_digits=16, decimal_places=8, coerce_to_string=True)
-    fee = serializers.DecimalField(max_digits=18, decimal_places=8, coerce_to_string=True)
+    fee = serializers.DecimalField(max_digits=18, decimal_places=8, coerce_to_string=False)
     message = serializers.CharField(max_length=256, allow_blank=True)
     status = serializers.CharField(max_length=10)  # ok/fail
     txid = serializers.CharField(max_length=128, allow_blank=True)

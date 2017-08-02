@@ -10,7 +10,7 @@ class SendManyPostParametersSerializer(serializers.Serializer):
   currency = serializers.CharField(max_length=56)
   toSend = serializers.ListField(child=ToSendSerializer())
   fromAddress = serializers.CharField(max_length=128)
-  txFee = serializers.DecimalField(max_digits=16, decimal_places=9, coerce_to_string=True)
+  txFee = serializers.DecimalField(max_digits=16, decimal_places=9, coerce_to_string=False)
   wallet = serializers.CharField(max_length=56)
 
 
