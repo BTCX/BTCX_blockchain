@@ -73,6 +73,9 @@ class BTCRPCCall(object):
   def set_tx_fee(self, amount):
     return self.access.settxfee(amount)
 
+  def send_to_address(self, address, amount, subtractfeefromamount=True):
+    return self.access.sendtoaddress(address, amount, "", "", subtractfeefromamount)
+
   # amount is type of dictionary
   def send_many(self, from_account="", minconf=1, **amounts):
     log.info("From account: %s", from_account)

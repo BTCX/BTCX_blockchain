@@ -25,6 +25,7 @@ class TransferCurrencyView(APIView):
     permission_classes = (IsAdminUser,)
 
     def post(self, request):
+        global response_serializer
         post_serializer = transfers.PostParametersSerializer(data=request.DATA)
 
         yml_config = ConfigFileReader()
@@ -38,7 +39,6 @@ class TransferCurrencyView(APIView):
             log.info(is_test_net)
             response_list = []
 
-
             for transfer in transfer_list:
                 log.info(transfer)
                 currency = transfer["currency"]
@@ -49,8 +49,8 @@ class TransferCurrencyView(APIView):
 
                 to_address = yml_config.get_safe_address_to_be_transferred(currency=currency)
 
-                log.info("%s, %s, %s, %s" % (currency, from_address,  to_address, send_amount))
-                #log.info("%s %s" % currency, from_address)
+                log.info("%s, %s, %s, %s" % (currency, from_address, to_address, send_amount))
+                # log.info("%s %s" % currency, from_address)
 
                 from_address_is_valid = (btc_rpc_call.do_validate_address(address=from_address))["isvalid"]
                 to_address_is_valid = (btc_rpc_call.do_validate_address(address=to_address))["isvalid"]
@@ -61,7 +61,7 @@ class TransferCurrencyView(APIView):
 
                 # canTransfer = (send_amount + txFee) <= balance
 
-                #check if send amount + optional transaction fee > balance
+                # check if send amount + optional transaction fee > balance
 
                 if from_address_is_valid and to_address_is_valid:
                     try:
@@ -89,12 +89,12 @@ class TransferCurrencyView(APIView):
                             lock.release()
                         log.error("Error: %s" % ex.error['message'])
                         response = transfers.TransferInformationResponse(currency=currency,
-                                                                        from_address=from_address,
-                                                                        to_address=to_address,
-                                                                        amount=Decimal(str(send_amount)),
-                                                                        message=ex.error['message'],
-                                                                        status="fail",
-                                                                        txid="")
+                                                                         from_address=from_address,
+                                                                         to_address=to_address,
+                                                                         amount=Decimal(str(send_amount)),
+                                                                         message=ex.error['message'],
+                                                                         status="fail",
+                                                                         txid="")
                     except (LockTimeoutException, LockException):
                         log.error("Error: %s" % "LockTimeoutException or LockException")
                         response = transfers.TransferInformationResponse(currency=currency,
@@ -113,7 +113,6 @@ class TransferCurrencyView(APIView):
                                                                          message="Error: ConnectionError or ServerDown exception",
                                                                          status="fail",
                                                                          txid="")
-
 
                     response_list.append(response.__dict__)
 
@@ -137,9 +136,9 @@ class TransferCurrencyView(APIView):
 
             response_serializer = transfers.TransfersInformationResponseSerializer(data=response_dict)
 
-        if response_serializer.is_valid():
-            return Response(response_serializer.data, status=status.HTTP_200_OK)
-        else:
-            return Response(response_serializer.errors, status=status.HTTP_406_NOT_ACCEPTABLE)
+            if response_serializer.is_valid():
+                return Response(response_serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response(response_serializer.errors, status=status.HTTP_406_NOT_ACCEPTABLE)
 
-        return Response(post_serializers.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(post_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
