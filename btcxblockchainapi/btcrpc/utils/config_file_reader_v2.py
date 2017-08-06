@@ -5,7 +5,7 @@ from btcxblockchainapi.settings import BASE_DIR
 class ConfigFileReader(object):
     __metaclass__ = Singleton
 
-    def __init__(self, relative_path="/btcxblockchainapi/config.yml"):
+    def __init__(self, relative_path="/btcxblockchainapi/config_v2.yml"):
         print(BASE_DIR)
         print(BASE_DIR + relative_path)
         server_config = open(BASE_DIR + relative_path)
