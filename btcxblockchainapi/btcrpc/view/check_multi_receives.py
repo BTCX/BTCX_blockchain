@@ -49,7 +49,7 @@ class CheckMultiAddressesReceive(APIView):
 
         received = Decimal(received_with_risk["result"]) if received_with_risk else 0.0
         risk = received_with_risk["risk"] if received_with_risk else "low"
-        log.info("received: %d, risk: %s", received, risk)
+        log.info("received: %f, risk: %s", received, risk)
 
 
         response = check_multi_receives.ReceiveInformationResponse(currency=transaction["currency"],
