@@ -1,10 +1,10 @@
 initdb:
-	python manage.py syncdb
+	# python manage.py syncdb
 	python manage.py migrate
 
 install:
-	pip install --upgrade setuptools
-	pip install --upgrade -r requirements.txt
+	pip install --upgrade --user setuptools
+	pip install --upgrade --user -r requirements.txt
 
 test:
 	python manage.py test --verbosity 2
