@@ -23,7 +23,7 @@ class SendCurrencyView(APIView):
 
     def post(self, request):
 
-        serializer = send.SendFromPostParametersSerializer(data=request.DATA)
+        serializer = send.SendFromPostParametersSerializer(data=request.data)
 
         #from_account_balance = btc_rpc_call.get_balance(account=serializer)
 

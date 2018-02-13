@@ -18,7 +18,7 @@ yml_config = ConfigFileReader()
 class CheckWalletsBalance(APIView):
 
     def post(self, request):
-        post_serializers = wallet_balance.GetWalletBalancePostParameterSerializer(data=request.DATA)
+        post_serializers = wallet_balance.GetWalletBalancePostParameterSerializer(data=request.data)
 
         wallet_balance_response_list = []
         if post_serializers.is_valid():

@@ -28,14 +28,15 @@ urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url(r'^', include(router.urls)),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-    url(r'^api/v1/status/?$', MyRESTView.as_view(), name="server_status"),
-    url(r'^api/v1/information/?$', BTCGetInfoView.as_view(), name="BTC_Get_Information"),
+    url(r'^api/v1/status/?$', MyRESTView.as_view(), name="server_status"), #Not used anymore
+    url(r'^api/v1/information/?$', BTCGetInfoView.as_view(), name="BTC_Get_Information"), #Not used anymore
+    # url(r'^api/v1/address/$', BTCGetNewAddress.as_view(), name="BTC_Create_New_Address"),
     # url(r'^api/v1/address/$', BTCGetNewAddress.as_view(), name="BTC_Create_New_Address"),
     url(r'^api/v1/address/?$', CreateNewAddresses.as_view(), name="BTC_Create_New_Address"),
     # url(r'^api/v1/receive/$', BTCCheckAddressReceive.as_view(), name="BTC_Check_Address_For_Bitcoin_Receiving"),
     url(r'^api/v1/receive/?$', CheckMultiAddressesReceive.as_view(), name="BTC_Check_Address_For_Bitcoin_Receiving"),
     url(r'^api/v1/balance/?$', GetBalanceView.as_view(), name="BTC_GET_BALANCE_FOR_A_ADDRESS"),
-    url(r'^api/v1/send/?$', SendCurrencyView.as_view(), name="BTC_SEND_To_A_ADDRESS"),
+    url(r'^api/v1/send/?$', SendCurrencyView.as_view(), name="BTC_SEND_To_A_ADDRESS"), #Not used anymore
     url(r'^api/v1/wallet/balance/?$', CheckWalletsBalance.as_view(), name="Check_Wallets_Balance"),
     url(r'^api/v1/transfer/?$', TransferCurrencyByUsingSendTaoAddress.as_view(),
         name="Transfer_currency_to_a_fixed_address"),

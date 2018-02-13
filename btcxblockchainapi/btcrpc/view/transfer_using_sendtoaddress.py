@@ -26,7 +26,7 @@ class TransferCurrencyByUsingSendTaoAddress(APIView):
 
     def post(self, request):
         global response_serializer
-        post_serializer = transfers_using_sendtoaddress.PostParametersSerializer(data=request.DATA)
+        post_serializer = transfers_using_sendtoaddress.PostParametersSerializer(data=request.data)
 
         yml_config = ConfigFileReader()
 

@@ -5,6 +5,7 @@ initdb:
 install:
 	pip install --upgrade --user setuptools
 	pip install --upgrade --user -r requirements.txt
+	pip install --upgrade --user sherlock
 
 test:
 	python manage.py test --verbosity 2

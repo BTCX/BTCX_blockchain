@@ -17,15 +17,14 @@ class GetBalanceView(APIView):
 
     @staticmethod
     def post(request):
-        log.info(request.DATA)
+        log.info(request.data)
         log.info(request.is_secure())
         btc_rpc_call = BTCRPCCall(wallet="send")
         #check is testnet or not
+        log.info(btc_rpc_call)
         is_test_net = constantutil.check_service_is_test_net(btc_rpc_call)
-        serializer = balance.GetBalancePostParametersSerializer(data=request.DATA)
-
+        serializer = balance.GetBalancePostParametersSerializer(data=request.data)
         if serializer.is_valid():
-
             address_valid = btc_rpc_call.do_validate_address(address=serializer.data["address"])
             if address_valid['isvalid'] is True:
                 balance_output = btc_rpc_call.get_balance(account=serializer.data["address"])

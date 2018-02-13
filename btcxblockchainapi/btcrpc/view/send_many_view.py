@@ -22,7 +22,7 @@ class BTCSendManyView(APIView):
   permission_classes = (IsAdminUser,)
 
   def post(self, request):
-    serializer_post = send_many_vo.SendManyPostParametersSerializer(data=request.DATA)
+    serializer_post = send_many_vo.SendManyPostParametersSerializer(data=request.data)
 
     if serializer_post.is_valid():
       log.info(serializer_post.data)

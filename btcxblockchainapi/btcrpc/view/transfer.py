@@ -26,7 +26,7 @@ class TransferCurrencyView(APIView):
 
     def post(self, request):
         global response_serializer
-        post_serializer = transfers.PostParametersSerializer(data=request.DATA)
+        post_serializer = transfers.PostParametersSerializer(data=request.data)
 
         yml_config = ConfigFileReader()
 

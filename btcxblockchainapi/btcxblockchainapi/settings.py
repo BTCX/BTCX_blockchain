@@ -16,8 +16,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.6/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'qe$apa%^*h+g5viw&l%=$zoxb-uijiqxbusj^t=xg+6(*na9tl'
+# SECURITY WARNING: keep the secret key used in production secret'
+SECRET_KEY = 'DONT_USE_THIS_YOU_WILL_GET_ROBBED_8ak1gI25KFTvjovL3gAM967mies3E='
+#SECRET_KEY = 'qe$apa%^*h+g5viw&l%=$zoxb-uijiqxbusj^t=xg+6(*na9tl'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -26,6 +27,21 @@ TEMPLATE_DEBUG = True
 
 ALLOWED_HOSTS = ['0.0.0.0', '127.0.0.1']
 
+TEMPLATES = [
+ {
+    'BACKEND': 'django.template.backends.django.DjangoTemplates',
+    'DIRS': [],
+    'APP_DIRS': True,
+    'OPTIONS': {
+        'context_processors': [
+            'django.template.context_processors.debug',
+            'django.template.context_processors.request',
+            'django.contrib.auth.context_processors.auth',
+            'django.contrib.messages.context_processors.messages',
+        ],
+    },
+},
+]
 # Application definition
 
 INSTALLED_APPS = (
