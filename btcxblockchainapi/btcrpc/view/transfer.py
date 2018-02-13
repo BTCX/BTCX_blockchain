@@ -38,7 +38,6 @@ class TransferCurrencyView(APIView):
             transfer_list = post_serializer.data["transfers"]
             log.info(is_test_net)
             response_list = []
-
             for transfer in transfer_list:
                 log.info(transfer)
                 currency = transfer["currency"]
@@ -62,7 +61,6 @@ class TransferCurrencyView(APIView):
                 # canTransfer = (send_amount + txFee) <= balance
 
                 # check if send amount + optional transaction fee > balance
-
                 if from_address_is_valid and to_address_is_valid:
                     try:
                         if lock.locked() is False:
@@ -72,9 +70,7 @@ class TransferCurrencyView(APIView):
                                                                          to_address=to_address,
                                                                          amount=send_amount)
                             lock.release()
-
                             transaction = btc_rpc_call.do_get_transaction(send_response_tx_id)
-
                             response = transfers.TransferInformationResponse(currency=currency,
                                                                              from_address=from_address,
                                                                              to_address=to_address,

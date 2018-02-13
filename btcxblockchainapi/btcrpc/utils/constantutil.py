@@ -9,14 +9,8 @@ def constant(f):
 
 
 def check_service_is_test_net(btc_service):
-    print("in service")
     if isinstance(btc_service, BTCRPCCall):
-        print("in if")
-        print("before")
         btc_info = btc_service.do_getinfo()
-        print("after")
-        print(btc_info)
         return btc_info["testnet"]
     else:
-        print("in else")
         raise TypeError("Expected object BTCRPCCall, got %s" % (type(btc_service),))

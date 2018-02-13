@@ -31,7 +31,6 @@ class TransferCurrencyByUsingSendTaoAddress(APIView):
         yml_config = ConfigFileReader()
 
         if post_serializer.is_valid():
-
             btc_rpc_call = BTCRPCCall()
             is_test_net = constantutil.check_service_is_test_net(btc_rpc_call)
 
@@ -39,14 +38,13 @@ class TransferCurrencyByUsingSendTaoAddress(APIView):
             log.info(is_test_net)
             response_list = []
 
-
             for transfer in transfer_list:
                 log.info(transfer)
+
                 currency = transfer["currency"]
                 txFee = transfer["txFee"]
                 send_amount = transfer["amount"]
                 log.info(send_amount)
-
                 to_address = yml_config.get_safe_address_to_be_transferred(currency=currency)
 
                 log.info("%s, %s, %s" % (currency, to_address, send_amount))
@@ -54,7 +52,6 @@ class TransferCurrencyByUsingSendTaoAddress(APIView):
                 to_address_is_valid = (btc_rpc_call.do_validate_address(address=to_address))["isvalid"]
 
                 log.info("%s" % (to_address_is_valid))
-
                 if to_address_is_valid:
                     try:
                         if lock.locked() is False:
