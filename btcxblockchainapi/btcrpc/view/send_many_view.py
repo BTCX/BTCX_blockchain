@@ -34,11 +34,17 @@ class BTCSendManyView(APIView):
       from_account = serializer_post.data['fromAddress']
       log.info(from_account)
       amounts = serializer_post.data['toSend']
-
       amounts_dict = dict()
 
       for amount in amounts:
-        amounts_dict[amount['toAddress']] = amount['amount']
+        if amount['toAddress'] in amounts_dict:
+          #As the value in amount['toAddress'] is a string, it needs to be converted
+          current_amount = float(amounts_dict[amount['toAddress']])
+          extra_amount = float(amount['amount'])
+          new_amount = current_amount + extra_amount
+          amounts_dict[amount['toAddress']] = '%.9f' % new_amount
+        else:
+          amounts_dict[amount['toAddress']] = amount['amount']
 
       response = None
 
