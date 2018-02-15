@@ -9,6 +9,7 @@ from btcrpc.utils.log import get_log
 from btcrpc.vo import wallet_balance
 from pylibmc import ConnectionError, ServerDown
 import errno
+from bitcoinrpc.authproxy import JSONRPCException
 from socket import error as socket_error
 
 __author__ = 'sikamedia'
@@ -31,7 +32,6 @@ class CheckWalletsBalance(APIView):
             log.info(wallet_list)
             for wallet in wallet_list:
                 try:
-                    print("In try")
                     log.info(wallet)
                     btc_rpc_call = BTCRPCCall(wallet=wallet, currency=currency)
                     is_test_net = constantutil.check_service_is_test_net(btc_rpc_call)
@@ -59,6 +59,15 @@ class CheckWalletsBalance(APIView):
                                                                                        error=1,
                                                                                        error_message="Connection refused error, the wallet node is likely down.")
                         wallet_balance_response_list.append(wallet_balance_response.__dict__)
+                except JSONRPCException as ex:
+                    wallet_balance_response = wallet_balance.WalletBalanceResponse(wallet=wallet,
+                                                                                   balance=Decimal(0),
+                                                                                   test=False,
+                                                                                   error=1,
+                                                                                   error_message="Bitcoin RPC error, check if username and password for node is correct. Message from python-bitcoinrpc: " + ex.message)
+                    wallet_balance_response_list.append(wallet_balance_response.__dict__)
+
+
             wallets_balance_response = wallet_balance.WalletsBalanceResponse(wallets=wallet_balance_response_list)
 
             wallets_balance_response_serializer = \
