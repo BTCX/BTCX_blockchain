@@ -38,7 +38,7 @@ class BTCSendManyView(APIView):
 
       for amount in amounts:
         if amount['toAddress'] in amounts_dict:
-          #As the value in amount['toAddress'] is a string, it needs to be converted
+          #As the values in amounts_dict[amount['toAddress']] and amount['amount'] is a string, They need to be converted
           current_amount = float(amounts_dict[amount['toAddress']])
           extra_amount = float(amount['amount'])
           new_amount = current_amount + extra_amount
