@@ -56,7 +56,7 @@ class CheckWalletsBalance(APIView):
                                                                                        balance=Decimal(0),
                                                                                        test=True,
                                                                                        error=1,
-                                                                                       error_message="Connection refused error, the wallet node is likely down.")
+                                                                                       error_message="Connection refused error, check if the wallet node is down.")
                         wallet_balance_response_list.append(wallet_balance_response.__dict__)
                 except JSONRPCException as ex:
                     wallet_balance_response = wallet_balance.WalletBalanceResponse(wallet=wallet,

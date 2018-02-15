@@ -104,7 +104,7 @@ class BTCSendManyView(APIView):
                                                    test=True, error=1)
         else:
           response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                                   fee=0, message="Connection refused error, the wallet node is likely down.",
+                                                   fee=0, message="Connection refused error, check if the wallet node is down.",
                                                    test=True, error=1)
 
       if (response is not None):

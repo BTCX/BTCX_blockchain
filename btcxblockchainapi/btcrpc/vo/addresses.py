@@ -68,9 +68,11 @@ class NewAddresses(object):
 
     #addresses = []
 
-    def __init__(self, addresses=[], test=False):
+    def __init__(self, addresses=[], test=False, error=0, error_message=""):
         self.addresses = addresses
         self.test = test
+        self.error = error
+        self.error_message = error_message
 
 
     @property
@@ -107,6 +109,8 @@ class AddressesField(serializers.Field):
 class NewAddressesSerializer(serializers.Serializer):
     test = serializers.BooleanField()
     addresses = serializers.ListField(child=serializers.CharField(max_length=128))
+    error = serializers.IntegerField()
+    error_message = serializers.CharField(max_length=512, allow_blank=True)
 
 
 
