@@ -11,6 +11,7 @@ from btcrpc.utils.btc_rpc_call import BTCRPCCall
 from btcrpc.utils.log import get_log
 from btcrpc.vo import send_many_vo
 import socket, errno
+from socket import error as socket_error
 
 log = get_log("Bitcoin Send Many:")
 
@@ -48,9 +49,10 @@ class BTCSendManyView(APIView):
 
       response = None
 
-      is_test_net = constantutil.check_service_is_test_net(btc_rpc_call)
-
       try:
+
+        is_test_net = constantutil.check_service_is_test_net(btc_rpc_call)
+
         if lock.locked() is False:
           lock.acquire()
           btc_rpc_call.set_tx_fee(txFee)
@@ -63,7 +65,7 @@ class BTCSendManyView(APIView):
             if transaction is None:
               response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                                                        fee=0, message="BTC server - " + wallet + "is done.",
-                                                       test=is_test_net)
+                                                       test=is_test_net, error=1)
 
             else:
               response = send_many_vo.SendManyResponse(tx_id=result, status=status.HTTP_200_OK,
@@ -76,30 +78,41 @@ class BTCSendManyView(APIView):
               lock.release()
             log.info("Error: %s" % result.error['message'])
             response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                                     fee=0, message=result.error['message'], test=is_test_net)
+                                                     fee=0, message=result.error['message'], test=is_test_net, error=1)
           elif result is not None and isinstance(result, socket.error):
             log.info(result.errno == errno.ECONNREFUSED)
             log.info(result.message)
             response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                                                      fee=0, message=result.message,
-                                                     test=is_test_net)
+                                                     test=is_test_net, error=1)
 
       except (LockTimeoutException, LockException):
         log.error("Error: %s" % "LockTimeoutException or LockException")
         response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                                                  fee=0, message="LockTimeoutException or LockException",
-                                                 test=is_test_net)
+                                                 test=is_test_net, error=1)
       except (ConnectionError, ServerDown):
         log.error("Error: ConnectionError or ServerDown exception")
         response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                                                  fee=0, message="Error: ConnectionError or ServerDown exception",
-                                                 test=is_test_net)
+                                                 test=is_test_net, error=1)
+      except socket_error as serr:
+        log.error("Error: ConnectionError or ServerDown exception")
+        if serr.errno != errno.ECONNREFUSED:
+          response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                                                   fee=0, message="A general socket error was raised.",
+                                                   test=True, error=1)
+        else:
+          response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                                                   fee=0, message="Connection refused error, the wallet node is likely down.",
+                                                   test=True, error=1)
+
       if (response is not None):
         send_many_response_serializer = send_many_vo.SendManyResponseSerializer(data=response.__dict__)
       else:
         response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                                                  fee=0, message="Error: response is None",
-                                                 test=is_test_net)
+                                                 test=is_test_net, error=1)
         send_many_response_serializer = send_many_vo.SendManyResponseSerializer(data=response.__dict__)
 
 

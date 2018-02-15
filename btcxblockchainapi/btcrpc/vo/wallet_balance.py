@@ -20,7 +20,7 @@ class GetWalletBalancePostParameterSerializer(serializers.Serializer):
 
 class WalletBalanceResponse(object):
 
-    def __init__(self, wallet="", balance=Decimal(0), test=False, error=0, error_message="No error"):
+    def __init__(self, wallet="", balance=Decimal(0), test=False, error=0, error_message=""):
         self.wallet = wallet
         self.balance = balance
         self.test = test
@@ -34,7 +34,7 @@ class WalletBalanceResponseSerializer(serializers.Serializer):
     balance = serializers.DecimalField(max_digits=18, decimal_places=8, coerce_to_string=False)
     test = serializers.BooleanField()
     error = serializers.IntegerField()
-    error_message = serializers.CharField(max_length=512)
+    error_message = serializers.CharField(max_length=512, allow_blank=True)
 
 class WalletListField(serializers.ListField):
     child = WalletBalanceResponseSerializer()

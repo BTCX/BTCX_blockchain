@@ -25,7 +25,6 @@ class CheckWalletsBalance(APIView):
         post_serializers = wallet_balance.GetWalletBalancePostParameterSerializer(data=request.data)
 
         wallet_balance_response_list = []
-        wallet_error_response_list = []
         if post_serializers.is_valid():
             currency = post_serializers.data["currency"]
             wallet_list = yml_config.get_wallet_list(currency)
@@ -48,21 +47,21 @@ class CheckWalletsBalance(APIView):
                     if serr.errno != errno.ECONNREFUSED:
                         wallet_balance_response = wallet_balance.WalletBalanceResponse(wallet=wallet,
                                                                                        balance=Decimal(0),
-                                                                                       test=False,
+                                                                                       test=True,
                                                                                        error=1,
                                                                                        error_message="A general socket error was raised.")
                         wallet_balance_response_list.append(wallet_balance_response.__dict__)
                     else:
                         wallet_balance_response = wallet_balance.WalletBalanceResponse(wallet=wallet,
                                                                                        balance=Decimal(0),
-                                                                                       test=False,
+                                                                                       test=True,
                                                                                        error=1,
                                                                                        error_message="Connection refused error, the wallet node is likely down.")
                         wallet_balance_response_list.append(wallet_balance_response.__dict__)
                 except JSONRPCException as ex:
                     wallet_balance_response = wallet_balance.WalletBalanceResponse(wallet=wallet,
                                                                                    balance=Decimal(0),
-                                                                                   test=False,
+                                                                                   test=True,
                                                                                    error=1,
                                                                                    error_message="Bitcoin RPC error, check if username and password for node is correct. Message from python-bitcoinrpc: " + ex.message)
                     wallet_balance_response_list.append(wallet_balance_response.__dict__)
