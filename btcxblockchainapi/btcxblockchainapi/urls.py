@@ -5,7 +5,6 @@ from rest_framework.urlpatterns import format_suffix_patterns
 from btcrpc.view.check_wallets_balance import CheckWalletsBalance
 from btcrpc.view.send_many_view import BTCSendManyView
 from btcrpc.view.transfer_using_sendtoaddress import TransferCurrencyByUsingSendTaoAddress
-from btcrpc.views import *
 from quickstart.views import *
 from btcrpc.view.addresses import *
 from btcrpc.view.check_multi_receives import *

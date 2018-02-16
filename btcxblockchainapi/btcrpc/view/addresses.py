@@ -5,8 +5,8 @@ from btcrpc.utils import constantutil
 from btcrpc.utils.btc_rpc_call import BTCRPCCall
 from rest_framework.permissions import IsAdminUser
 from bitcoinrpc.authproxy import JSONRPCException
+from btcrpc.constants.api_output_result import *
 
-from btcrpc.views import attributeConst
 from btcrpc.vo import addresses
 import errno
 from socket import error as socket_error
@@ -17,6 +17,7 @@ __Date__ = '2014-09-11'
 
 logger = logging.getLogger(__name__)
 
+attributeConst = AddressReceiveOutputAttributeConst()
 
 class CreateNewAddresses(APIView):
     permission_classes = (IsAdminUser,)
