@@ -17,11 +17,3 @@ from vo.confirmation import *
 btc_RPC_Call = BTCRPCCall()
 attributeConst = AddressReceiveOutputAttributeConst()
 log = get_log("btcrpc_view")
-
-class BTCGetInfoView(APIView):
-    
-    def get(self, request, *args, **kw):
-        
-        result = btc_RPC_Call.do_getinfo()
-        response = Response(result, status=status.HTTP_200_OK)
-        return response
