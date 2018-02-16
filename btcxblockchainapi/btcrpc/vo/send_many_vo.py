@@ -32,4 +32,4 @@ class SendManyResponseSerializer(serializers.Serializer):
   message = serializers.CharField(max_length=256)
   test = serializers.BooleanField()
   error = serializers.IntegerField()
-  error_message = serializers.CharField(max_length=512)
+  error_message = serializers.CharField(max_length=512, allow_blank=True)

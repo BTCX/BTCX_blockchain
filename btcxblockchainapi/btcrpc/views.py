@@ -7,7 +7,7 @@ from rest_framework import viewsets
 
 from btcrpc.utils.btc_rpc_call import BTCRPCCall
 from btcrpc.vo.balance import GetBalancePostParameter
-from vo import address, address_receive, check_receive_transaction, addresses, check_multi_receives
+from vo import address_receive, check_receive_transaction, addresses, check_multi_receives
 from btcrpc.utils.log import *
 from utils.timeUtil import TimeUtils
 from utils.jsonutil import JsonUtils
@@ -39,28 +39,6 @@ class BTCGetInfoView(APIView):
         result = btc_RPC_Call.do_getinfo()
         response = Response(result, status=status.HTTP_200_OK)
         return response
-
-
-class BTCGetNewAddress(APIView):
-
-    def post(self, request, format=None):
-        log.info(request.DATA)
-        log.info(request.is_secure())
-        serializer = address.AddressInputSerializer(data=request.DATA)
-        
-        if serializer.is_valid():
-            log.info(serializer.data["apikey"])
-            log.info(serializer.data["currency"])
-            log.info(serializer.data["test"])
-            new_address_output = address.AddressOutputResult()
-            new_address = btc_RPC_Call.do_get_new_address()
-            new_address_output.address = new_address
-
-            #set an account name same as address
-            btc_RPC_Call.do_set_account(new_address,new_address)
-            serializerOutput = address.AddressOutputSerializer(new_address_output)
-            return Response(serializerOutput.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class BTCCheckAddressReceive(APIView):
