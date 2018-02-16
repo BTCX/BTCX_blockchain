@@ -46,11 +46,15 @@ class TransferInformationResponseSerializer(serializers.Serializer):
 
 class TransfersInformationResponse(object):
 
-    def __init__(self, transfers=[], test=False):
+    def __init__(self, transfers=[], test=False, error=0, error_message=""):
         self.transfers = transfers
         self.test = test
+        self.error = error
+        self.error_message = error_message
 
 
 class TransfersInformationResponseSerializer(serializers.Serializer):
     transfers = serializers.ListField(child=TransferInformationResponseSerializer())
     test = serializers.BooleanField()
+    error = serializers.IntegerField()
+    error_message = serializers.CharField(max_length=512, allow_blank=True)

@@ -10,6 +10,8 @@ from btcrpc.utils.btc_rpc_call import BTCRPCCall
 from btcrpc.utils.config_file_reader import ConfigFileReader
 from btcrpc.utils.log import get_log
 from btcrpc.vo import check_multi_receives
+import errno
+from socket import error as socket_error
 
 log = get_log("CheckMultiAddressesReceive view")
 yml_config = ConfigFileReader()
@@ -22,45 +24,66 @@ class CheckMultiAddressesReceive(APIView):
   def post(self, request):
     log.info(request.data)
     post_serializers = check_multi_receives.PostParametersSerializer(data=request.data)
-    btc_rpc_call = BTCRPCCall()
-    is_test_net = constantutil.check_service_is_test_net(btc_rpc_call)
 
     response_list = []
     if post_serializers.is_valid():
       log.info(post_serializers.data["transactions"])
       transactions = post_serializers.data["transactions"]
-      for transaction in transactions:
-        log.info(transaction)
+      try:
+        btc_rpc_call = BTCRPCCall()
+        is_test_net = constantutil.check_service_is_test_net(btc_rpc_call)
+        for transaction in transactions:
+          log.info(transaction)
 
-        transaction_address = transaction["address"]
+          transaction_address = transaction["address"]
 
-        address_validation = btc_rpc_call.do_validate_address(address=transaction_address)
+          address_validation = btc_rpc_call.do_validate_address(address=transaction_address)
 
-        if address_validation["isvalid"] is False:
-          return Response(transaction_address + " is not a valid address",
-                          status=status.HTTP_400_BAD_REQUEST)
+          if address_validation["isvalid"] is False:
+            return Response(transaction_address + " is not a valid address",
+                            status=status.HTTP_400_BAD_REQUEST)
 
-        tx_ids = self.__get_txIds(transaction["address"], btc_service=btc_rpc_call)
-        log.debug(tx_ids)
+          tx_ids = self.__get_txIds(transaction["address"], btc_service=btc_rpc_call)
+          log.debug(tx_ids)
 
-        received_with_risk = self.__receive_amount_for_risk(wallet_address=transaction_address,
-                                                            tx_ids=tx_ids,
-                                                            btc_service=btc_rpc_call)
+          received_with_risk = self.__receive_amount_for_risk(wallet_address=transaction_address,
+                                                              tx_ids=tx_ids,
+                                                              btc_service=btc_rpc_call)
 
-        received = Decimal(received_with_risk["result"]) if received_with_risk else 0.0
-        risk = received_with_risk["risk"] if received_with_risk else "low"
-        log.info("received: %f, risk: %s", received, risk)
+          received = Decimal(received_with_risk["result"]) if received_with_risk else 0.0
+          risk = received_with_risk["risk"] if received_with_risk else "low"
+          log.info("received: %f, risk: %s", received, risk)
 
 
-        response = check_multi_receives.ReceiveInformationResponse(currency=transaction["currency"],
-                                                                   address=transaction_address,
-                                                                   received=received,
-                                                                   risk=risk,
-                                                                   txs=tx_ids)
-        response_list.append(response.__dict__)
+          response = check_multi_receives.ReceiveInformationResponse(currency=transaction["currency"],
+                                                                     address=transaction_address,
+                                                                     received=received,
+                                                                     risk=risk,
+                                                                     txs=tx_ids)
+          response_list.append(response.__dict__)
+          receives_response = check_multi_receives.ReceivesInformationResponse(receives=response_list,
+                                                                               test=is_test_net)
+      except socket_error as serr:
+        if serr.errno != errno.ECONNREFUSED:
+          response = check_multi_receives.ReceiveInformationResponse(currency="",
+                                                                     address="",
+                                                                     received=0.0,
+                                                                     risk="",
+                                                                     txs=[], error=1,
+                                                                     error_message="A general socket error was raised.")
+          response_list.append(response.__dict__)
+        else:
+          response = check_multi_receives.ReceiveInformationResponse(currency="",
+                                                                     address="",
+                                                                     received=0.0,
+                                                                     risk="",
+                                                                     txs=[], error=1,
+                                                                     error_message="Connection refused error, "
+                                                                                   "check if the wallet node is down.")
+          response_list.append(response.__dict__)
+        receives_response = check_multi_receives.ReceivesInformationResponse(receives=response_list,
+                                                                             test=True)
 
-      receives_response = check_multi_receives.ReceivesInformationResponse(receives=response_list,
-                                                                           test=is_test_net)
       response_dict = receives_response.__dict__
 
       response_serializer = check_multi_receives.ReceivesInformationResponseSerializer(data=response_dict)
