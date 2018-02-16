@@ -9,7 +9,6 @@ from btcrpc.view.send_many_view import BTCSendManyView
 from btcrpc.view.transfer_using_sendtoaddress import TransferCurrencyByUsingSendTaoAddress
 from btcrpc.views import *
 from quickstart.views import *
-from btcrpc.view.balance import *
 from btcrpc.view.send import *
 from btcrpc.view.addresses import *
 from btcrpc.view.check_multi_receives import *
@@ -35,7 +34,7 @@ urlpatterns = [
     url(r'^api/v1/address/?$', CreateNewAddresses.as_view(), name="BTC_Create_New_Address"),
     # url(r'^api/v1/receive/$', BTCCheckAddressReceive.as_view(), name="BTC_Check_Address_For_Bitcoin_Receiving"),
     url(r'^api/v1/receive/?$', CheckMultiAddressesReceive.as_view(), name="BTC_Check_Address_For_Bitcoin_Receiving"),
-    url(r'^api/v1/balance/?$', GetBalanceView.as_view(), name="BTC_GET_BALANCE_FOR_A_ADDRESS"),
+    #url(r'^api/v1/balance/?$', GetBalanceView.as_view(), name="BTC_GET_BALANCE_FOR_A_ADDRESS"),
     url(r'^api/v1/send/?$', SendCurrencyView.as_view(), name="BTC_SEND_To_A_ADDRESS"), #Not used anymore
     url(r'^api/v1/wallet/balance/?$', CheckWalletsBalance.as_view(), name="Check_Wallets_Balance"),
     url(r'^api/v1/transfer/?$', TransferCurrencyByUsingSendTaoAddress.as_view(),

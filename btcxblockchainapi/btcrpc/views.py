@@ -6,7 +6,6 @@ import simplejson
 from rest_framework import viewsets
 
 from btcrpc.utils.btc_rpc_call import BTCRPCCall
-from btcrpc.vo.balance import GetBalancePostParameter
 from vo import address_receive, check_receive_transaction, addresses, check_multi_receives
 from btcrpc.utils.log import *
 from utils.timeUtil import TimeUtils
