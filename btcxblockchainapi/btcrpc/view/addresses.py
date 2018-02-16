@@ -4,6 +4,7 @@ from rest_framework.views import APIView
 from btcrpc.utils import constantutil
 from btcrpc.utils.btc_rpc_call import BTCRPCCall
 from rest_framework.permissions import IsAdminUser
+from bitcoinrpc.authproxy import JSONRPCException
 
 from btcrpc.views import attributeConst
 from btcrpc.vo import addresses
@@ -40,6 +41,12 @@ class CreateNewAddresses(APIView):
 
                 new_addresses_response = addresses.NewAddresses(addresses=new_addresses, test=is_test_net)
 
+            except JSONRPCException as ex:
+                logger.error("Error: %s" % ex.error['message'])
+                error_message = "Bitcoin RPC error, check if username and password for node is correct. Message from " \
+                                "python-bitcoinrpc: " + ex.message
+                new_addresses_response = addresses.NewAddresses(addresses=[], test=True, error=1,
+                                                                error_message=error_message)
             except socket_error as serr:
                 if serr.errno != errno.ECONNREFUSED:
                     new_addresses_response = addresses.NewAddresses(addresses=[], test=True, error=1,

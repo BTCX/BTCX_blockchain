@@ -5,6 +5,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from bitcoinrpc.authproxy import JSONRPCException
 from btcrpc.utils import constantutil
 from btcrpc.utils.btc_rpc_call import BTCRPCCall
 from btcrpc.utils.config_file_reader import ConfigFileReader
@@ -63,6 +64,19 @@ class CheckMultiAddressesReceive(APIView):
           response_list.append(response.__dict__)
           receives_response = check_multi_receives.ReceivesInformationResponse(receives=response_list,
                                                                                test=is_test_net)
+      except JSONRPCException as ex:
+          log.error("Error: %s" % ex.error['message'])
+          error_message = "Bitcoin RPC error, check if username and password for node is correct. Message from " \
+                          "python-bitcoinrpc: " + ex.message
+          response = check_multi_receives.ReceiveInformationResponse(currency="",
+                                                                     address="",
+                                                                     received=0.0,
+                                                                     risk="",
+                                                                     txs=[], error=1,
+                                                                     error_message=error_message)
+          response_list.append(response.__dict__)
+          receives_response = check_multi_receives.ReceivesInformationResponse(receives=response_list,
+                                                                               test=True)
       except socket_error as serr:
         if serr.errno != errno.ECONNREFUSED:
           response = check_multi_receives.ReceiveInformationResponse(currency="",

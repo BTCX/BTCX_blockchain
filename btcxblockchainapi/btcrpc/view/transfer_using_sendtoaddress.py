@@ -118,7 +118,17 @@ class TransferCurrencyByUsingSendTaoAddress(APIView):
 
                 transfers_response = transfers_using_sendtoaddress.TransfersInformationResponse(transfers=response_list,
                                                                                                 test=is_test_net)
+            except JSONRPCException as ex:
+                if lock.locked() is True:
+                    lock.release()
+                log.error("Error: %s" % ex.error['message'])
+                transfers_response = transfers_using_sendtoaddress.TransfersInformationResponse(
+                    transfers=[], test=True, error=1, error_message="Bitcoin RPC error, check if username and password "
+                                                                    "for node is correct. Message from python-bitcoinrpc: "
+                                                                    + ex.message)
             except socket_error as serr:
+                if lock.locked() is True:
+                    lock.release()
                 if serr.errno != errno.ECONNREFUSED:
                     transfers_response = transfers_using_sendtoaddress.TransfersInformationResponse(
                         transfers=[], test=True, error=1, error_message="A general socket error was raised.")

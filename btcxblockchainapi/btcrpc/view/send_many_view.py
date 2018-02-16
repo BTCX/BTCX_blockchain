@@ -87,6 +87,7 @@ class BTCSendManyView(APIView):
                                                      test=is_test_net, error=1)
 
       except (LockTimeoutException, LockException):
+        is_test_net = constantutil.check_service_is_test_net(btc_rpc_call)
         log.error("Error: %s" % "LockTimeoutException or LockException")
         response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                                                  fee=0, message="LockTimeoutException or LockException",
@@ -95,21 +96,35 @@ class BTCSendManyView(APIView):
         log.error("Error: ConnectionError or ServerDown exception")
         response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                                                  fee=0, message="Error: ConnectionError or ServerDown exception",
-                                                 test=is_test_net, error=1)
+                                                 test=True, error=1)
+
+      except JSONRPCException as ex:
+          if lock.locked() is True:
+              lock.release()
+          log.error("Error: %s" % ex.error['message'])
+          error_message = "Bitcoin RPC error, check if username and password for node is correct. Message from " \
+                          "python-bitcoinrpc: " + ex.message
+          response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                                                   fee=0, message=error_message,
+                                                   test=True, error=1, error_message=error_message)
       except socket_error as serr:
-        log.error("Error: ConnectionError or ServerDown exception")
+        if lock.locked() is True:
+          lock.release()
         if serr.errno != errno.ECONNREFUSED:
+          error_message = "A general socket error was raised."
           response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                                   fee=0, message="A general socket error was raised.",
-                                                   test=True, error=1)
+                                                   fee=0, message=error_message,
+                                                   test=True, error=1, error_message=error_message)
         else:
+          error_message = "Connection refused error, check if the wallet node is down."
           response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                                   fee=0, message="Connection refused error, check if the wallet node is down.",
-                                                   test=True, error=1)
+                                                   fee=0, message=error_message,
+                                                   test=True, error=1, error_message=error_message)
 
       if (response is not None):
         send_many_response_serializer = send_many_vo.SendManyResponseSerializer(data=response.__dict__)
       else:
+        is_test_net = constantutil.check_service_is_test_net(btc_rpc_call)
         response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                                                  fee=0, message="Error: response is None",
                                                  test=is_test_net, error=1)

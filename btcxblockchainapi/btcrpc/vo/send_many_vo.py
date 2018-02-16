@@ -16,13 +16,14 @@ class SendManyPostParametersSerializer(serializers.Serializer):
 
 class SendManyResponse(object):
 
-  def __init__(self, tx_id="", status=0, fee=0, message="", test=False, error=0):
+  def __init__(self, tx_id="", status=0, fee=0, message="", test=False, error=0, error_message=""):
     self.txid = tx_id
     self.status = status
     self.fee = fee
     self.message = message
     self.test = test
     self.error = error
+    self.error_message = error_message
 
 class SendManyResponseSerializer(serializers.Serializer):
   txid = serializers.CharField(max_length=128, allow_blank=True)
@@ -31,3 +32,4 @@ class SendManyResponseSerializer(serializers.Serializer):
   message = serializers.CharField(max_length=256)
   test = serializers.BooleanField()
   error = serializers.IntegerField()
+  error_message = serializers.CharField(max_length=512)
