@@ -6,7 +6,7 @@ import simplejson
 from rest_framework import viewsets
 
 from btcrpc.utils.btc_rpc_call import BTCRPCCall
-from vo import address_receive, check_receive_transaction, addresses, check_multi_receives
+from vo import check_receive_transaction, addresses, check_multi_receives
 from btcrpc.utils.log import *
 from utils.timeUtil import TimeUtils
 from utils.jsonutil import JsonUtils
@@ -38,57 +38,6 @@ class BTCGetInfoView(APIView):
         result = btc_RPC_Call.do_getinfo()
         response = Response(result, status=status.HTTP_200_OK)
         return response
-
-
-class BTCCheckAddressReceive(APIView):
-
-    def post(self, request):
-        log.info(request.DATA)
-        serializers = address_receive.AddressReceiveInputSerializer(data=request.DATA)
-        if serializers.is_valid():
-            log.info(serializers.data[attributeConst.APIKEY])
-            amount_input = float(serializers.data[attributeConst.AMOUNT])
-            address_input = serializers.data[attributeConst.ADDRESS]
-            currency_input = serializers.data[attributeConst.CURRENCY]
-            test_input = serializers.data[attributeConst.TEST]
-            confirms_input = serializers.data[attributeConst.MINCONF]
-
-            output_result = address_receive.AddressReceiveOutput()
-
-            address_validation = btc_RPC_Call.do_validate_address(address_input)
-
-            if address_validation["isvalid"] is False:
-                output_result.state = STATUS_FAILED
-                output_result.address = address_input
-                output_result.message = "The address is not valid"
-                output_result.test = test_input
-                serializer_output = address_receive.AddressReceiveOutputSerializer(output_result)
-                return Response(serializer_output.data, status=status.HTTP_400_BAD_REQUEST)
-            
-            received_amount = float(btc_RPC_Call.amount_received_by_address(address_input, confirms_input))
-                
-            output_result.address = address_input
-            output_result.amount = amount_input
-            output_result.currency = currency_input
-            output_result.test = test_input
-            output_result.amountreceived = received_amount
-
-            if amount_input == received_amount:
-                output_result.state = STATUS_COMPLETED
-                output_result.message = "The amount of btc is completed"
-
-            elif amount_input > received_amount:
-                output_result.state = STATUS_PENDING
-                output_result.message = "You received less"
-
-            else :
-                output_result.state = STATUS_COMPLETED
-                output_result.message = "You received more"
-
-            serializer_output = address_receive.AddressReceiveOutputSerializer(output_result)
-            return Response(serializer_output.data, status = status.HTTP_200_OK)
-
-        return Response(serializers.errors, status=status.HTTP_400_BAD_REQUEST)
 
 """
 class CheckAmountReceived(APIView):
