@@ -45,6 +45,11 @@ class CheckMultiAddressesReceive(APIView):
             return Response(transaction_address + " is not a valid address",
                             status=status.HTTP_400_BAD_REQUEST)
 
+          if address_validation["ismine"] is False:
+            log.info(transaction_address + " is not an address of the wallet")
+            return Response(transaction_address + " is not an address of the wallet",
+                            status=status.HTTP_400_BAD_REQUEST)
+
           tx_ids = self.__get_txIds(transaction["address"], btc_service=btc_rpc_call)
           log.debug(tx_ids)
 
@@ -62,6 +67,7 @@ class CheckMultiAddressesReceive(APIView):
                                                                      received=received,
                                                                      risk=risk,
                                                                      txs=tx_ids)
+          print(address_validation)
           response_list.append(response.__dict__)
           receives_response = check_multi_receives.ReceivesInformationResponse(receives=response_list,
                                                                                test=is_test_net)
