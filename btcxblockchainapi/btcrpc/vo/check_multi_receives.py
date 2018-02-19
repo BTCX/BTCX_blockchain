@@ -1,4 +1,5 @@
 ﻿from btcrpc.utils.log import get_log
+from datetime import datetime
 
 __author__ = 'sikamedia'
 
@@ -18,8 +19,6 @@ class PostParameters(object):
 class TransactionSerializer(serializers.Serializer):
     currency = serializers.CharField(max_length=20)
     address = serializers.CharField(max_length=128)
-    amount = serializers.FloatField()
-
 
 class PostParametersSerializer(serializers.Serializer):
     transactions = TransactionSerializer(many=True)
@@ -43,35 +42,41 @@ class TxIdsField(serializers.Field):
         return obj.txids
 """
 class TxIdTransaction(object):
-    def __init__(self, txid, received, confirmations):
+    def __init__(self, txid, received, confirmations, date=datetime.now()):
         self.txid = txid
         self.received = received
         self.confirmations = confirmations
+        self.date = date
 
 class TxIdTransactionSerializer(serializers.Serializer):
     txid = serializers.CharField(max_length=128)
     received = serializers.DecimalField(max_digits=18, decimal_places=12, coerce_to_string=True)
     confirmations = serializers.IntegerField()
+    date = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
 
 class ReceiveInformationResponse(object):
-    def __init__(self, currency="btc", address="", received=0.0, risk="low", txs=[]):
+    def __init__(self, currency="btc", address="", received=0.0, risk="low", txs=[], error=0, error_message=""):
         #self.api_key = api_key
         self.currency = currency
         self.address = address
         self.received = received
         self.risk = risk
         self.txids = txs
+        self.error = error
+        self.error_message = error_message
 
 
 class ReceiveInformationResponseSerializer(serializers.Serializer):
-    currency = serializers.CharField(max_length=20)
-    address = serializers.CharField(max_length=128)
+    currency = serializers.CharField(max_length=20, allow_blank=True)
+    address = serializers.CharField(max_length=128, allow_blank=True)
     received = serializers.DecimalField(max_digits=18, decimal_places=12, coerce_to_string=True)
-    risk = serializers.CharField(max_length=10)  # high, medium, low
+    risk = serializers.CharField(max_length=10, allow_blank=True)  # high, medium, low
     txids = TxIdTransactionSerializer(many=True)
+    error = serializers.IntegerField
+    error_message = serializers.CharField(max_length=512, allow_blank=True)
 
     class Meta:
-        fields = ('currency', 'address', 'received', 'risk', 'txids')
+        fields = ('currency', 'address', 'received', 'risk', 'txids', 'error', 'error_message')
 
 
 class ReceivesInformationResponse(object):

@@ -16,16 +16,30 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.6/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
+# SECURITY WARNING: keep the secret key used in production secret'
 SECRET_KEY = 'qe$apa%^*h+g5viw&l%=$zoxb-uijiqxbusj^t=xg+6(*na9tl'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-TEMPLATE_DEBUG = True
+ALLOWED_HOSTS = ['0.0.0.0', '127.0.0.1', 'localhost']
 
-ALLOWED_HOSTS = []
-
+TEMPLATES = [
+ {
+    'BACKEND': 'django.template.backends.django.DjangoTemplates',
+    'DIRS': [],
+    'APP_DIRS': True,
+    'OPTIONS': {
+        'context_processors': [
+            'django.template.context_processors.debug',
+            'django.template.context_processors.request',
+            'django.contrib.auth.context_processors.auth',
+            'django.contrib.messages.context_processors.messages',
+        ],
+        'debug': DEBUG,
+    },
+},
+]
 # Application definition
 
 INSTALLED_APPS = (
@@ -37,10 +51,9 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'rest_framework',
     'btcrpc',
-    'ethereum.apps.EthereumConfig'
+    'ethereum.apps.EthereumConfig',
     #'sslserver',
-    'commonapi',
-    # 'sslserver',
+    'commonapi'
 )
 
 TEMPLATES = [
