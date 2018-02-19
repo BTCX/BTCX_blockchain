@@ -69,35 +69,25 @@ class CheckMultiAddressesReceive(APIView):
           log.error("Error: %s" % ex.error['message'])
           error_message = "Bitcoin RPC error, check if username and password for node is correct. Message from " \
                           "python-bitcoinrpc: " + ex.message
-          response = check_multi_receives.ReceiveInformationResponse(currency="",
-                                                                     address="",
-                                                                     received=0.0,
-                                                                     risk="",
-                                                                     txs=[], error=1,
-                                                                     error_message=error_message)
-          response_list.append(response.__dict__)
           receives_response = check_multi_receives.ReceivesInformationResponse(receives=response_list,
-                                                                               test=True)
+                                                                               test=True,
+                                                                               error=1,
+                                                                               error_message=error_message
+                                                                               )
       except socket_error as serr:
         if serr.errno != errno.ECONNREFUSED:
-          response = check_multi_receives.ReceiveInformationResponse(currency="",
-                                                                     address="",
-                                                                     received=0.0,
-                                                                     risk="",
-                                                                     txs=[], error=1,
-                                                                     error_message="A general socket error was raised.")
-          response_list.append(response.__dict__)
+          receives_response = check_multi_receives.ReceivesInformationResponse(receives=[],
+                                                                               test=True,
+                                                                               error=1,
+                                                                               error_message="A general socket error was raised."
+                                                                               )
         else:
-          response = check_multi_receives.ReceiveInformationResponse(currency="",
-                                                                     address="",
-                                                                     received=0.0,
-                                                                     risk="",
-                                                                     txs=[], error=1,
-                                                                     error_message="Connection refused error, "
-                                                                                   "check if the wallet node is down.")
-          response_list.append(response.__dict__)
-        receives_response = check_multi_receives.ReceivesInformationResponse(receives=response_list,
-                                                                             test=True)
+          receives_response = check_multi_receives.ReceivesInformationResponse(receives=[],
+                                                                               test=True,
+                                                                               error=1,
+                                                                               error_message="Connection refused error, "
+                                                                                             "check if the wallet node is down."
+                                                                               )
 
       response_dict = receives_response.__dict__
 

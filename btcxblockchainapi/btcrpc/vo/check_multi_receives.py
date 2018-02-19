@@ -72,8 +72,6 @@ class ReceiveInformationResponseSerializer(serializers.Serializer):
     received = serializers.DecimalField(max_digits=18, decimal_places=12, coerce_to_string=True)
     risk = serializers.CharField(max_length=10, allow_blank=True)  # high, medium, low
     txids = TxIdTransactionSerializer(many=True)
-    error = serializers.IntegerField
-    error_message = serializers.CharField(max_length=512, allow_blank=True)
 
     class Meta:
         fields = ('currency', 'address', 'received', 'risk', 'txids', 'error', 'error_message')
@@ -81,14 +79,18 @@ class ReceiveInformationResponseSerializer(serializers.Serializer):
 
 class ReceivesInformationResponse(object):
 
-    def __init__(self, receives=[], test=False):
+    def __init__(self, receives=[], test=False, error=0, error_message=""):
         self.receives = receives
         self.test = test
+        self.error = error
+        self.error_message = error_message
 
 
 class ReceivesInformationResponseSerializer(serializers.Serializer):
     receives = serializers.ListField(child=ReceiveInformationResponseSerializer())
     test = serializers.BooleanField()
+    error = serializers.IntegerField()
+    error_message = serializers.CharField(max_length=512, allow_blank=True)
 
 """
 class ReceivesInformationResponseSerializer(serializers.Serializer):
