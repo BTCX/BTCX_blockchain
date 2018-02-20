@@ -22,7 +22,7 @@ SECRET_KEY = 'qe$apa%^*h+g5viw&l%=$zoxb-uijiqxbusj^t=xg+6(*na9tl'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['0.0.0.0', '127.0.0.1', 'localhost']
+ALLOWED_HOSTS = [b'127.0.0.1', 'localhost']
 
 TEMPLATES = [
  {
