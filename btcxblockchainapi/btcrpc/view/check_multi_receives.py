@@ -32,7 +32,11 @@ class CheckMultiAddressesReceive(APIView):
       log.info(post_serializers.data["transactions"])
       transactions = post_serializers.data["transactions"]
       try:
-        btc_rpc_call = BTCRPCCall()
+        #btc_rpc_call = BTCRPCCall()
+        # NOTE: THE LINES BELOW THAT CREATE THE BTC_RCP_CALL SHOULD BE REPLACED BY NON HARD CODED LINES
+        wallet = "receive"
+        currency= "bch"
+        btc_rpc_call = BTCRPCCall(wallet=wallet, currency=currency)
         is_test_net = constantutil.check_service_is_test_net(btc_rpc_call)
         for transaction in transactions:
           log.info(transaction)
@@ -49,14 +53,12 @@ class CheckMultiAddressesReceive(APIView):
             log.info(transaction_address + " is not an address of the wallet")
             return Response(transaction_address + " is not an address of the wallet",
                             status=status.HTTP_400_BAD_REQUEST)
-
           tx_ids = self.__get_txIds(transaction["address"], btc_service=btc_rpc_call)
           log.debug(tx_ids)
 
           received_with_risk = self.__receive_amount_for_risk(wallet_address=transaction_address,
                                                               tx_ids=tx_ids,
                                                               btc_service=btc_rpc_call)
-
           received = Decimal(received_with_risk["result"]) if received_with_risk else 0.0
           risk = received_with_risk["risk"] if received_with_risk else "low"
           log.info("received: %f, risk: %s", received, risk)
@@ -67,7 +69,6 @@ class CheckMultiAddressesReceive(APIView):
                                                                      received=received,
                                                                      risk=risk,
                                                                      txs=tx_ids)
-          print(address_validation)
           response_list.append(response.__dict__)
           receives_response = check_multi_receives.ReceivesInformationResponse(receives=response_list,
                                                                                test=is_test_net)
@@ -82,17 +83,19 @@ class CheckMultiAddressesReceive(APIView):
                                                                                )
       except socket_error as serr:
         if serr.errno != errno.ECONNREFUSED:
+          error_message = "A general socket error was raised. Message from deamon: " + serr.message
           receives_response = check_multi_receives.ReceivesInformationResponse(receives=[],
                                                                                test=True,
                                                                                error=1,
-                                                                               error_message="A general socket error was raised."
+                                                                               error_message=error_message
                                                                                )
         else:
+          error_message = "Connection refused error, check if the wallet node is down. Message from deamon: " \
+                          + serr.message
           receives_response = check_multi_receives.ReceivesInformationResponse(receives=[],
                                                                                test=True,
                                                                                error=1,
-                                                                               error_message="Connection refused error, "
-                                                                                             "check if the wallet node is down."
+                                                                               error_message= error_message
                                                                                )
 
       response_dict = receives_response.__dict__

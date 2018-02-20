@@ -37,7 +37,11 @@ class TransferCurrencyByUsingSendTaoAddress(APIView):
             transfer_list = post_serializer.data["transfers"]
             response_list = []
             try:
-                btc_rpc_call = BTCRPCCall()
+                #btc_rpc_call = BTCRPCCall()
+                #NOTE: THE LINES BELOW THAT CREATE THE BTC_RCP_CALL SHOULD BE REPLACED BY NON HARD CODED LINES
+                wallet = "receive"
+                currency = "bch"
+                btc_rpc_call = BTCRPCCall(wallet=wallet, currency=currency)
                 is_test_net = constantutil.check_service_is_test_net(btc_rpc_call)
 
                 for transfer in transfer_list:
