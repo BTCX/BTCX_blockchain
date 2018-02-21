@@ -35,7 +35,7 @@ class BTCRPCCall(object):
     try:
       return self.access.listtransactions(account, count, from_index)
     except RuntimeError:
-      print "calling failure"
+      print("calling failure")
 
     def do_get_transaction(self, tx_id):
         try:
