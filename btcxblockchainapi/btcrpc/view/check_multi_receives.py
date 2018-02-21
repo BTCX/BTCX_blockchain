@@ -67,7 +67,6 @@ class CheckMultiAddressesReceive(APIView):
                                                                      received=received,
                                                                      risk=risk,
                                                                      txs=tx_ids)
-          print(address_validation)
           response_list.append(response.__dict__)
           receives_response = check_multi_receives.ReceivesInformationResponse(receives=response_list,
                                                                                test=is_test_net)
