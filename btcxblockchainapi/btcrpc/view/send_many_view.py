@@ -13,7 +13,6 @@ from btcrpc.vo import send_many_vo
 import socket, errno
 from socket import error as socket_error
 import threading as th
-import time
 
 log = get_log("Bitcoin Send Many:")
 
@@ -58,9 +57,6 @@ class BTCSendManyView(APIView):
         is_test_net = constantutil.check_service_is_test_net(btc_rpc_call)
 
         if (semaphore.acquire(blocking=False)):
-          print("preparing to sleep")
-          time.sleep(10)
-          print("Woke up")
           btc_rpc_call.set_tx_fee(txFee)
           isSuccess, result = btc_rpc_call.send_many(from_account=from_account, amounts=amounts_dict)
 
