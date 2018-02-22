@@ -2,7 +2,7 @@ from bitcoinrpc.authproxy import JSONRPCException
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from sherlock import MCLock, LockTimeoutException, LockException
+#from sherlock import MCLock, LockTimeoutException, LockException
 from pylibmc import ConnectionError, ServerDown
 from rest_framework import status
 
@@ -12,17 +12,21 @@ from btcrpc.utils.log import get_log
 from btcrpc.vo import send_many_vo
 import socket, errno
 from socket import error as socket_error
+import asyncio as aio
 
 log = get_log("Bitcoin Send Many:")
 
 # define a locker for send many with a tx fee
-lock = MCLock(__name__)
+#lock = MCLock(__name__)
 
+
+sem1, sem2 = (aio.Semaphore(), aio.Semaphore())
 
 class BTCSendManyView(APIView):
   permission_classes = (IsAdminUser,)
 
-  def post(self, request):
+
+  async def post(self, request):
     serializer_post = send_many_vo.SendManyPostParametersSerializer(data=request.data)
 
     if serializer_post.is_valid():
@@ -53,11 +57,12 @@ class BTCSendManyView(APIView):
 
         is_test_net = constantutil.check_service_is_test_net(btc_rpc_call)
 
-        if lock.locked() is False:
-          lock.acquire()
+        await sem1.acquire()
+        if sem2.locked() is False:
+          await sem2.acquire()
           btc_rpc_call.set_tx_fee(txFee)
           isSuccess, result = btc_rpc_call.send_many(from_account=from_account, amounts=amounts_dict)
-          lock.release()
+          await sem2.release()
 
           if (isSuccess):
             log.info(result)
@@ -74,8 +79,8 @@ class BTCSendManyView(APIView):
 
           elif result is not None and isinstance(result, JSONRPCException):
 
-            if lock.locked() is True:
-              lock.release()
+            if sem2.locked() is True:
+                await sem2.release()
             log.info("Error: %s" % result.error['message'])
             response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                                                      fee=0, message=result.error['message'], test=is_test_net, error=1)
@@ -86,12 +91,13 @@ class BTCSendManyView(APIView):
                                                      fee=0, message=result.message,
                                                      test=is_test_net, error=1)
 
-      except (LockTimeoutException, LockException):
-        is_test_net = constantutil.check_service_is_test_net(btc_rpc_call)
-        log.error("Error: %s" % "LockTimeoutException or LockException")
-        response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                                 fee=0, message="LockTimeoutException or LockException",
-                                                 test=is_test_net, error=1)
+          '''except (LockTimeoutException, LockException):
+            is_test_net = constantutil.check_service_is_test_net(btc_rpc_call)
+            log.error("Error: %s" % "LockTimeoutException or LockException")
+            response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                                                     fee=0, message="LockTimeoutException or LockException",
+                                                     test=is_test_net, error=1)'''
+
       except (ConnectionError, ServerDown):
         log.error("Error: ConnectionError or ServerDown exception")
         response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -99,8 +105,8 @@ class BTCSendManyView(APIView):
                                                  test=True, error=1)
 
       except JSONRPCException as ex:
-          if lock.locked() is True:
-              lock.release()
+          if sem2.locked() is True:
+              await sem2.release()
           log.error("Error: %s" % ex.error['message'])
           error_message = "Bitcoin RPC error, check if username and password for node is correct. Message from " \
                           "python-bitcoinrpc: " + ex.message
@@ -108,8 +114,8 @@ class BTCSendManyView(APIView):
                                                    fee=0, message=error_message,
                                                    test=True, error=1, error_message=error_message)
       except socket_error as serr:
-        if lock.locked() is True:
-          lock.release()
+        if sem2.locked() is True:
+            await sem2.release()
         if serr.errno != errno.ECONNREFUSED:
           error_message = "A general socket error was raised."
           response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
