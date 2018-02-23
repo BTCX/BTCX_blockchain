@@ -7,17 +7,14 @@ from pylibmc import ConnectionError, ServerDown
 from rest_framework import status
 
 from btcrpc.utils import constantutil
-from btcrpc.utils.btc_rpc_call import BTCRPCCall
 from btcrpc.utils.log import get_log
 from btcrpc.vo import send_many_vo
 import socket, errno
 from socket import error as socket_error
 from btcrpc.utils.semaphore import SemaphoreSingleton
+from btcrpc.utils.rpc_calls.rpc_instance_generator import RpcGenerator
 
 log = get_log("Bitcoin Send Many:")
-
-# define a locker for send many with a tx fee
-#lock = MCLock(__name__)
 
 class BTCSendManyView(APIView):
   permission_classes = (IsAdminUser,)
@@ -31,7 +28,7 @@ class BTCSendManyView(APIView):
       currency = serializer_post.data["currency"]
       wallet = serializer_post.data["wallet"]
       txFee = serializer_post.data["txFee"]
-      btc_rpc_call = BTCRPCCall(wallet=wallet, currency=currency)
+      rpc_call = RpcGenerator.get_rpc_instance(wallet=wallet, currency=currency)
 
       from_account = serializer_post.data['fromAddress']
       log.info(from_account)
@@ -52,16 +49,16 @@ class BTCSendManyView(APIView):
 
       try:
 
-        is_test_net = constantutil.check_service_is_test_net(btc_rpc_call)
+        is_test_net = constantutil.check_service_is_test_net(rpc_call)
 
         if (semaphore.acquire_if_released()):
-          btc_rpc_call.set_tx_fee(txFee)
-          isSuccess, result = btc_rpc_call.send_many(from_account=from_account, amounts=amounts_dict)
+          rpc_call.set_tx_fee(txFee)
+          isSuccess, result = rpc_call.send_many(from_account=from_account, amounts=amounts_dict)
 
 
           if (isSuccess):
             semaphore.release()
-            transaction = btc_rpc_call.do_get_transaction(result)
+            transaction = rpc_call.do_get_transaction(result)
             if transaction is None:
               response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                                                        fee=0, message="BTC server - " + wallet + "is done.",
@@ -121,7 +118,7 @@ class BTCSendManyView(APIView):
       if (response is not None):
         send_many_response_serializer = send_many_vo.SendManyResponseSerializer(data=response.__dict__)
       else:
-        is_test_net = constantutil.check_service_is_test_net(btc_rpc_call)
+        is_test_net = constantutil.check_service_is_test_net(rpc_call)
         response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                                                  fee=0, message="Error: response is None",
                                                  test=is_test_net, error=1)

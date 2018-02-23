@@ -19,6 +19,7 @@ class PostParameters(object):
 class TransactionSerializer(serializers.Serializer):
     currency = serializers.CharField(max_length=20)
     address = serializers.CharField(max_length=128)
+    wallet = serializers.CharField(max_length=32)
 
 class PostParametersSerializer(serializers.Serializer):
     transactions = TransactionSerializer(many=True)

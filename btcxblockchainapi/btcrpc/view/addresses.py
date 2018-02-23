@@ -11,6 +11,7 @@ from btcrpc.vo import addresses
 import errno
 from socket import error as socket_error
 import logging
+from btcrpc.utils.rpc_calls.rpc_instance_generator import RpcGenerator
 
 logger = logging.getLogger(__name__)
 
@@ -26,15 +27,15 @@ class CreateNewAddresses(APIView):
             try:
                 currency = serializer_input.data["currency"]
                 wallet = serializer_input.data["wallet"]
-                btc_rpc_call = BTCRPCCall(wallet=wallet, currency=currency)
+                rpc_call = RpcGenerator.get_rpc_instance(wallet=wallet, currency=currency)
                 # check is on testnet or not.
-                is_test_net = constantutil.check_service_is_test_net(btc_rpc_call)
+                is_test_net = constantutil.check_service_is_test_net(rpc_call)
 
-                logger.info("quantity is " + str(serializer_input.data["quantity"]) + ".")
+                #logger.info("quantity is " + str(serializer_input.data["quantity"]) + ".")
                 new_addresses = []
                 for x in range(0, int(serializer_input.data[attributeConst.QUANTITY])):
-                    new_address = btc_rpc_call.do_get_new_address()
-                    btc_rpc_call.do_set_account(new_address, new_address)
+                    new_address = rpc_call.do_get_new_address()
+                    rpc_call.do_set_account(new_address, new_address)
                     new_addresses.append(new_address)
 
                 new_addresses_response = addresses.NewAddresses(addresses=new_addresses, test=is_test_net)

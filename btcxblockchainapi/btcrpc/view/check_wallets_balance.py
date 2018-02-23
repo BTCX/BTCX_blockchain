@@ -3,7 +3,6 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from btcrpc.utils import constantutil
-from btcrpc.utils.btc_rpc_call import BTCRPCCall
 from btcrpc.utils.config_file_reader import ConfigFileReader
 from btcrpc.utils.log import get_log
 from btcrpc.vo import wallet_balance
@@ -11,6 +10,7 @@ from pylibmc import ConnectionError, ServerDown
 import errno
 from bitcoinrpc.authproxy import JSONRPCException
 from socket import error as socket_error
+from btcrpc.utils.rpc_calls.rpc_instance_generator import RpcGenerator
 
 __author__ = 'sikamedia'
 __Date__ = '2015-01-18'
@@ -32,10 +32,10 @@ class CheckWalletsBalance(APIView):
             for wallet in wallet_list:
                 try:
                     log.info(wallet)
-                    btc_rpc_call = BTCRPCCall(wallet=wallet, currency=currency)
-                    is_test_net = constantutil.check_service_is_test_net(btc_rpc_call)
+                    rpc_call = RpcGenerator.get_rpc_instance(wallet=wallet, currency=currency)
+                    is_test_net = constantutil.check_service_is_test_net(rpc_call)
                     log.info(is_test_net)
-                    balance = btc_rpc_call.get_wallet_balance()
+                    balance = rpc_call.get_wallet_balance()
                     log.info(format(balance, '0.8f'))
                     wallet_balance_response = wallet_balance.WalletBalanceResponse(wallet=wallet,
                                                                                    balance=Decimal(balance),

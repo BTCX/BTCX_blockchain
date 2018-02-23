@@ -35,7 +35,8 @@ class TransferCurrencyByUsingSendTaoAddress(APIView):
             response_list = []
             try:
                 btc_rpc_call = BTCRPCCall()
-                is_test_net = constantutil.check_service_is_test_net(btc_rpc_call)
+                #is_test_net = constantutil.check_service_is_test_net(btc_rpc_call)
+                is_test_net = True
                 if semaphore.acquire_if_released():
                     for transfer in transfer_list:
                         log.info(transfer)
