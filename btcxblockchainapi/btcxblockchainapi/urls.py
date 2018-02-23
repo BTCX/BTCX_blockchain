@@ -9,9 +9,9 @@ from quickstart.views import *
 from btcrpc.view.addresses import *
 from btcrpc.view.check_multi_receives import *
 
-
 from django.contrib import admin
 admin.autodiscover()
+
 
 router = routers.DefaultRouter()
 router.register(r'users',  UserViewSet)

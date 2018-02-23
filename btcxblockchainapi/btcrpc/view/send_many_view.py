@@ -12,20 +12,18 @@ from btcrpc.utils.log import get_log
 from btcrpc.vo import send_many_vo
 import socket, errno
 from socket import error as socket_error
-import threading as th
+from btcrpc.utils.semaphore import SemaphoreSingleton
 
 log = get_log("Bitcoin Send Many:")
 
 # define a locker for send many with a tx fee
 #lock = MCLock(__name__)
 
-
-semaphore = th.BoundedSemaphore(1)
-
 class BTCSendManyView(APIView):
   permission_classes = (IsAdminUser,)
 
   def post(self, request):
+    semaphore = SemaphoreSingleton()
     serializer_post = send_many_vo.SendManyPostParametersSerializer(data=request.data)
 
     if serializer_post.is_valid():
@@ -56,7 +54,7 @@ class BTCSendManyView(APIView):
 
         is_test_net = constantutil.check_service_is_test_net(btc_rpc_call)
 
-        if (semaphore.acquire(blocking=False)):
+        if (semaphore.acquire_if_released()):
           btc_rpc_call.set_tx_fee(txFee)
           isSuccess, result = btc_rpc_call.send_many(from_account=from_account, amounts=amounts_dict)
 

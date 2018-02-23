@@ -62,18 +62,6 @@ REST_FRAMEWORK = {
 }
 
 
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-        'LOCATION': '127.0.0.1:11211',
-    }
-}
-
-
-import sherlock
-# Global configuration of defaults
-sherlock.configure(expire=120, timeout=20)
-
 MIDDLEWARE = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
