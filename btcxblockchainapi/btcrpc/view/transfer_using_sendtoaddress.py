@@ -8,11 +8,11 @@ from rest_framework.views import APIView
 from pylibmc import ConnectionError, ServerDown
 
 from btcrpc.utils import constantutil
-from btcrpc.utils.btc_rpc_call import BTCRPCCall
 from btcrpc.utils.config_file_reader import ConfigFileReader
 from btcrpc.utils.log import *
 from btcrpc.vo import transfers_using_sendtoaddress
 from btcrpc.utils.semaphore import SemaphoreSingleton
+from btcrpc.utils.rpc_calls.rpc_instance_generator import RpcGenerator
 
 import errno
 from socket import error as socket_error
@@ -34,31 +34,31 @@ class TransferCurrencyByUsingSendTaoAddress(APIView):
             transfer_list = post_serializer.data["transfers"]
             response_list = []
             try:
-                btc_rpc_call = BTCRPCCall()
-                #is_test_net = constantutil.check_service_is_test_net(btc_rpc_call)
                 is_test_net = True
                 if semaphore.acquire_if_released():
                     for transfer in transfer_list:
                         log.info(transfer)
-
                         currency = transfer["currency"]
                         txFee = transfer["txFee"]
                         send_amount = transfer["amount"]
+                        wallet = transfer["wallet"]
                         log.info(send_amount)
+                        rpc_call = RpcGenerator.get_rpc_instance(wallet=wallet, currency=currency)
+                        is_test_net = constantutil.check_service_is_test_net(rpc_call)
                         to_address = yml_config.get_safe_address_to_be_transferred(currency=currency)
 
                         log.info("%s, %s, %s" % (currency, to_address, send_amount))
 
-                        to_address_is_valid = (btc_rpc_call.do_validate_address(address=to_address))["isvalid"]
+                        to_address_is_valid = (rpc_call.do_validate_address(address=to_address))["isvalid"]
 
                         log.info("%s" % (to_address_is_valid))
                         if to_address_is_valid:
                             try:
-                                btc_rpc_call.set_tx_fee(txFee)
-                                send_response_tx_id = btc_rpc_call.send_to_address(address=to_address,
+                                rpc_call.set_tx_fee(txFee)
+                                send_response_tx_id = rpc_call.send_to_address(address=to_address,
                                                                                    amount=send_amount)
 
-                                transaction = btc_rpc_call.do_get_transaction(send_response_tx_id)
+                                transaction = rpc_call.do_get_transaction(send_response_tx_id)
 
                                 response = \
                                     transfers_using_sendtoaddress.TransferInformationResponse(currency=currency,
