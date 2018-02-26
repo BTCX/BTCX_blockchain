@@ -1,4 +1,4 @@
-from btcrpc.utils.rpc_calls.rpc_call import RPCCall
+from btcrpc.utils.rpc_calls.python_bitcoinrpc import PythonBitcoinRpc
 
 def constant(f):
     def fset(self, value):
@@ -8,9 +8,19 @@ def constant(f):
     return property(fget, fset)
 
 
+'''
 def check_service_is_test_net(rpc_service):
     if isinstance(rpc_service, RPCCall):
+        blockchain_info = rpc_service.get_blockchain_info()
         rpc_info = rpc_service.do_getinfo()
         return rpc_info["testnet"]
     else:
         raise TypeError("Expected object BTCRPCCall, got %s" % (type(rpc_service),))
+'''
+
+
+def check_service_is_test_net(rpc_service):
+    if isinstance(rpc_service, PythonBitcoinRpc):
+        return rpc_service.is_test_net()
+    else:
+        raise TypeError("Expected object python_bitcoinrpc, got %s" % (type(rpc_service),))

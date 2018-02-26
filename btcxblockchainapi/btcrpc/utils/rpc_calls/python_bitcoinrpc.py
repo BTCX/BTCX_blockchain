@@ -56,6 +56,9 @@ class PythonBitcoinRpc(RPCCall):
   def send_from(self, from_account="", to_address="", amount=0, minconf=1):
     return self.access.sendfrom(from_account, to_address, amount, minconf)
 
+  def get_blockchain_info(self):
+    return self.access.getblockchaininfo()
+
   def get_received_amount_by_account(self, account="", minconf=1):
     return self.access.getreceivedbyaccount(account, minconf)
 
@@ -64,6 +67,10 @@ class PythonBitcoinRpc(RPCCall):
 
   def get_wallet_balance(self):
     return self.access.getbalance()
+
+  def is_test_net(self):
+    blockchain_info = self.get_blockchain_info()
+    return blockchain_info["chain"] == "test" or blockchain_info["chain"] == "regtest"
 
   def move(self, from_account="", to_account="", amount=0, minconf=1):
     return self.access.move(from_account, to_account, amount, minconf)

@@ -42,6 +42,10 @@ class RPCCall():
     raise NotImplementedError
 
   @abstractmethod
+  def get_blockchain_info(self):
+    raise NotImplementedError
+
+  @abstractmethod
   def get_received_amount_by_account(self, account="", minconf=1):
     raise NotImplementedError
 

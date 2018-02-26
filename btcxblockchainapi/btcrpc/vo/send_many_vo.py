@@ -29,7 +29,7 @@ class SendManyResponseSerializer(serializers.Serializer):
   txid = serializers.CharField(max_length=128, allow_blank=True)
   status = serializers.IntegerField()
   fee = serializers.DecimalField(max_digits=16, decimal_places=8, coerce_to_string=True)
-  message = serializers.CharField(max_length=256)
+  message = serializers.CharField(max_length=512)
   test = serializers.BooleanField()
   error = serializers.IntegerField()
   error_message = serializers.CharField(max_length=512, allow_blank=True)

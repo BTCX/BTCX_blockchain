@@ -33,7 +33,7 @@ class CheckWalletsBalance(APIView):
                 try:
                     log.info(wallet)
                     rpc_call = RpcGenerator.get_rpc_instance(wallet=wallet, currency=currency)
-                    is_test_net = constantutil.check_service_is_test_net(rpc_call)
+                    is_test_net = rpc_call.is_test_net()
                     log.info(is_test_net)
                     balance = rpc_call.get_wallet_balance()
                     log.info(format(balance, '0.8f'))
