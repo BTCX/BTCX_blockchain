@@ -14,6 +14,7 @@ import errno
 from socket import error as socket_error
 from btcrpc.utils.rpc_calls.rpc_call import RPCCall
 from btcrpc.utils.rpc_calls.rpc_instance_generator import RpcGenerator
+from btcrpc.utils.chain_enum import ChainEnum
 
 log = get_log("CheckMultiAddressesReceive view")
 yml_config = ConfigFileReader()
@@ -25,6 +26,7 @@ RISK_HIGH_CONFIRMATIONS = yml_config.get_confirmations_mapping_to_risk(currency=
 class CheckMultiAddressesReceive(APIView):
 
   def post(self, request):
+    chain = ChainEnum.UNKNOWN
     log.info(request.data)
     post_serializers = check_multi_receives.PostParametersSerializer(data=request.data)
 
@@ -40,7 +42,7 @@ class CheckMultiAddressesReceive(APIView):
           currency = transaction["currency"]
 
           rpc_call = RpcGenerator.get_rpc_instance(wallet=wallet, currency=currency)
-          is_test_net = constantutil.check_service_is_test_net(rpc_call)
+          chain = constantutil.check_service_chain(rpc_call)
 
           transaction_address = transaction["address"]
 
@@ -74,26 +76,26 @@ class CheckMultiAddressesReceive(APIView):
                                                                      txs=tx_ids)
           response_list.append(response.__dict__)
           receives_response = check_multi_receives.ReceivesInformationResponse(receives=response_list,
-                                                                               test=is_test_net)
+                                                                               chain=chain.value)
       except JSONRPCException as ex:
           log.error("Error: %s" % ex.error['message'])
           error_message = "Bitcoin RPC error, check if username and password for node is correct. Message from " \
                           "python-bitcoinrpc: " + ex.message
           receives_response = check_multi_receives.ReceivesInformationResponse(receives=response_list,
-                                                                               test=True,
+                                                                               chain=chain.value,
                                                                                error=1,
                                                                                error_message=error_message
                                                                                )
       except socket_error as serr:
         if serr.errno != errno.ECONNREFUSED:
           receives_response = check_multi_receives.ReceivesInformationResponse(receives=[],
-                                                                               test=True,
+                                                                               chain=chain.value,
                                                                                error=1,
                                                                                error_message="A general socket error was raised."
                                                                                )
         else:
           receives_response = check_multi_receives.ReceivesInformationResponse(receives=[],
-                                                                               test=True,
+                                                                               chain=chain.value,
                                                                                error=1,
                                                                                error_message="Connection refused error, "
                                                                                              "check if the wallet node is down."

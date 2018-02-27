@@ -19,8 +19,8 @@ def check_service_is_test_net(rpc_service):
 '''
 
 
-def check_service_is_test_net(rpc_service):
+def check_service_chain(rpc_service):
     if isinstance(rpc_service, PythonBitcoinRpc):
-        return rpc_service.is_test_net()
+        return rpc_service.get_chain()
     else:
         raise TypeError("Expected object python_bitcoinrpc, got %s" % (type(rpc_service),))

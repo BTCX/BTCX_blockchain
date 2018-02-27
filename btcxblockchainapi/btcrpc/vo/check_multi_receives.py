@@ -4,6 +4,7 @@ from datetime import datetime
 __author__ = 'sikamedia'
 
 from rest_framework import serializers
+from btcrpc.utils.chain_enum import ChainEnum
 
 
 log = get_log("CheckMultiAddressesReceive vo")
@@ -80,16 +81,16 @@ class ReceiveInformationResponseSerializer(serializers.Serializer):
 
 class ReceivesInformationResponse(object):
 
-    def __init__(self, receives=[], test=False, error=0, error_message=""):
+    def __init__(self, receives=[], chain=ChainEnum.UNKNOWN, error=0, error_message=""):
         self.receives = receives
-        self.test = test
+        self.chain = chain
         self.error = error
         self.error_message = error_message
 
 
 class ReceivesInformationResponseSerializer(serializers.Serializer):
     receives = serializers.ListField(child=ReceiveInformationResponseSerializer())
-    test = serializers.BooleanField()
+    chain = serializers.IntegerField()
     error = serializers.IntegerField()
     error_message = serializers.CharField(max_length=512, allow_blank=True)
 

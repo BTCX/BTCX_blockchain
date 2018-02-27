@@ -1,4 +1,5 @@
 from decimal import Decimal
+from btcrpc.utils.chain_enum import ChainEnum
 
 __author__ = 'sikamedia'
 __Date__ = '2015-01-17'
@@ -20,10 +21,10 @@ class GetWalletBalancePostParameterSerializer(serializers.Serializer):
 
 class WalletBalanceResponse(object):
 
-    def __init__(self, wallet="", balance=Decimal(0), test=False, error=0, error_message=""):
+    def __init__(self, wallet="", balance=Decimal(0), chain=ChainEnum.UNKNOWN, error=0, error_message=""):
         self.wallet = wallet
         self.balance = balance
-        self.test = test
+        self.chain = chain
         self.error = error
         self.error_message = error_message
 
@@ -32,7 +33,7 @@ class WalletBalanceResponseSerializer(serializers.Serializer):
 
     wallet = serializers.CharField(max_length=32)
     balance = serializers.DecimalField(max_digits=18, decimal_places=8, coerce_to_string=False)
-    test = serializers.BooleanField()
+    chain = serializers.IntegerField()
     error = serializers.IntegerField()
     error_message = serializers.CharField(max_length=512, allow_blank=True)
 

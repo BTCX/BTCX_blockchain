@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from btcrpc.utils.chain_enum import ChainEnum
 
 
 class ToSendSerializer(serializers.Serializer):
@@ -16,12 +17,12 @@ class SendManyPostParametersSerializer(serializers.Serializer):
 
 class SendManyResponse(object):
 
-  def __init__(self, tx_id="", status=0, fee=0, message="", test=False, error=0, error_message=""):
+  def __init__(self, tx_id="", status=0, fee=0, message="", chain=ChainEnum.UNKNOWN, error=0, error_message=""):
     self.txid = tx_id
     self.status = status
     self.fee = fee
     self.message = message
-    self.test = test
+    self.chain = chain
     self.error = error
     self.error_message = error_message
 
@@ -30,6 +31,6 @@ class SendManyResponseSerializer(serializers.Serializer):
   status = serializers.IntegerField()
   fee = serializers.DecimalField(max_digits=16, decimal_places=8, coerce_to_string=True)
   message = serializers.CharField(max_length=512)
-  test = serializers.BooleanField()
+  chain = serializers.IntegerField()
   error = serializers.IntegerField()
   error_message = serializers.CharField(max_length=512, allow_blank=True)

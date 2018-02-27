@@ -1,6 +1,7 @@
 from bitcoinrpc.authproxy import AuthServiceProxy, JSONRPCException
 from btcrpc.utils.config_file_reader import ConfigFileReader
 from btcrpc.utils.rpc_calls.rpc_call import RPCCall
+from btcrpc.utils.chain_enum import ChainEnum
 import json
 import socket, errno
 
@@ -19,7 +20,7 @@ class PythonBitcoinRpc(RPCCall):
     return self.access.getinfo()
 
   def do_get_new_address(self):
-    return self.access.getnewaddress();
+    return self.access.getnewaddress()
 
   def do_set_account(self, address, account):
     return self.access.setaccount(address, account)
@@ -68,9 +69,16 @@ class PythonBitcoinRpc(RPCCall):
   def get_wallet_balance(self):
     return self.access.getbalance()
 
-  def is_test_net(self):
+  def get_chain(self):
     blockchain_info = self.get_blockchain_info()
-    return blockchain_info["chain"] == "test" or blockchain_info["chain"] == "regtest"
+    if blockchain_info["chain"] == "main":
+      return ChainEnum.MAIN
+    elif blockchain_info["chain"] == "test":
+      return ChainEnum.TEST_NET
+    elif blockchain_info["chain"] == "regtest":
+      return ChainEnum.REGTEST
+    else:
+      return ChainEnum.UNKNOWN
 
   def move(self, from_account="", to_account="", amount=0, minconf=1):
     return self.access.move(from_account, to_account, amount, minconf)
