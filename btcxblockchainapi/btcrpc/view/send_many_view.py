@@ -30,7 +30,6 @@ class BTCSendManyView(APIView):
       currency = serializer_post.data["currency"]
       wallet = serializer_post.data["wallet"]
       txFee = serializer_post.data["txFee"]
-      print(txFee)
       rpc_call = RpcGenerator.get_rpc_instance(wallet=wallet, currency=currency)
 
       from_account = serializer_post.data['fromAddress']

@@ -42,7 +42,6 @@ class TransferCurrencyByUsingSendTaoAddress(APIView):
                         log.info(transfer)
                         currency = transfer["currency"]
                         txFee = transfer["txFee"]
-                        print(txFee)
                         send_amount = transfer["amount"]
                         wallet = transfer["wallet"]
                         log.info(send_amount)
