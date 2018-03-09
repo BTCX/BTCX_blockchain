@@ -27,6 +27,7 @@ class ConfigFileReader(object, metaclass=Singleton):
         url_list.append(':')
         url_list.append(str(port))
         url = ''.join(url_list)
+        url = url+'/wallet/wallet.dat'
         return url
 
     def get_wallet_list(self, currency):
