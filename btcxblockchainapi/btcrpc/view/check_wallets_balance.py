@@ -31,7 +31,9 @@ class CheckWalletsBalance(APIView):
             currency = post_serializers.data["currency"]
             wallet_list = yml_config.get_wallet_list(currency)
             log.info(wallet_list)
-            for wallet in wallet_list:
+            for wallet_json in wallet_list:
+                wallet = wallet_json['wallet_name']
+                wallet_type = wallet_json['wallet_type']
                 try:
                     log.info(wallet)
                     rpc_call = RpcGenerator.get_rpc_instance(wallet=wallet, currency=currency)
@@ -40,6 +42,7 @@ class CheckWalletsBalance(APIView):
                     balance = rpc_call.get_wallet_balance()
                     log.info(format(balance, '0.8f'))
                     wallet_balance_response = wallet_balance.WalletBalanceResponse(wallet=wallet,
+                                                                                   wallet_type = wallet_type,
                                                                                    balance=Decimal(balance),
                                                                                    chain=chain.value)
 
@@ -48,6 +51,7 @@ class CheckWalletsBalance(APIView):
                 except socket_error as serr:
                     if serr.errno != errno.ECONNREFUSED:
                         wallet_balance_response = wallet_balance.WalletBalanceResponse(wallet=wallet,
+                                                                                       wallet_type=wallet_type,
                                                                                        balance=Decimal(0),
                                                                                        chain=chain.value,
                                                                                        error=1,
@@ -55,6 +59,7 @@ class CheckWalletsBalance(APIView):
                         wallet_balance_response_list.append(wallet_balance_response.__dict__)
                     else:
                         wallet_balance_response = wallet_balance.WalletBalanceResponse(wallet=wallet,
+                                                                                       wallet_type=wallet_type,
                                                                                        balance=Decimal(0),
                                                                                        chain=chain.value,
                                                                                        error=1,
@@ -62,6 +67,7 @@ class CheckWalletsBalance(APIView):
                         wallet_balance_response_list.append(wallet_balance_response.__dict__)
                 except JSONRPCException as ex:
                     wallet_balance_response = wallet_balance.WalletBalanceResponse(wallet=wallet,
+                                                                                   wallet_type=wallet_type,
                                                                                    balance=Decimal(0),
                                                                                    chain=chain.value,
                                                                                    error=1,

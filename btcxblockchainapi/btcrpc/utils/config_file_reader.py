@@ -4,11 +4,10 @@ from .singleton import Singleton
 class ConfigFileReader(object, metaclass=Singleton):
 
     def __init__(self):
-        server_config = open("./btcxblockchainapi/config.yml")
+        server_config = open("./btcxblockchainapi/config_v2.yml")
         self.server_map = yaml.safe_load(server_config)
 
     def get_rpc_server(self, currency, wallet):
-
         servers = self.server_map[currency]
         wallet_server = servers[wallet]
         username = wallet_server['username']
@@ -16,6 +15,7 @@ class ConfigFileReader(object, metaclass=Singleton):
         protocol = wallet_server['protocol']
         host = wallet_server['host']
         port = wallet_server['port']
+        walletname = wallet_server['walletname']
         url_list = list()
         url_list.append(protocol)
         url_list.append('://')
@@ -26,14 +26,20 @@ class ConfigFileReader(object, metaclass=Singleton):
         url_list.append(host)
         url_list.append(':')
         url_list.append(str(port))
+        url_list.append('/wallet/' + walletname)
         url = ''.join(url_list)
-        url = url+'/wallet/wallet.dat'
         return url
 
     def get_wallet_list(self, currency):
 
         currency_config = self.server_map[currency]
-        wallet_list = currency_config['wallets']
+        wallet_type_list = currency_config['wallet_types']
+        wallet_list = []
+        for walletType in wallet_type_list:
+            wallets = currency_config[str(walletType)]
+            wallet_map = lambda walletname : {'wallet_name' : walletname, 'wallet_type' : walletType}
+            wallet_jsons = list(map(wallet_map, wallets))
+            wallet_list.extend(wallet_jsons)
         return wallet_list
     
     def get_min_transfer_confirmations(self, currency):
