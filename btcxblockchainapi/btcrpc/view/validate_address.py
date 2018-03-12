@@ -24,9 +24,7 @@ class ValidateAddress(APIView):
 
     def post(self, request):
         chain = ChainEnum.UNKNOWN
-        print("before")
         post_serializers = validate_address.ValidateAddressPostParametersSerializer(data=request.data)
-        print("after")
         is_mine = False
         is_valid = False
         part_of_wallet = ""
@@ -39,8 +37,6 @@ class ValidateAddress(APIView):
                 for wallet in wallet_list:
                     rpc_call = RpcGenerator.get_rpc_instance(wallet=wallet, currency=currency)
                     address_validation = rpc_call.do_validate_address(address=address)
-
-                    print(address_validation)
 
                     if address_validation["isvalid"]:
                         chain = constantutil.check_service_chain(rpc_call)
