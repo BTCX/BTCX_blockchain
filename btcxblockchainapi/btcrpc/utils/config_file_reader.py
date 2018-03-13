@@ -15,7 +15,8 @@ class ConfigFileReader(object, metaclass=Singleton):
         protocol = wallet_server['protocol']
         host = wallet_server['host']
         port = wallet_server['port']
-        walletname = wallet_server['walletname']
+        wallet_extension = wallet_server['wallet_url_extension']
+        multiple_wallet_url = servers['multiple_wallet_url']
         url_list = list()
         url_list.append(protocol)
         url_list.append('://')
@@ -26,7 +27,7 @@ class ConfigFileReader(object, metaclass=Singleton):
         url_list.append(host)
         url_list.append(':')
         url_list.append(str(port))
-        url_list.append('/wallet/' + walletname)
+        url_list.append(multiple_wallet_url + wallet_extension)
         url = ''.join(url_list)
         return url
 
