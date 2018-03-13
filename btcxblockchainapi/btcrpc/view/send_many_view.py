@@ -30,7 +30,6 @@ class BTCSendManyView(APIView):
       currency = serializer_post.data["currency"]
       wallet = serializer_post.data["wallet"]
       txFee = serializer_post.data["txFee"]
-      rpc_call = RpcGenerator.get_rpc_instance(wallet=wallet, currency=currency)
 
       from_account = serializer_post.data['fromAddress']
       log.info(from_account)
@@ -50,7 +49,7 @@ class BTCSendManyView(APIView):
       response = None
 
       try:
-
+        rpc_call = RpcGenerator.get_rpc_instance(wallet=wallet, currency=currency)
         chain = constantutil.check_service_chain(rpc_call)
 
         if (semaphore.acquire_if_released()):
@@ -116,6 +115,12 @@ class BTCSendManyView(APIView):
           response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                                                    fee=0, message=error_message,
                                                    chain=chain.value, error=1, error_message=error_message)
+      except BaseException as ex:
+        log.error("Error: %s" % str(ex))
+        error_message = "An exception was raised. Error message: " + str(ex)
+        response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                                                 fee=0, message=error_message,
+                                                 chain=chain.value, error=1, error_message=error_message)
 
       if (response is not None):
         send_many_response_serializer = send_many_vo.SendManyResponseSerializer(data=response.__dict__)

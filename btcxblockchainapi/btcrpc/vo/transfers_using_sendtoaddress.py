@@ -18,6 +18,7 @@ class TransfersSerializer(serializers.Serializer):
     amount = serializers.FloatField()
     txFee = serializers.FloatField()
     wallet = serializers.CharField(max_length=20)
+    safe_address = serializers.CharField(max_length=128)
 
 
 class PostParametersSerializer(serializers.Serializer):

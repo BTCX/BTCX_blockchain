@@ -38,7 +38,7 @@ class ConfigFileReader(object, metaclass=Singleton):
         wallet_list = []
         for walletType in wallet_type_list:
             wallets = currency_config[str(walletType)]
-            wallet_map = lambda walletname : {'wallet_name' : walletname, 'wallet_type' : walletType}
+            wallet_map = lambda wallet_name : {'wallet_name' : wallet_name, 'wallet_type' : walletType}
             wallet_jsons = list(map(wallet_map, wallets))
             wallet_list.extend(wallet_jsons)
         return wallet_list
@@ -55,11 +55,15 @@ class ConfigFileReader(object, metaclass=Singleton):
         min_transfer_amount = currency_config['min_transfer_amount']
         return min_transfer_amount
 
-    def get_safe_address_to_be_transferred(self, currency):
-
+    def get_safe_address_to_be_transferred(self, currency, safe_address):
         currency_config = self.server_map[currency]
-        safe_address_to_be_transferred = currency_config['safe_address_to_be_transferred']
-        return safe_address_to_be_transferred
+        safe_config_addresses = currency_config['safe_addresses']
+        safe_address_matched_with_config = \
+            next((currency_config[address] for address in safe_config_addresses if currency_config[address] == safe_address), None)
+        if safe_address_matched_with_config:
+            return safe_address_matched_with_config
+        else:
+            raise ValueError("The address does not exist in the list of safe addresses")
 
     def get_reserved_fee_for_transferring(self, currency):
         currency_config = self.server_map[currency]

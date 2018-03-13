@@ -75,31 +75,40 @@ class CheckMultiAddressesReceive(APIView):
                                                                      risk=risk,
                                                                      txs=tx_ids)
           response_list.append(response.__dict__)
-          receives_response = check_multi_receives.ReceivesInformationResponse(receives=response_list,
+
+        receives_response = check_multi_receives.ReceivesInformationResponse(receives=response_list,
                                                                                chain=chain.value)
       except JSONRPCException as ex:
-          log.error("Error: %s" % ex.error['message'])
-          error_message = "Bitcoin RPC error, check if username and password for node is correct. Message from " \
-                          "python-bitcoinrpc: " + ex.message
-          receives_response = check_multi_receives.ReceivesInformationResponse(receives=response_list,
-                                                                               chain=chain.value,
-                                                                               error=1,
-                                                                               error_message=error_message
-                                                                               )
+        log.error("Error: %s" % ex.error['message'])
+        error_message = "Bitcoin RPC error, check if username and password for node is correct. Message from " \
+                        "python-bitcoinrpc: " + ex.message
+        receives_response = check_multi_receives.ReceivesInformationResponse(receives=response_list,
+                                                                             chain=chain.value,
+                                                                             error=1,
+                                                                             error_message=error_message
+                                                                             )
       except socket_error as serr:
         if serr.errno != errno.ECONNREFUSED:
-          receives_response = check_multi_receives.ReceivesInformationResponse(receives=[],
+          receives_response = check_multi_receives.ReceivesInformationResponse(receives=response_list,
                                                                                chain=chain.value,
                                                                                error=1,
                                                                                error_message="A general socket error was raised."
                                                                                )
         else:
-          receives_response = check_multi_receives.ReceivesInformationResponse(receives=[],
+          receives_response = check_multi_receives.ReceivesInformationResponse(receives=response_list,
                                                                                chain=chain.value,
                                                                                error=1,
                                                                                error_message="Connection refused error, "
                                                                                              "check if the wallet node is down."
                                                                                )
+      except BaseException as ex:
+        log.error("Error: %s" % str(ex))
+        error_message = "An exception was raised. Error message: " + str(ex)
+        receives_response = check_multi_receives.ReceivesInformationResponse(receives=response_list,
+                                                                             chain=chain.value,
+                                                                             error=1,
+                                                                             error_message=error_message
+                                                                             )
 
       response_dict = receives_response.__dict__
 

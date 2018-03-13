@@ -24,7 +24,17 @@ btc:
   min_transfer_confirmations: 7
   min_transfer_amount: 0.16
   reserved_fee: 0.001
-  safe_address_to_be_transferred: ADDRESS
+  safe_addresses:
+    - primary_send
+    - secondary_send
+    - cold_storage
+    - exchange1
+    - exchange2
+  primary_send: PRIMARY_SEND_ADDRESS_BTC
+  secondary_send: SECONDARY_SEND_ADDRESS_BTC
+  cold_storage: COLD_STORAGE_ADDRESS_BTC
+  exchange1: EXCHANGE1_ADDRESS_BTC
+  exchange2: EXCHANGE2_ADDRESS_BTC
   #high risk maps to confirmations: 0 confirmation, medium risk: 1 confirmation, low risk: 6 confirmations.
   risk_confirmations:
     high: 0
@@ -57,7 +67,17 @@ ltc:
   min_transfer_confirmations: 7
   min_transfer_amount: 0.16
   reserved_fee: 0.001
-  safe_address_to_be_transferred: ADDRESS
+   safe_addresses:
+    - primary_send
+    - secondary_send
+    - cold_storage
+    - exchange1
+    - exchange2
+  primary_send: PRIMARY_SEND_ADDRESS_LTC
+  secondary_send: SECONDARY_SEND_ADDRESS_LTC
+  cold_storage: COLD_STORAGE_ADDRESS_LTC
+  exchange1: EXCHANGE1_ADDRESS_LTC
+  exchange2: EXCHANGE2_ADDRESS_LTC
   #high risk maps to confirmations: 0 confirmation, medium risk: 1 confirmation, low risk: 6 confirmations.
   risk_confirmations:
     high: 0
@@ -90,7 +110,17 @@ bch:
   min_transfer_confirmations: 7
   min_transfer_amount: 0.16
   reserved_fee: 0.001
-  safe_address_to_be_transferred: ADDRESS
+  safe_addresses:
+    - primary_send
+    - secondary_send
+    - cold_storage
+    - exchange1
+    - exchange2
+  primary_send: PRIMARY_SEND_ADDRESS_BCH
+  secondary_send: SECONDARY_SEND_ADDRESS_BCH
+  cold_storage: COLD_STORAGE_ADDRESS_BCH
+  exchange1: EXCHANGE1_ADDRESS_BCH
+  exchange2: EXCHANGE2_ADDRESS_BCH
   #high risk maps to confirmations: 0 confirmation, medium risk: 1 confirmation, low risk: 6 confirmations.
   risk_confirmations:
     high: 0

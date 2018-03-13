@@ -10,6 +10,7 @@ from pylibmc import ConnectionError, ServerDown
 from btcrpc.utils import constantutil
 from btcrpc.utils.config_file_reader import ConfigFileReader
 from btcrpc.utils.log import *
+from btcrpc.utils.log import *
 from btcrpc.vo import transfers_using_sendtoaddress
 from btcrpc.utils.semaphore import SemaphoreSingleton
 from btcrpc.utils.rpc_calls.rpc_instance_generator import RpcGenerator
@@ -43,10 +44,11 @@ class TransferCurrencyByUsingSendTaoAddress(APIView):
                         txFee = transfer["txFee"]
                         send_amount = transfer["amount"]
                         wallet = transfer["wallet"]
+                        safe_address = transfer["safe_address"]
                         log.info(send_amount)
                         rpc_call = RpcGenerator.get_rpc_instance(wallet=wallet, currency=currency)
                         chain = constantutil.check_service_chain(rpc_call)
-                        to_address = yml_config.get_safe_address_to_be_transferred(currency=currency)
+                        to_address = yml_config.get_safe_address_to_be_transferred(currency=currency, safe_address=safe_address)
 
                         log.info("%s, %s, %s" % (currency, to_address, send_amount))
 
@@ -100,28 +102,49 @@ class TransferCurrencyByUsingSendTaoAddress(APIView):
 
                     log.info(response_list)
                     semaphore.release()
-                    transfers_response = transfers_using_sendtoaddress.TransfersInformationResponse(transfers=response_list,
+                    transaction_has_failed = constantutil.check_for_failed_transactions(response_list)
+                    if(transaction_has_failed):
+                        transfers_response = transfers_using_sendtoaddress.TransfersInformationResponse(
+                            transfers=response_list,
+                            chain=chain.value,
+                            error=1,
+                            error_message="One or more transactions failed")
+                    else:
+                        transfers_response = transfers_using_sendtoaddress.TransfersInformationResponse(transfers=response_list,
                                                                                                     chain=chain.value)
                 else:
                     transfers_response = transfers_using_sendtoaddress.TransfersInformationResponse(
-                        transfers=[], chain=chain.value, error=1, error_message="Semaphore is already acquired, wait until semaphore"
+                        transfers=response_list, chain=chain.value, error=1, error_message="Semaphore is already acquired, wait until semaphore"
                                                                         " is released.")
+            except ValueError as ex:
+                semaphore.release()
+                log.error("Error: %s" % str(ex))
+                transfers_response = transfers_using_sendtoaddress.TransfersInformationResponse(
+                  transfers=response_list, chain=chain.value, error=1,
+                  error_message=str(ex))
             except JSONRPCException as ex:
                 semaphore.release()
                 log.error("Error: %s" % ex.error['message'])
                 transfers_response = transfers_using_sendtoaddress.TransfersInformationResponse(
-                    transfers=[], chain=chain.value, error=1, error_message="Bitcoin RPC error, check if username and password "
+                    transfers=response_list, chain=chain.value, error=1, error_message="Bitcoin RPC error, check if username and password "
                                                                     "for node is correct. Message from python-bitcoinrpc: "
                                                                     + ex.message)
             except socket_error as serr:
                 semaphore.release()
                 if serr.errno != errno.ECONNREFUSED:
                     transfers_response = transfers_using_sendtoaddress.TransfersInformationResponse(
-                        transfers=[], chain=chain.value, error=1, error_message="A general socket error was raised.")
+                        transfers=response_list, chain=chain.value, error=1, error_message="A general socket error was raised.")
                 else:
                     transfers_response = transfers_using_sendtoaddress.TransfersInformationResponse(
-                        transfers=[], chain=chain.value, error=1, error_message="Connection refused error, check if the wallet"
+                        transfers=response_list, chain=chain.value, error=1, error_message="Connection refused error, check if the wallet"
                                                                         " node is down.")
+            except BaseException as ex:
+                log.error("Error: %s" % str(ex))
+                error_message = "An exception was raised. Error message: " + str(ex)
+                transfers_response = transfers_using_sendtoaddress.TransfersInformationResponse(
+                    transfers=response_list, chain=chain.value, error=1,
+                    error_message=error_message)
+
             response_dict = transfers_response.__dict__
 
             response_serializer = transfers_using_sendtoaddress.TransfersInformationResponseSerializer(data=response_dict)

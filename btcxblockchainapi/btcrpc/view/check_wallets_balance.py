@@ -74,6 +74,17 @@ class CheckWalletsBalance(APIView):
                                                                                    error_message="Bitcoin RPC error, check if username and password for node is correct. Message from python-bitcoinrpc: " + ex.message)
                     wallet_balance_response_list.append(wallet_balance_response.__dict__)
 
+                except BaseException as ex:
+                    log.error("Error: %s" % str(ex))
+                    error_message = "An exception was raised. Error message: " + str(ex)
+                    wallet_balance_response = wallet_balance.WalletBalanceResponse(wallet=wallet,
+                                                                                   wallet_type=wallet_type,
+                                                                                   balance=Decimal(0),
+                                                                                   chain=chain.value,
+                                                                                   error=1,
+                                                                                   error_message=error_message)
+                    wallet_balance_response_list.append(wallet_balance_response.__dict__)
+
 
             wallets_balance_response = wallet_balance.WalletsBalanceResponse(wallets=wallet_balance_response_list)
 
