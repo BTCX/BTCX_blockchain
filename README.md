@@ -129,7 +129,49 @@ Response body:
     }
 
 ### POST /receive
-Receive text....
+
+Request body:
+
+    {
+        "transactions":[
+            {
+                "currency":"btc",
+                "address":"2NAiERRHtLevi4uf4iMuDgLoyvAKkg2jVj2",
+                "wallet":"receive",
+                "amount": 0
+            }
+        ]
+    }
+
+Response body:
+
+    {
+        "receives": [
+            {
+                "currency": "btc",
+                "address": "2NAiERRHtLevi4uf4iMuDgLoyvAKkg2jVj2",
+                "received": "0.044",
+                "risk": "low",
+                "txids": [
+                    {
+                        "txid": "5fcacedef771af8d97f533239cc18e6e7680eg30cdfb26b3e532fc7c1db591dfg",
+                        "received": "0.023",
+                        "confirmations": 1234,
+                        "date": "2018-01-14 03:42:11"
+                    },
+                    {
+                        "txid": "8f75f2c00cb717965f6dc9c1bf70cd089fte2892420dcaad578517b2dc12c956",
+                        "received": "0.021",
+                        "confirmations": 1234,
+                        "date": "2018-02-01 16:23:14"
+                    }
+                ]
+            }
+        ],
+        "chain": 2,
+        "error": 0,
+        "error_message": ""
+    }
 
 ### POST /sendmany
 Sendmany text....
