@@ -137,7 +137,7 @@ Request body:
             {
                 "currency":"btc",
                 "address":"2NAiERRHtLevi4uf4iMuDgLoyvAKkg2jVj2",
-                "wallet":"receive",
+                "wallet":"primary_btc_receive",
                 "amount": 0
             }
         ]
