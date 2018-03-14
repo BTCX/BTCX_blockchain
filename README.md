@@ -34,7 +34,7 @@ Request parameter/parameters definition:
 
 | Parameter   | Type   | Definition | Possible values |
 | --------------| ------  | --------- | --------- |
-| currency      | String | Specifies which currency the balance is returned  | btc / ltc / bch |
+| currency      | String | Specifies the currency for which the balance is returned  | btc / ltc / bch |
 
 
 Example:
