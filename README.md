@@ -38,7 +38,7 @@ Response body:
             {
                 "wallet": "primary_btc_receive",
                 "wallet_type": "receive",
-                "balance": 0.62638127,
+                "balance": 0.2,
                 "chain": 2,
                 "error": 0,
                 "error_message": ""
@@ -46,7 +46,7 @@ Response body:
             {
                 "wallet": "backup_btc_receive",
                 "wallet_type": "receive",
-                "balance": 0.009834,
+                "balance": 0.127,
                 "chain": 2,
                 "error": 0,
                 "error_message": ""
@@ -54,7 +54,7 @@ Response body:
             {
                 "wallet": "primary_btc_send",
                 "wallet_type": "send",
-                "balance": 0.62638127,
+                "balance": 0.7,
                 "chain": 2,
                 "error": 0,
                 "error_message": ""
@@ -62,7 +62,7 @@ Response body:
             {
                 "wallet": "btc_segwit_test_send",
                 "wallet_type": "send",
-                "balance": 0.009834,
+                "balance": 0.001,
                 "chain": 2,
                 "error": 0,
                 "error_message": ""
@@ -80,8 +80,8 @@ Request body:
                 "currency":"btc",
                 "wallet":"primary_btc_receive",
                 "safe_address":"2MzmvJ4L5drgV4yjonxgrvpZkEVaySBZr6N",
-                "amount":0.01,
-                "txFee":0.001
+                "amount":0.123,
+                "txFee":0.00123
             }
         ]
     }
@@ -93,8 +93,8 @@ Response body:
             {
                 "currency": "btc",
                 "to_address": "2MzmvJ4L5drgV4yjonxgrvpZkEVaySBZr6N",
-                "amount": 0.01,
-                "fee": 0.000316,
+                "amount": 0.123,
+                "fee": 0.00016,
                 "message": "Transfer is done",
                 "status": "ok",
                 "txid": "0dc909844511f8e8e99d04abee8g4e223c4b8cf43584e0899ef2d6c4841aed7f"
@@ -106,7 +106,27 @@ Response body:
     }
 
 ### POST /address
-Address text....
+
+Request body:
+
+    {
+        "currency":"btc",
+        "quantity":3,
+        "wallet":"primary_btc_receive"
+    }
+    
+Response body:
+
+    {
+        "chain": 2,
+        "addresses": [
+            "2N3itqAdDkJNC6aMq2FLaQYnDar1vzzSRFv",
+            "2N7nCLKXxWrUEqyZFvt7eahvEaxAZni1fwK",
+            "2NAiERRHtLevi4uf4iMuDgLoyvAKkg2jVj2"
+        ],
+        "error": 0,
+        "error_message": ""
+    }
 
 ### POST /receive
 Receive text....
