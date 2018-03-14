@@ -36,6 +36,18 @@ Request parameter/parameters definition:
 | --------------| ------  | --------- | --------- |
 | currency      | String | Specifies the currency for which the balance is returned  | btc / ltc / bch |
 
+Response parameter/parameters definition:
+
+| Parameter   | Type   | Definition | Possible values |
+| --------------| ------  | --------- | --------- |
+| wallets               | Array | Holds an array of json objects which represents a specific wallet | |
+| wallet_type        | String | Definies the wallet type  | receive / send |
+| balance             | Float | Specifies balance of the specific wallet | |
+| chain                 | Int | Specifies which chain the wallet node is configured for | 0 (Unknown) / 1 (Mainnet) / 2 (Testnet) / 3 (Regtest) |
+| error                  | Int | Indicates if an error occured when requesting the balance for the specific wallet | 0 (No error) / 1 (Error occured) |
+| error_message  | String | Holds a descriptive message corresponding to the error  | |
+
+
 
 Example:
 
