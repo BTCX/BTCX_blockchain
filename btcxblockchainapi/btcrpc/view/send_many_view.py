@@ -116,6 +116,7 @@ class BTCSendManyView(APIView):
                                                    fee=0, message=error_message,
                                                    chain=chain.value, error=1, error_message=error_message)
       except BaseException as ex:
+        semaphore.release()
         log.error("Error: %s" % str(ex))
         error_message = "An exception was raised. Error message: " + str(ex)
         response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,

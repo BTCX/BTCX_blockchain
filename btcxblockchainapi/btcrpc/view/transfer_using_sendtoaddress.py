@@ -139,6 +139,7 @@ class TransferCurrencyByUsingSendTaoAddress(APIView):
                         transfers=response_list, chain=chain.value, error=1, error_message="Connection refused error, check if the wallet"
                                                                         " node is down.")
             except BaseException as ex:
+                semaphore.release()
                 log.error("Error: %s" % str(ex))
                 error_message = "An exception was raised. Error message: " + str(ex)
                 transfers_response = transfers_using_sendtoaddress.TransfersInformationResponse(

@@ -32,16 +32,18 @@ class ConfigFileReader(object, metaclass=Singleton):
         return url
 
     def get_wallet_list(self, currency):
-
-        currency_config = self.server_map[currency]
-        wallet_type_list = currency_config['wallet_types']
-        wallet_list = []
-        for walletType in wallet_type_list:
-            wallets = currency_config[str(walletType)]
-            wallet_map = lambda wallet_name : {'wallet_name' : wallet_name, 'wallet_type' : walletType}
-            wallet_jsons = list(map(wallet_map, wallets))
-            wallet_list.extend(wallet_jsons)
-        return wallet_list
+        try:
+            currency_config = self.server_map[currency]
+            wallet_type_list = currency_config['wallet_types']
+            wallet_list = []
+            for walletType in wallet_type_list:
+                wallets = currency_config[str(walletType)]
+                wallet_map = lambda wallet_name : {'wallet_name' : wallet_name, 'wallet_type' : walletType}
+                wallet_jsons = list(map(wallet_map, wallets))
+                wallet_list.extend(wallet_jsons)
+            return wallet_list
+        except KeyError as e:
+            return []
     
     def get_min_transfer_confirmations(self, currency):
 
