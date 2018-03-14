@@ -71,7 +71,39 @@ Response body:
     }
 
 ### POST /transfer
-Transfer text....
+
+Request body:
+
+    {
+        "transfers":[
+            {
+                "currency":"btc",
+                "wallet":"primary_btc_receive",
+                "safe_address":"2MzmvJ4L5drgV4yjonxgrvpZkEVaySBZr6N",
+                "amount":0.01,
+                "txFee":0.001
+            }
+        ]
+    }
+
+Response body:
+
+    {
+        "transfers": [
+            {
+                "currency": "btc",
+                "to_address": "2MzmvJ4L5drgV4yjonxgrvpZkEVaySBZr6N",
+                "amount": 0.01,
+                "fee": 0.000316,
+                "message": "Transfer is done",
+                "status": "ok",
+                "txid": "0dc909844511f8e8e99d04abee8g4e223c4b8cf43584e0899ef2d6c4841aed7f"
+            }
+        ],
+        "chain": 2,
+        "error": 0,
+        "error_message": ""
+    }
 
 ### POST /address
 Address text....
