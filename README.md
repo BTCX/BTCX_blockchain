@@ -179,8 +179,7 @@ Request body:
 
     {
         "currency":"btc",
-        "toSend":
-        [
+        "toSend": [
             {
                 "amount":0.001,
                 "toAddress":"2N7nCLKXxWrUEqyZFvt7eahvEaxAZni1fwK"
