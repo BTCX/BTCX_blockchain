@@ -17,7 +17,7 @@
 
 ### API Resources
 
-- [POST /wallet/balance](#post-wallet/balance)
+- [POST /wallet/balance](#post-walletbalance)
 - [POST /transfer](#post-transfer)
 - [POST /address](#post-address)
 - [POST /receive](#post-receive)
