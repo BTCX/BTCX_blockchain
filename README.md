@@ -24,7 +24,51 @@
 - [POST /sendmany](#post-sendmany)
 
 ### POST /wallet/balance
-Wallet balance text....
+
+Request body:
+
+    {
+        "currency":"btc"
+    }
+    
+Response body:
+
+    {
+        "wallets": [
+            {
+                "wallet": "primary_btc_receive",
+                "wallet_type": "receive",
+                "balance": 0.62638127,
+                "chain": 2,
+                "error": 0,
+                "error_message": ""
+            },
+            {
+                "wallet": "backup_btc_receive",
+                "wallet_type": "receive",
+                "balance": 0.009834,
+                "chain": 2,
+                "error": 0,
+                "error_message": ""
+            },
+            {
+                "wallet": "primary_btc_send",
+                "wallet_type": "send",
+                "balance": 0.62638127,
+                "chain": 2,
+                "error": 0,
+                "error_message": ""
+            },
+            {
+                "wallet": "btc_segwit_test_send",
+                "wallet_type": "send",
+                "balance": 0.009834,
+                "chain": 2,
+                "error": 0,
+                "error_message": ""
+            }
+        ]
+    }
 
 ### POST /transfer
 Transfer text....
