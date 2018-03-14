@@ -174,4 +174,35 @@ Response body:
     }
 
 ### POST /sendmany
-Sendmany text....
+
+Request body:
+
+    {
+        "currency":"btc",
+        "toSend":
+        [
+            {
+                "amount":0.001,
+                "toAddress":"2N7nCLKXxWrUEqyZFvt7eahvEaxAZni1fwK"
+            },
+            {
+                "amount":0.002,
+                "toAddress":"2NAiERRHtLevi4uf4iMuDgLoyvAKkg2jVj2"
+            }
+        ],
+        "fromAddress":"2N3itqAdDkJNC6aMq2FLaQYnDar1vzzSRFv",
+        "txFee":0.0001,
+        "wallet":"primary_btc_send"
+    }
+
+Response body:
+
+    {
+        "txid": "1cd8b891bc0ffb291848f1a2b45b236f0da1b333bdc2124310c106b32b7fb143",
+        "status": 200,
+        "fee": "0.00004980",
+        "message": "Send many is done.",
+        "chain": 2,
+        "error": 0,
+        "error_message": ""
+    }
