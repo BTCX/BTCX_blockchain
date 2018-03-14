@@ -25,6 +25,20 @@
 
 ### POST /wallet/balance
 
+Function:
+
+Returns the "balance" for all wallets specified in the config.yml file. The wallet "balance" is defined for all UTXO based currencies as the aggregated value of all UTXO:s that are locked to outputs that the wallet contains keys to spend.
+
+
+Request parameter/parameters definition:
+
+| Parameter   | Type   | Possible values |
+| --------------| ------  | --------- |
+| currency      | String | btc / ltc / bch |
+
+
+Example:
+
 Request body:
 
     {
