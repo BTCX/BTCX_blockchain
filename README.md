@@ -32,9 +32,9 @@ Returns the "balance" for all wallets specified in the config.yml file. The wall
 
 Request parameter/parameters definition:
 
-| Parameter   | Type   | Possible values |
-| --------------| ------  | --------- |
-| currency      | String | btc / ltc / bch |
+| Parameter   | Type   | Definition | Possible values |
+| --------------| ------  | --------- | --------- |
+| currency      | String | Specifies which currency the balance is returned  | btc / ltc / bch |
 
 
 Example:
