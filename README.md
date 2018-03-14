@@ -1,4 +1,4 @@
-# White House Web API Standards
+# BTCX Blockchain API
 
 * [Install instructions](#install-instructions)
 * [Request & Response Examples](#request--response-examples)
@@ -21,7 +21,7 @@
 - [POST /transfer](#post-transfer)
 - [POST /address](#post-address)
 - [POST /receive](#post-receive)
-- [POST /sendmany](#post-sendmany
+- [POST /sendmany](#post-sendmany)
 
 ### POST /wallet/balance
 Wallet balance text....
