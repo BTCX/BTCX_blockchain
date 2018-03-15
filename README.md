@@ -98,6 +98,8 @@ Response body:
 
 ### POST /transfer
 
+Request parameter/parameters definition:
+
 | Parameter   | Type   | Description | Possible values | Optional |
 | --------------| ------  | --------- | --------- | --------- |
 | transfers        | Array | Holds an array of json objects which represents the different transfers to be exectued. Supports multi currency transfers with the same request. | | |
