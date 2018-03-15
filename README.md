@@ -160,6 +160,23 @@ Response body:
 
 ### POST /address
 
+Request parameter/parameters definition:
+
+| Parameter   | Type   | Description | Possible values |
+| --------------| ------  | --------- | --------- |
+| currency      | String | Specifies which currency the addresses should be generated for. | btc / ltc / bch |
+| wallet           | String | Specifies which specific wallet the addresses (and keys corresponding to the addresses) will be gererated in.  | |
+| quantity       | Int | Definies how many addresses should be generated. | |
+
+Response parameter/parameters definition:
+
+| Parameter   | Type   | Description | Possible values |
+| --------------| ------  | --------- | --------- |
+| chain                 | Int                  | Specifies for which chain the wallet node is configured | 0 (Unknown) / 1 (Mainnet) / 2 (Testnet) / 3 (Regtest) |
+| addresses         | String Array   | An array of strings where every string represents a generated address. | |
+| error                  | Int                  | Indicates if an error occured when requesting the balance for the specific wallet. | 0 (No error) / 1 (Error occured) |
+| error_message  | String            | Holds a descriptive message corresponding to the error.  | |
+
 Request body:
 
     {
