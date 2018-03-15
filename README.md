@@ -32,13 +32,13 @@ Returns the "balance" for all wallets specified in the config.yml file. The wall
 
 Request parameter/parameters definition:
 
-| Parameter   | Type   | Definition | Possible values |
+| Parameter   | Type   | Description | Possible values |
 | --------------| ------  | --------- | --------- |
 | currency      | String | Specifies the currency for which the balance is returned  | btc / ltc / bch |
 
 Response parameter/parameters definition:
 
-| Parameter   | Type   | Definition | Possible values |
+| Parameter   | Type   | Description | Possible values |
 | --------------| ------  | --------- | --------- |
 | wallets               | Array | Holds an array of json objects which represents a specific wallet | |
 | wallet_type        | String | Definies the wallet type  | receive / send |
@@ -97,6 +97,31 @@ Response body:
     }
 
 ### POST /transfer
+
+| Parameter   | Type   | Description | Possible values | Optional |
+| --------------| ------  | --------- | --------- | --------- |
+| transfers        | Array | Holds an array of json objects which represents the different transfers to be exectued. Supports multi currency transfers with the same request. | | |
+| currency        | String | Specifies the currency of the transfer | btc / ltc / bch | |
+| wallet             | String | Specifies which specific wallet will be used when setting the inputs for the transfer transaction | | |
+| safe_address | String | Specifies which specific address the transaction outputs will be locked to. The address MUST correspond to an address definied in config file under /btcxblockchainapi/btcxblockchainapi/config.yml. | | |
+| amount          | Float | Definies the total amount that will be transfered. NOTE: this amount is the total amount including fee:s, and the request will therefore fail if the total amount does not exceed the transaction fee.  | | |
+| txFee             | Float | Definies the fee used in BTC (hence 0.00000001 is one satoshi) per weight for the transaction. Does currently have no effect for Litecoin or Bitcoin Cash, and the fee set by the node is used. | | Yes |
+
+Response parameter/parameters definition:
+
+| Parameter   | Type   | Description | Possible values |
+| --------------| ------  | --------- | --------- |
+| transfers            | Array | Holds an array of json objects which represents the transfers that were handled of the requested transfers. NOTE: It can occour that transfer fails when handled. Since the transfer array in the request are looped through and handled through iteration, the iteration may in some rare cases halt when the transfer fails. In such cases, the length of the array of transfers in the response, is shorter than the leght of the array in the transfer request.   | |
+| currency            | String | Specifies the currency of the specific transfer. | btc / ltc / bch |
+| to_address        | String | Specifies to which specific address the transfer output was locked. | |
+| amount              | Float | Specifies the total amount of the transaction for the specific transfer. NOTE: This amount is including the fee of the transaction. The fee must therefore be subtracted from the amount to get the actual value that was locked to the to_address  | |
+| fee                     | Float | Definies the total fee of the transaction for the specific transfer. The fee is in BTC (hence 0.00000001 is one satoshi)  | |
+| message           | String | Includes a message corresponding how well the transfer was executed | |
+| status                | String | Indicates if the transaction of the transfer succeeded or not. | ok / fail |
+| txid                    | String | Corresponds to the txid of the transaction of the specific transfer, if it was successfull.  | |
+| chain                 | Int | Specifies which chain the wallet node is configured for | 0 (Unknown) / 1 (Mainnet) / 2 (Testnet) / 3 (Regtest) |
+| error                  | Int | Indicates if an error occured when requesting the balance for the specific wallet | 0 (No error) / 1 (Error occured) |
+| error_message  | String | Holds a descriptive message corresponding to the error  | |
 
 Request body:
 
