@@ -42,7 +42,6 @@ Response parameter/parameters definition:
 | --------------| ------  | --------- | --------- |
 | wallets               | Array | Holds an array of JSON objects which represents a specific wallet | |
 | wallet                 | String | Defines the name of the specific wallet | |
-| wallet_type        | String | Defines the wallet type  | receive / send |
 | balance             | Float | Specifies balance of the specific wallet | |
 | chain                 | Int | Specifies which chain the wallet node is configured for | 0 (Unknown) / 1 (Mainnet) / 2 (Testnet) / 3 (Regtest) |
 | error                  | Int | Indicates if an error occurred when requesting the balance for the specific wallet | 0 (No error) / 1 (Error occurred) |
