@@ -107,17 +107,17 @@ Request parameter/parameters definition:
 | wallet             | String | Specifies which specific wallet will be used when setting the inputs for the transfer transaction | | |
 | safe_address | String | Specifies which specific address the transaction outputs will be locked to. The address MUST correspond to an address definied in config file under /btcxblockchainapi/btcxblockchainapi/config.yml. | | |
 | amount          | Float | Definies the total amount that will be transfered. NOTE: this amount is the total amount including fee:s, and the request will therefore fail if the total amount does not exceed the transaction fee.  | | |
-| txFee             | Float | Definies the fee used in BTC (hence 0.00000001 is one satoshi) per weight for the transaction. Does currently have no effect for Litecoin or Bitcoin Cash, and the fee set by the node is used. | | Yes |
+| txFee             | Float | Definies the fee used in the highest doniminator for the currency. For bitcoin this is in BTC (hence 0.00000001 is one satoshi) per weight for the transaction. Does currently have no effect for Litecoin or Bitcoin Cash, and the fee set by the node is used. | | Yes |
 
 Response parameter/parameters definition:
 
 | Parameter   | Type   | Description | Possible values |
 | --------------| ------  | --------- | --------- |
-| transfers            | Array | Holds an array of json objects which represents the transfers that were handled of the requested transfers. NOTE: It can occour that transfer fails when handled. Since the transfer array in the request are looped through and handled through iteration, the iteration may in some rare cases halt when the transfer fails. In such cases, the length of the array of transfers in the response, is shorter than the leght of the array in the transfer request.   | |
+| transfers            | Array | Holds an array of json objects which represents the transfers that were handled of the requested transfers. NOTE: It can occour that a transfer fails when handled. Since the transfer array in the request are looped through and handled through iteration, the iteration may in some rare cases halt when the transfer fails. In such cases, the length of the array of transfers in the response, is shorter than the leght of the array in the transfer request.   | |
 | currency            | String | Specifies the currency of the specific transfer. | btc / ltc / bch |
 | to_address        | String | Specifies to which specific address the transfer output was locked. | |
 | amount              | Float | Specifies the total amount of the transaction for the specific transfer. NOTE: This amount is including the fee of the transaction. The fee must therefore be subtracted from the amount to get the actual value that was locked to the to_address  | |
-| fee                     | Float | Definies the total fee of the transaction for the specific transfer. The fee is in BTC (hence 0.00000001 is one satoshi)  | |
+| fee                     | Float | Definies the total fee of the transaction for the specific transfer. This is specified in the highest doniminator for the currency. For bitcoin the fee is in BTC (hence 0.00000001 is one satoshi)  | |
 | message           | String | Includes a message corresponding how well the transfer was executed | |
 | status                | String | Indicates if the transaction of the transfer succeeded or not. | ok / fail |
 | txid                    | String | Corresponds to the txid of the transaction of the specific transfer, if it was successfull.  | |
@@ -200,6 +200,33 @@ Response body:
 
 ### POST /receive
 
+Request parameter/parameters definition:
+
+| Parameter   | Type   | Description | Possible values |
+| --------------| ------  | --------- | --------- |
+| transactions | JSON Array | And array of JSON objects, where every object represents the receivement to check. Supports multi currency checks. | |
+| currency      | String | Specifies which currency the specific receivement should be checked for | btc / ltc / bch |
+| address       | String | Definies the address the receivement should be checked for. | |
+| wallet           | String | Specifies which specific wallet the address sent in the address parameter should be "stored" (eg. hold keys that correspond to the address).  | |
+
+Response parameter/parameters definition:
+
+| Parameter   | Type   | Description | Possible values |
+| --------------| ------  | --------- | --------- |
+| receives              | JSON Array   | An array that holds JSON objects representing the receive response to the corresponding receive request in the request body "transactions" parameter.  NOTE: It can occour that a receive request fails when handled. Since the "transaction" array in the request are looped through and handled through iteration, the iteration may in some rare cases halt when the receive request fails. In such cases, the length of the array of receive responses in the response, is shorter than the length of the transaction array in the request. |  |
+| currency             | String            | Specifies which currency the specific receivement has been checked for. | btc / ltc / bch |
+| address              | String            | Definies the address the specific receivement has be checked for.  | |
+| received             | String            | The total amount that has been received for the specific address in the highest doniminator for the currency. For bitcoin the fee is in BTC (hence 0.00000001 is one satoshi) | |
+| risk                     | String            | Indicates if any of the transactions sent to the address is at risk of beeing forked away (based on number of confirmations). The mininum confirmations required for the specific alternatives is defined in the in config file under /btcxblockchainapi/btcxblockchainapi/config.yml.   | low / medium / high |
+| txids                   | JSON Array   | An array of JSON objects where an object holds information regarding an actual transaction that have been broadcasted to the network of a specific cryptocurrency. The transactions in this array represents the transactions sent to the address of the specific receivement response.  | |
+| txid                     | String            | The txid of the transaction broadcasted to the network. | |
+| received             | String            | The amount of the output locked to the address for the specific transaction | |
+| confirmations     | Int                 | Number of confirmations for the specific transaction  | |
+| date                   | String            | The date of the specific transaction | |
+| chain                 | Int                  | Specifies for which chain the wallet node is configured | 0 (Unknown) / 1 (Mainnet) / 2 (Testnet) / 3 (Regtest) |
+| error                  | Int                  | Indicates if an error occured when requesting the balance for the specific wallet. | 0 (No error) / 1 (Error occured) |
+| error_message  | String            | Holds a descriptive message corresponding to the error.  | |
+
 Request body:
 
     {
@@ -207,8 +234,7 @@ Request body:
             {
                 "currency":"btc",
                 "address":"2NAiERRHtLevi4uf4iMuDgLoyvAKkg2jVj2",
-                "wallet":"primary_btc_receive",
-                "amount": 0
+                "wallet":"primary_btc_receive"
             }
         ]
     }
