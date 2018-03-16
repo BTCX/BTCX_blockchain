@@ -98,6 +98,11 @@ Response body:
 
 ### POST /transfer
 
+Function:
+
+Transfers funds from a specified wallet to a specified address that corresponds to a safe address definied in the config.yml file.
+
+
 Request parameter/parameters definition:
 
 | Parameter   | Type   | Description | Possible values | Optional |
@@ -160,6 +165,11 @@ Response body:
 
 ### POST /address
 
+Function:
+
+Generates a specified of new addresses for a specified wallet.
+
+
 Request parameter/parameters definition:
 
 | Parameter   | Type   | Description | Possible values |
@@ -200,13 +210,18 @@ Response body:
 
 ### POST /receive
 
+Function:
+
+Returns all transactions that have been sent to a specific address tht is part of the wallet.
+
+
 Request parameter/parameters definition:
 
 | Parameter   | Type   | Description | Possible values |
 | --------------| ------  | --------- | --------- |
 | transactions | JSON Array | And array of JSON objects, where every object represents the receivement to check. Supports multi currency checks. | |
 | currency      | String | Specifies which currency the specific receivement should be checked for | btc / ltc / bch |
-| address       | String | Definies the address the receivement should be checked for. | |
+| address       | String | Definies the address the receivement should be checked for. NOTE: The address must be part of the specified wallet. | |
 | wallet           | String | Specifies which specific wallet the address sent in the address parameter should be "stored" (eg. hold keys that correspond to the address).  | |
 
 Response parameter/parameters definition:
@@ -270,6 +285,11 @@ Response body:
     }
 
 ### POST /sendmany
+
+Function:
+
+Sends out a specified amount of cryptocurrency to all addresses specified in the request parameters.
+
 
 Request parameter/parameters definition:
 
