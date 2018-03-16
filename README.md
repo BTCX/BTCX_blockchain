@@ -271,6 +271,30 @@ Response body:
 
 ### POST /sendmany
 
+Request parameter/parameters definition:
+
+| Parameter   | Type   | Description | Possible values |
+| --------------| ------  | --------- | --------- |
+| currency      | String            | Specifies the currency the sendmany request (Only one currency per request is supported) | btc / ltc / bch |
+| toSend        | JSON Array   | An JSON array where every object represents a request to send a specific amount to a specific address | |
+| amount        | Float             | The amount to send to the specified address for the specific send request. NOTE: This amount is excluding the transaction fee (the fee will therefore be added to the total transaction) | |
+| toAddress    | String           | The address to send the specified amount to for the specific send request. | |
+| fromAddress| String           | Specifies the account that funds will be taken from for the entire send many request. | |
+| txFee            | Float            | Definies the fee used in the highest doniminator for the currency. For bitcoin this is in BTC (hence 0.00000001 is one satoshi) per weight for the transaction. Does currently have no effect for Litecoin or Bitcoin Cash, and the fee set by the node is used.  | |
+| wallet           | String           | Specifies which specific wallet the address sent in the address parameter should be "stored" (eg. hold keys that correspond to the address).  | |
+
+Response parameter/parameters definition:
+
+| Parameter   | Type   | Description | Possible values |
+| --------------| ------  | --------- | --------- |
+| txid                     | String            | The txid of the transaction broadcasted to the network. | |
+| status                | String             | Indicates if the transaction of the transfer succeeded or not. | 200 / 400 / 406 / 500 |
+| fee                     | Float              | Definies the total fee of the sendmany transaction. This is specified in the highest doniminator for the currency. For bitcoin the fee is in BTC (hence 0.00000001 is one satoshi)  | |
+| message           | String             | Includes a message corresponding how well the transfer was executed | |
+| chain                 | Int                  | Specifies for which chain the wallet node is configured | 0 (Unknown) / 1 (Mainnet) / 2 (Testnet) / 3 (Regtest) |
+| error                  | Int                  | Indicates if an error occured when requesting the balance for the specific wallet. | 0 (No error) / 1 (Error occured) |
+| error_message  | String            | Holds a descriptive message corresponding to the error.  | |
+
 Request body:
 
     {
