@@ -276,7 +276,7 @@ Request parameter/parameters definition:
 | Parameter   | Type   | Description | Possible values |
 | --------------| ------  | --------- | --------- |
 | currency      | String            | Specifies the currency the sendmany request (Only one currency per request is supported) | btc / ltc / bch |
-| toSend        | JSON Array   | An JSON array where every object represents a request to send a specific amount to a specific address | |
+| toSend        | JSON Array   | A JSON array where every object represents a request to send a specific amount to a specific address | |
 | amount        | Float             | The amount to send to the specified address for the specific send request. NOTE: This amount is excluding the transaction fee (the fee will therefore be added to the total transaction) | |
 | toAddress    | String           | The address to send the specified amount to for the specific send request. | |
 | fromAddress| String           | Specifies the account that funds will be taken from for the entire send many request. | |
@@ -294,6 +294,11 @@ Response parameter/parameters definition:
 | chain                 | Int                  | Specifies for which chain the wallet node is configured | 0 (Unknown) / 1 (Mainnet) / 2 (Testnet) / 3 (Regtest) |
 | error                  | Int                  | Indicates if an error occurred when requesting the balance for the specific wallet. | 0 (No error) / 1 (Error occurred) |
 | error_message  | String            | Holds a descriptive message corresponding to the error.  | |
+| details               | JSON Array   | A JSON Array where every object represnts an output of the sendmany transaction EXCEPT the change transaction output. | |
+| address             | String            | The address the specific output has been sent to. | |
+| txid                    | String            | The txid of the entire transaction broadcasted to the network.    | |
+| vout                   | Int                 | The index of the specific output in the transaction. | |
+| amount              | String            | The amount sent (locked) with the specific output.  | |
 
 Request body:
 
@@ -301,11 +306,11 @@ Request body:
         "currency":"btc",
         "toSend": [
             {
-                "amount":0.001,
+                "amount":0.01,
                 "toAddress":"2N7nCLKXxWrUEqyZFvt7eahvEaxAZni1fwK"
             },
             {
-                "amount":0.002,
+                "amount":0.07,
                 "toAddress":"2NAiERRHtLevi4uf4iMuDgLoyvAKkg2jVj2"
             }
         ],
@@ -317,13 +322,27 @@ Request body:
 Response body:
 
     {
-        "txid": "1cd8b891bc0ffb291848f1a2b45b236f0da1b333bdc2124310c106b32b7fb143",
+        "txid": "cbvb35c5c0de7fh42390abe65b685cg4c296c7f7c49d9j7fce5hg2092d3de7c5",
         "status": 200,
-        "fee": "0.00004980",
+        "fee": "0.00002910",
         "message": "Send many is done.",
         "chain": 2,
         "error": 0,
-        "error_message": ""
+        "error_message": "",
+        "details": [
+            {
+                "address": "2N7nCLKXxWrUEqyZFvt7eahvEaxAZni1fwK",
+                "txid": "cbvb35c5c0de7fh42390abe65b685cg4c296c7f7c49d9j7fce5hg2092d3de7c5",
+                "vout": 0,
+                "amount": "0.01000000"
+            },
+            {
+                "address": "2NAiERRHtLevi4uf4iMuDgLoyvAKkg2jVj2",
+                "txid": "cbvb35c5c0de7fh42390abe65b685cg4c296c7f7c49d9j7fce5hg2092d3de7c5",
+                "vout": 1,
+                "amount": "0.07000000"
+            }
+        ]
     }
 
 
