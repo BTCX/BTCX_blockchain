@@ -75,7 +75,8 @@ class CheckMultiAddressesReceive(APIView):
                                                                      risk=risk,
                                                                      txs=tx_ids)
           response_list.append(response.__dict__)
-          receives_response = check_multi_receives.ReceivesInformationResponse(receives=response_list,
+
+        receives_response = check_multi_receives.ReceivesInformationResponse(receives=response_list,
                                                                                chain=chain.value)
       except JSONRPCException as ex:
           log.error("Error: %s" % ex.error['message'])
