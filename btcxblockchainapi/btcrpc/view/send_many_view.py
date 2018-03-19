@@ -148,5 +148,6 @@ class BTCSendManyView(APIView):
     return {
       "address" : transaction_detail['address'],
       "txid" : txid,
-      "vout" : transaction_detail['vout']
+      "vout" : transaction_detail['vout'],
+      "amount" : -transaction_detail['amount']
     }

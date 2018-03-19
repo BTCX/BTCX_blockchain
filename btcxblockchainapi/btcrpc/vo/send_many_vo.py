@@ -31,6 +31,7 @@ class DetailsResponseSerializer(serializers.Serializer):
   address = serializers.CharField(max_length=128)
   txid = serializers.CharField(max_length=128)
   vout = serializers.IntegerField()
+  amount = serializers.DecimalField(max_digits=18, decimal_places=8, coerce_to_string=True)
 
 class DetailsListField(serializers.ListField):
   child = DetailsResponseSerializer()
