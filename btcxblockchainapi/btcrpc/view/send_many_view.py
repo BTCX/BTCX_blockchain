@@ -67,9 +67,20 @@ class BTCSendManyView(APIView):
                                                        chain=chain.value, error=1)
 
             else:
+              details = transaction["details"]
+              details_list = []
+              try:
+                for transactionDetail in details:
+                  if(transactionDetail['category'] == 'send'):
+                    details_list.append(self.get_output_details(transactionDetail, result))
+              except BaseException as e:
+                #Since we wan't to make sure that a successfull response actually is sent if the rpc sendmany succeeds
+                #we just continue no matter what exception we encounter
+                log.error(e)
+
               response = send_many_vo.SendManyResponse(tx_id=result, status=status.HTTP_200_OK,
                                                        fee=abs(transaction["fee"]), message="Send many is done.",
-                                                       chain=chain.value)
+                                                       chain=chain.value, error=0, error_message="", details=details_list)
 
           elif result is not None and isinstance(result, JSONRPCException):
             semaphore.release()
@@ -132,3 +143,10 @@ class BTCSendManyView(APIView):
         return Response(send_many_response_serializer.errors, status=status.HTTP_406_NOT_ACCEPTABLE)
 
     return Response(serializer_post.errors, status=status.HTTP_400_BAD_REQUEST)
+
+  def get_output_details(self, transaction_detail, txid):
+    return {
+      "address" : transaction_detail['address'],
+      "txid" : txid,
+      "vout" : transaction_detail['vout']
+    }

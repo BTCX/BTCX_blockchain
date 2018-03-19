@@ -17,7 +17,7 @@ class SendManyPostParametersSerializer(serializers.Serializer):
 
 class SendManyResponse(object):
 
-  def __init__(self, tx_id="", status=0, fee=0, message="", chain=ChainEnum.UNKNOWN, error=0, error_message=""):
+  def __init__(self, tx_id="", status=0, fee=0, message="", chain=ChainEnum.UNKNOWN, error=0, error_message="", details=[]):
     self.txid = tx_id
     self.status = status
     self.fee = fee
@@ -25,6 +25,15 @@ class SendManyResponse(object):
     self.chain = chain
     self.error = error
     self.error_message = error_message
+    self.details = details
+
+class DetailsResponseSerializer(serializers.Serializer):
+  address = serializers.CharField(max_length=128)
+  txid = serializers.CharField(max_length=128)
+  vout = serializers.IntegerField()
+
+class DetailsListField(serializers.ListField):
+  child = DetailsResponseSerializer()
 
 class SendManyResponseSerializer(serializers.Serializer):
   txid = serializers.CharField(max_length=128, allow_blank=True)
@@ -34,3 +43,5 @@ class SendManyResponseSerializer(serializers.Serializer):
   chain = serializers.IntegerField()
   error = serializers.IntegerField()
   error_message = serializers.CharField(max_length=512, allow_blank=True)
+  details = DetailsListField()
+
