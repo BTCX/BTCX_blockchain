@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from btcrpc.utils.chain_enum import ChainEnum
 
 __author__ = 'twan'
 
@@ -68,9 +69,9 @@ class NewAddresses(object):
 
     #addresses = []
 
-    def __init__(self, addresses=[], test=False, error=0, error_message=""):
+    def __init__(self, addresses=[], chain=ChainEnum.UNKNOWN, error=0, error_message=""):
         self.addresses = addresses
-        self.test = test
+        self.chain = chain
         self.error = error
         self.error_message = error_message
 
@@ -84,12 +85,12 @@ class NewAddresses(object):
         self.addresses = value
 
     @property
-    def _test(self):
-        return self._test
+    def _chain(self):
+        return self._chain
 
-    @_test.setter
+    @_chain.setter
     def set_test(self, value):
-        self._test = value
+        self._chain = value
 
 """
 class AddressesField(serializers.Field):
@@ -107,7 +108,7 @@ class AddressesField(serializers.Field):
 
 #check http://stackoverflow.com/questions/17289039/how-can-i-define-a-list-field-in-django-rest-framework
 class NewAddressesSerializer(serializers.Serializer):
-    test = serializers.BooleanField()
+    chain = serializers.IntegerField()
     addresses = serializers.ListField(child=serializers.CharField(max_length=128))
     error = serializers.IntegerField()
     error_message = serializers.CharField(max_length=512, allow_blank=True)

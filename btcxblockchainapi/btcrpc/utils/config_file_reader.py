@@ -1,8 +1,7 @@
 import yaml
-from singleton import Singleton
+from .singleton import Singleton
 
-class ConfigFileReader(object):
-    __metaclass__ = Singleton
+class ConfigFileReader(object, metaclass=Singleton):
 
     def __init__(self):
         server_config = open("./btcxblockchainapi/config.yml")

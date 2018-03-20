@@ -48,7 +48,7 @@ class ServerStatus(object):
     def do_work(self):
         status = Status(message="service is fully operational")
         status.update = "31 days"
-        print status.update
+        print(status.update)
         serializer = ServerStatusSerializer(status)
         result = serializer.data # final result
         return result

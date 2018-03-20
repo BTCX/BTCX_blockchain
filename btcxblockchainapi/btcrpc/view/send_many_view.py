@@ -2,27 +2,27 @@ from bitcoinrpc.authproxy import JSONRPCException
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from sherlock import MCLock, LockTimeoutException, LockException
+#from sherlock import MCLock, LockTimeoutException, LockException
 from pylibmc import ConnectionError, ServerDown
 from rest_framework import status
 
 from btcrpc.utils import constantutil
-from btcrpc.utils.btc_rpc_call import BTCRPCCall
 from btcrpc.utils.log import get_log
 from btcrpc.vo import send_many_vo
 import socket, errno
 from socket import error as socket_error
+from btcrpc.utils.semaphore import SemaphoreSingleton
+from btcrpc.utils.rpc_calls.rpc_instance_generator import RpcGenerator
+from btcrpc.utils.chain_enum import ChainEnum
 
 log = get_log("Bitcoin Send Many:")
-
-# define a locker for send many with a tx fee
-lock = MCLock(__name__)
-
 
 class BTCSendManyView(APIView):
   permission_classes = (IsAdminUser,)
 
   def post(self, request):
+    chain = ChainEnum.UNKNOWN
+    semaphore = SemaphoreSingleton()
     serializer_post = send_many_vo.SendManyPostParametersSerializer(data=request.data)
 
     if serializer_post.is_valid():
@@ -30,7 +30,7 @@ class BTCSendManyView(APIView):
       currency = serializer_post.data["currency"]
       wallet = serializer_post.data["wallet"]
       txFee = serializer_post.data["txFee"]
-      btc_rpc_call = BTCRPCCall(wallet=wallet, currency=currency)
+      rpc_call = RpcGenerator.get_rpc_instance(wallet=wallet, currency=currency)
 
       from_account = serializer_post.data['fromAddress']
       log.info(from_account)
@@ -51,83 +51,89 @@ class BTCSendManyView(APIView):
 
       try:
 
-        is_test_net = constantutil.check_service_is_test_net(btc_rpc_call)
+        chain = constantutil.check_service_chain(rpc_call)
 
-        if lock.locked() is False:
-          lock.acquire()
-          btc_rpc_call.set_tx_fee(txFee)
-          isSuccess, result = btc_rpc_call.send_many(from_account=from_account, amounts=amounts_dict)
-          lock.release()
+        if (semaphore.acquire_if_released()):
+          rpc_call.set_tx_fee(txFee)
+          isSuccess, result = rpc_call.send_many(from_account=from_account, amounts=amounts_dict)
+
 
           if (isSuccess):
-            log.info(result)
-            transaction = btc_rpc_call.do_get_transaction(result)
+            semaphore.release()
+            transaction = rpc_call.do_get_transaction(result)
             if transaction is None:
               response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                                                        fee=0, message="BTC server - " + wallet + "is done.",
-                                                       test=is_test_net, error=1)
+                                                       chain=chain.value, error=1)
 
             else:
+              details = transaction["details"]
+              details_list = []
+              try:
+                for transactionDetail in details:
+                  if(transactionDetail['category'] == 'send'):
+                    details_list.append(self.get_output_details(transactionDetail, result))
+              except BaseException as e:
+                #Since we wan't to make sure that a successfull response actually is sent if the rpc sendmany succeeds
+                #we just continue no matter what exception we encounter
+                log.error(e)
+
               response = send_many_vo.SendManyResponse(tx_id=result, status=status.HTTP_200_OK,
                                                        fee=abs(transaction["fee"]), message="Send many is done.",
-                                                       test=is_test_net)
+                                                       chain=chain.value, error=0, error_message="", details=details_list)
 
           elif result is not None and isinstance(result, JSONRPCException):
-
-            if lock.locked() is True:
-              lock.release()
+            semaphore.release()
             log.info("Error: %s" % result.error['message'])
             response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                                     fee=0, message=result.error['message'], test=is_test_net, error=1)
+                                                     fee=0, message=result.error['message'], chain=chain.value, error=1)
           elif result is not None and isinstance(result, socket.error):
+            semaphore.release()
             log.info(result.errno == errno.ECONNREFUSED)
             log.info(result.message)
             response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                                                      fee=0, message=result.message,
-                                                     test=is_test_net, error=1)
+                                                     chain=chain.value, error=1)
+        else:
+          response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                                                   fee=0, message="Semaphore is already acquired, wait until semaphore"
+                                                                  " is released.",
+                                                   chain=chain.value, error=1)
 
-      except (LockTimeoutException, LockException):
-        is_test_net = constantutil.check_service_is_test_net(btc_rpc_call)
-        log.error("Error: %s" % "LockTimeoutException or LockException")
-        response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                                 fee=0, message="LockTimeoutException or LockException",
-                                                 test=is_test_net, error=1)
       except (ConnectionError, ServerDown):
+        semaphore.release()
         log.error("Error: ConnectionError or ServerDown exception")
         response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                                                  fee=0, message="Error: ConnectionError or ServerDown exception",
-                                                 test=True, error=1)
+                                                 chain=chain.value, error=1)
 
       except JSONRPCException as ex:
-          if lock.locked() is True:
-              lock.release()
-          log.error("Error: %s" % ex.error['message'])
-          error_message = "Bitcoin RPC error, check if username and password for node is correct. Message from " \
-                          "python-bitcoinrpc: " + ex.message
-          response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                                   fee=0, message=error_message,
-                                                   test=True, error=1, error_message=error_message)
+        semaphore.release()
+        log.error("Error: %s" % ex.error['message'])
+        error_message = "Bitcoin RPC error, check if username and password for node is correct. Message from " \
+                        "python-bitcoinrpc: " + ex.message
+        response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                                                 fee=0, message=error_message,
+                                                 chain=chain.value, error=1, error_message=error_message)
       except socket_error as serr:
-        if lock.locked() is True:
-          lock.release()
+        semaphore.release()
         if serr.errno != errno.ECONNREFUSED:
           error_message = "A general socket error was raised."
           response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                                                    fee=0, message=error_message,
-                                                   test=True, error=1, error_message=error_message)
+                                                   chain=chain.value, error=1, error_message=error_message)
         else:
           error_message = "Connection refused error, check if the wallet node is down."
           response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                                                    fee=0, message=error_message,
-                                                   test=True, error=1, error_message=error_message)
+                                                   chain=chain.value, error=1, error_message=error_message)
 
       if (response is not None):
         send_many_response_serializer = send_many_vo.SendManyResponseSerializer(data=response.__dict__)
       else:
-        is_test_net = constantutil.check_service_is_test_net(btc_rpc_call)
         response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                                                  fee=0, message="Error: response is None",
-                                                 test=is_test_net, error=1)
+                                                 chain=chain.value, error=1)
         send_many_response_serializer = send_many_vo.SendManyResponseSerializer(data=response.__dict__)
 
 
@@ -137,3 +143,11 @@ class BTCSendManyView(APIView):
         return Response(send_many_response_serializer.errors, status=status.HTTP_406_NOT_ACCEPTABLE)
 
     return Response(serializer_post.errors, status=status.HTTP_400_BAD_REQUEST)
+
+  def get_output_details(self, transaction_detail, txid):
+    return {
+      "address" : transaction_detail['address'],
+      "txid" : txid,
+      "vout" : transaction_detail['vout'],
+      "amount" : -transaction_detail['amount']
+    }

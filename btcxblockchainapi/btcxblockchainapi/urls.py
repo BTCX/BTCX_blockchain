@@ -9,20 +9,18 @@ from quickstart.views import *
 from btcrpc.view.addresses import *
 from btcrpc.view.check_multi_receives import *
 
-
 from django.contrib import admin
 admin.autodiscover()
+
 
 router = routers.DefaultRouter()
 router.register(r'users',  UserViewSet)
 router.register(r'groups', GroupViewSet)
-#router.register(r'api/v1/status', views.MyRESTView)
 
 api_python_root = '^api/v1/'
 
-
 urlpatterns = [
-    url(r'^admin/', include(admin.site.urls)),
+    url(r'^admin/', admin.site.urls),
     url(r'^', include(router.urls)),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^api/v1/address/?$', CreateNewAddresses.as_view(), name="BTC_Create_New_Address"),

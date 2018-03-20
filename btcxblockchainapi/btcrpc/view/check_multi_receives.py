@@ -7,12 +7,14 @@ from rest_framework.views import APIView
 
 from bitcoinrpc.authproxy import JSONRPCException
 from btcrpc.utils import constantutil
-from btcrpc.utils.btc_rpc_call import BTCRPCCall
 from btcrpc.utils.config_file_reader import ConfigFileReader
 from btcrpc.utils.log import get_log
 from btcrpc.vo import check_multi_receives
 import errno
 from socket import error as socket_error
+from btcrpc.utils.rpc_calls.rpc_call import RPCCall
+from btcrpc.utils.rpc_calls.rpc_instance_generator import RpcGenerator
+from btcrpc.utils.chain_enum import ChainEnum
 
 log = get_log("CheckMultiAddressesReceive view")
 yml_config = ConfigFileReader()
@@ -24,6 +26,7 @@ RISK_HIGH_CONFIRMATIONS = yml_config.get_confirmations_mapping_to_risk(currency=
 class CheckMultiAddressesReceive(APIView):
 
   def post(self, request):
+    chain = ChainEnum.UNKNOWN
     log.info(request.data)
     post_serializers = check_multi_receives.PostParametersSerializer(data=request.data)
 
@@ -32,14 +35,18 @@ class CheckMultiAddressesReceive(APIView):
       log.info(post_serializers.data["transactions"])
       transactions = post_serializers.data["transactions"]
       try:
-        btc_rpc_call = BTCRPCCall()
-        is_test_net = constantutil.check_service_is_test_net(btc_rpc_call)
         for transaction in transactions:
           log.info(transaction)
 
+          wallet = transaction["wallet"]
+          currency = transaction["currency"]
+
+          rpc_call = RpcGenerator.get_rpc_instance(wallet=wallet, currency=currency)
+          chain = constantutil.check_service_chain(rpc_call)
+
           transaction_address = transaction["address"]
 
-          address_validation = btc_rpc_call.do_validate_address(address=transaction_address)
+          address_validation = rpc_call.do_validate_address(address=transaction_address)
 
           if address_validation["isvalid"] is False:
             return Response(transaction_address + " is not a valid address",
@@ -50,12 +57,12 @@ class CheckMultiAddressesReceive(APIView):
             return Response(transaction_address + " is not an address of the wallet",
                             status=status.HTTP_400_BAD_REQUEST)
 
-          tx_ids = self.__get_txIds(transaction["address"], btc_service=btc_rpc_call)
+          tx_ids = self.__get_txIds(rpc_service=rpc_call, account = transaction["address"])
           log.debug(tx_ids)
 
-          received_with_risk = self.__receive_amount_for_risk(wallet_address=transaction_address,
-                                                              tx_ids=tx_ids,
-                                                              btc_service=btc_rpc_call)
+          received_with_risk = self.__receive_amount_for_risk(rpc_service=rpc_call,
+                                                              wallet_address=transaction_address,
+                                                              tx_ids=tx_ids)
 
           received = Decimal(received_with_risk["result"]) if received_with_risk else 0.0
           risk = received_with_risk["risk"] if received_with_risk else "low"
@@ -67,29 +74,29 @@ class CheckMultiAddressesReceive(APIView):
                                                                      received=received,
                                                                      risk=risk,
                                                                      txs=tx_ids)
-          print(address_validation)
           response_list.append(response.__dict__)
-          receives_response = check_multi_receives.ReceivesInformationResponse(receives=response_list,
-                                                                               test=is_test_net)
+
+        receives_response = check_multi_receives.ReceivesInformationResponse(receives=response_list,
+                                                                               chain=chain.value)
       except JSONRPCException as ex:
           log.error("Error: %s" % ex.error['message'])
           error_message = "Bitcoin RPC error, check if username and password for node is correct. Message from " \
                           "python-bitcoinrpc: " + ex.message
           receives_response = check_multi_receives.ReceivesInformationResponse(receives=response_list,
-                                                                               test=True,
+                                                                               chain=chain.value,
                                                                                error=1,
                                                                                error_message=error_message
                                                                                )
       except socket_error as serr:
         if serr.errno != errno.ECONNREFUSED:
           receives_response = check_multi_receives.ReceivesInformationResponse(receives=[],
-                                                                               test=True,
+                                                                               chain=chain.value,
                                                                                error=1,
                                                                                error_message="A general socket error was raised."
                                                                                )
         else:
           receives_response = check_multi_receives.ReceivesInformationResponse(receives=[],
-                                                                               test=True,
+                                                                               chain=chain.value,
                                                                                error=1,
                                                                                error_message="Connection refused error, "
                                                                                              "check if the wallet node is down."
@@ -106,13 +113,13 @@ class CheckMultiAddressesReceive(APIView):
 
     return Response(post_serializers.errors, status=status.HTTP_400_BAD_REQUEST)
 
-  def __receive_amount_for_risk(self, wallet_address="", tx_ids=[], btc_service=BTCRPCCall()):
+  def __receive_amount_for_risk(self, rpc_service, wallet_address="", tx_ids=[]):
 
-    if not isinstance(btc_service, BTCRPCCall):
-      raise TypeError("Expected object BTCRPCCall, got %s" % (type(btc_service),))
+    if not isinstance(rpc_service, RPCCall):
+      raise TypeError("Expected object BTCRPCCall, got %s" % (type(rpc_service),))
 
     result = Decimal(
-      btc_service.amount_received_by_address(address=wallet_address, confirms=RISK_HIGH_CONFIRMATIONS))
+      rpc_service.amount_received_by_address(address=wallet_address, confirms=RISK_HIGH_CONFIRMATIONS))
 
     low_risk_counter = 0
     medium_risk_counter = 0
@@ -148,12 +155,12 @@ class CheckMultiAddressesReceive(APIView):
       log.info("low")
       return {"result": result, "risk": 'low'}
 
-  def __get_txIds(self, account="", btc_service=BTCRPCCall()):
+  def __get_txIds(self, rpc_service, account=""):
 
-    if not isinstance(btc_service, BTCRPCCall):
-      raise TypeError("Expected object BTCRPCCall, got %s" % (type(btc_service),))
+    if not isinstance(rpc_service, RPCCall):
+      raise TypeError("Expected object BTCRPCCall, got %s" % (type(rpc_service),))
 
-    transactions = btc_service.list_transactions(account=account, count=88)
+    transactions = rpc_service.list_transactions(account=account, count=88)
     transactions_with_tx_id = []
 
     for transaction in transactions:
