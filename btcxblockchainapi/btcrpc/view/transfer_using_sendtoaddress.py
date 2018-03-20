@@ -37,6 +37,7 @@ class TransferCurrencyByUsingSendTaoAddress(APIView):
             response_list = []
             try:
                 if semaphore.acquire_if_released():
+                    all_transfer_succeeded = True
                     for transfer in transfer_list:
                         log.info(transfer)
                         currency = transfer["currency"]
@@ -70,6 +71,7 @@ class TransferCurrencyByUsingSendTaoAddress(APIView):
                                                                                               status="ok",
                                                                                               txid=send_response_tx_id)
                             except JSONRPCException as ex:
+                                all_transfer_succeeded = False
                                 log.error("Error: %s" % ex.error['message'])
                                 response = transfers_using_sendtoaddress.TransferInformationResponse(currency=currency,
                                                                                                      to_address=to_address,
@@ -78,6 +80,7 @@ class TransferCurrencyByUsingSendTaoAddress(APIView):
                                                                                                      status="fail",
                                                                                                      txid="")
                             except (ConnectionError, ServerDown):
+                                all_transfer_succeeded = False
                                 log.error("Error: ConnectionError or ServerDown exception")
                                 response = transfers_using_sendtoaddress.TransferInformationResponse(currency=currency,
                                                                                                      to_address=to_address,
@@ -90,6 +93,7 @@ class TransferCurrencyByUsingSendTaoAddress(APIView):
                             response_list.append(response.__dict__)
 
                         else:
+                            all_transfer_succeeded = False
                             response = transfers_using_sendtoaddress.TransferInformationResponse(currency=currency,
                                                                              to_address=to_address,
                                                                              amount=Decimal(str(send_amount)),
@@ -100,8 +104,12 @@ class TransferCurrencyByUsingSendTaoAddress(APIView):
 
                     log.info(response_list)
                     semaphore.release()
-                    transfers_response = transfers_using_sendtoaddress.TransfersInformationResponse(transfers=response_list,
-                                                                                                    chain=chain.value)
+                    if all_transfer_succeeded:
+                        transfers_response = transfers_using_sendtoaddress.TransfersInformationResponse(transfers=response_list,
+                                                                                                        chain=chain.value)
+                    else:
+                        transfers_response = transfers_using_sendtoaddress.TransfersInformationResponse(transfers=response_list,
+                             chain=chain.value, error_message="One or more transaction failed and needs to be handled accordingly.", error=1)
                 else:
                     transfers_response = transfers_using_sendtoaddress.TransfersInformationResponse(
                         transfers=[], chain=chain.value, error=1, error_message="Semaphore is already acquired, wait until semaphore"

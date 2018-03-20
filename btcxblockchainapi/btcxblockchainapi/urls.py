@@ -8,6 +8,7 @@ from btcrpc.view.transfer_using_sendtoaddress import TransferCurrencyByUsingSend
 from quickstart.views import *
 from btcrpc.view.addresses import *
 from btcrpc.view.check_multi_receives import *
+from btcrpc.view.validate_address import *
 
 from django.contrib import admin
 admin.autodiscover()
@@ -24,6 +25,7 @@ urlpatterns = [
     url(r'^', include(router.urls)),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^api/v1/address/?$', CreateNewAddresses.as_view(), name="BTC_Create_New_Address"),
+    url(r'^api/v1/validate/?$', ValidateAddress.as_view(), name="Validate_address"),
     url(r'^api/v1/receive/?$', CheckMultiAddressesReceive.as_view(), name="BTC_Check_Address_For_Bitcoin_Receiving"),
     url(r'^api/v1/wallet/balance/?$', CheckWalletsBalance.as_view(), name="Check_Wallets_Balance"),
     url(r'^api/v1/transfer/?$', TransferCurrencyByUsingSendTaoAddress.as_view(),
