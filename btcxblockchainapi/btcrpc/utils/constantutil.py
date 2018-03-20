@@ -24,3 +24,10 @@ def check_service_chain(rpc_service):
         return rpc_service.get_chain()
     else:
         raise TypeError("Expected object python_bitcoinrpc, got %s" % (type(rpc_service),))
+
+
+def check_for_failed_transactions(transaction_responses):
+    transaction = \
+          next((transaction for transaction in transaction_responses if transaction['status'] == 'fail'),
+               None)
+    return transaction is not None

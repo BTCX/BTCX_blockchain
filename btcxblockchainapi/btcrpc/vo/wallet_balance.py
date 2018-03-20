@@ -21,8 +21,9 @@ class GetWalletBalancePostParameterSerializer(serializers.Serializer):
 
 class WalletBalanceResponse(object):
 
-    def __init__(self, wallet="", balance=Decimal(0), chain=ChainEnum.UNKNOWN, error=0, error_message=""):
+    def __init__(self, wallet="", wallet_type="", balance=Decimal(0), chain=ChainEnum.UNKNOWN, error=0, error_message=""):
         self.wallet = wallet
+        self.wallet_type = wallet_type
         self.balance = balance
         self.chain = chain
         self.error = error
@@ -32,6 +33,7 @@ class WalletBalanceResponse(object):
 class WalletBalanceResponseSerializer(serializers.Serializer):
 
     wallet = serializers.CharField(max_length=32)
+    wallet_type = serializers.CharField(max_length=32)
     balance = serializers.DecimalField(max_digits=18, decimal_places=8, coerce_to_string=False)
     chain = serializers.IntegerField()
     error = serializers.IntegerField()

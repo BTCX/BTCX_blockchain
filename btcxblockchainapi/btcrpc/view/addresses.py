@@ -56,6 +56,11 @@ class CreateNewAddresses(APIView):
                     new_addresses_response = \
                         addresses.NewAddresses(addresses=[], chain=chain.value, error=1,
                                                error_message="Connection refused error, check if the wallet node is down.")
+            except BaseException as ex:
+                logger.error("Error: %s" % str(ex))
+                error_message = "An exception was raised. Error message: " + str(ex)
+                new_addresses_response = addresses.NewAddresses(addresses=[], chain=chain.value, error=1,
+                                                                error_message=error_message)
             addresses_serializer = addresses.NewAddressesSerializer(data=new_addresses_response.__dict__)
             if addresses_serializer.is_valid():
                 return Response(addresses_serializer.data, status=status.HTTP_201_CREATED)
