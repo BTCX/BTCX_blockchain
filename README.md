@@ -22,6 +22,7 @@
 - [POST /address](#post-address)
 - [POST /receive](#post-receive)
 - [POST /sendmany](#post-sendmany)
+- [POST /wallet_notify](#post-wallet_notify)
 
 ### POST /wallet/balance
 
