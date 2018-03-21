@@ -296,7 +296,7 @@ Request parameter/parameters definition:
 
 | Parameter   | Type   | Description | Possible values |
 | --------------| ------  | --------- | --------- |
-| currency      | String            | Specifies the currency the sendmany request (Only one currency per request is supported) | btc / ltc / bch |
+| currency      | String            | Specifies the currency of the sendmany request (Only one currency per request is supported) | btc / ltc / bch |
 | toSend        | JSON Array   | An JSON array where every object represents a request to send a specific amount to a specific address | |
 | amount        | Float             | The amount to send to the specified address for the specific send request. NOTE: This amount is excluding the transaction fee (the fee will therefore be added to the total transaction) | |
 | toAddress    | String           | The address to send the specified amount to for the specific send request. | |
@@ -347,4 +347,40 @@ Response body:
         "error_message": ""
     }
 
+
+### POST /wallet_notify
+
+Function:
+
+An endpoint that takes a transaction id that should be called on the triggering of a wallet notify event, for transactions that are received by the wallet that triggers the event.
+
+Request parameter/parameters definition:
+
+| Parameter   | Type   | Description | Possible values |
+| --------------| ------  | --------- | --------- |
+| currency      | String            | Specifies the currency the wallet notify event was triggered for. | btc / ltc / bch |
+| txid              | String            | Specifies the txid that triggered wallet notify event sent. |  |
+
+Response parameter/parameters definition:
+
+| Parameter   | Type   | Description | Possible values |
+| --------------| ------  | --------- | --------- |
+| chain                 | Int                  | Specifies for which chain the wallet node is configured | 0 (Unknown) / 1 (Mainnet) / 2 (Testnet) / 3 (Regtest) |
+| error                  | Int                  | Indicates if an error occurred when requesting the balance for the specific wallet. | 0 (No error) / 1 (Error occurred) |
+| error_message  | String            | Holds a descriptive message corresponding to the error.  | |
+
+Request body:
+
+    {
+        "currency":"btc",
+        "txid":"e43b1fa2547e814979b7j01346c90gh368279fgcf4123e49r9b61d29tf4923th"
+    }
+
+Response body:
+
+    {
+        "chain": 2,
+        "error": 0,
+        "error_message": ""
+    }
 
