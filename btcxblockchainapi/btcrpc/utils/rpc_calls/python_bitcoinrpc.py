@@ -106,6 +106,7 @@ class PythonBitcoinRpc(RPCCall):
     amounts_object = json.loads(amounts_string)
     try:
       return True, self.access.sendmany(from_account, amounts_object, minconf)
+      return True, self.access.sendmany(from_account, amounts_object, minconf)
     except JSONRPCException as ex:
       return False, ex
     except socket.error as e:
