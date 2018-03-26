@@ -16,7 +16,7 @@ from btcrpc.utils.chain_enum import ChainEnum
 __author__ = 'sikamedia'
 __Date__ = '2015-01-18'
 
-log = get_log("CheckWalletsBalance view")
+log = get_log("WalletNotify view")
 yml_config = ConfigFileReader()
 
 

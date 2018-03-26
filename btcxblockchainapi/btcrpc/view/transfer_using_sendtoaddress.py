@@ -37,7 +37,7 @@ class TransferCurrencyByUsingSendTaoAddress(APIView):
             transfer_list = post_serializer.data["transfers"]
             response_list = []
             try:
-                if semaphore.acquire_if_released():
+                if semaphore.acquire_if_released(log):
                     for transfer in transfer_list:
                         log.info(transfer)
                         currency = transfer["currency"]
@@ -101,7 +101,7 @@ class TransferCurrencyByUsingSendTaoAddress(APIView):
                             response_list.append(response.__dict__)
 
                     log.info(response_list)
-                    semaphore.release()
+                    semaphore.release(log)
                     transaction_has_failed = constantutil.check_for_failed_transactions(response_list)
                     if(transaction_has_failed):
                         transfers_response = transfers_using_sendtoaddress.TransfersInformationResponse(
@@ -117,20 +117,20 @@ class TransferCurrencyByUsingSendTaoAddress(APIView):
                         transfers=response_list, chain=chain.value, error=1, error_message="Semaphore is already acquired, wait until semaphore"
                                                                         " is released.")
             except ValueError as ex:
-                semaphore.release()
+                semaphore.release(log)
                 log.error("Error: %s" % str(ex))
                 transfers_response = transfers_using_sendtoaddress.TransfersInformationResponse(
                   transfers=response_list, chain=chain.value, error=1,
                   error_message=str(ex))
             except JSONRPCException as ex:
-                semaphore.release()
+                semaphore.release(log)
                 log.error("Error: %s" % ex.error['message'])
                 transfers_response = transfers_using_sendtoaddress.TransfersInformationResponse(
                     transfers=response_list, chain=chain.value, error=1, error_message="Bitcoin RPC error, check if username and password "
                                                                     "for node is correct. Message from python-bitcoinrpc: "
                                                                     + ex.message)
             except socket_error as serr:
-                semaphore.release()
+                semaphore.release(log)
                 if serr.errno != errno.ECONNREFUSED:
                     transfers_response = transfers_using_sendtoaddress.TransfersInformationResponse(
                         transfers=response_list, chain=chain.value, error=1, error_message="A general socket error was raised.")
@@ -139,7 +139,7 @@ class TransferCurrencyByUsingSendTaoAddress(APIView):
                         transfers=response_list, chain=chain.value, error=1, error_message="Connection refused error, check if the wallet"
                                                                         " node is down.")
             except BaseException as ex:
-                semaphore.release()
+                semaphore.release(log)
                 log.error("Error: %s" % str(ex))
                 error_message = "An exception was raised. Error message: " + str(ex)
                 transfers_response = transfers_using_sendtoaddress.TransfersInformationResponse(

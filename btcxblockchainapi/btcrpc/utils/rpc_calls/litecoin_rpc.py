@@ -8,4 +8,4 @@ class LitecoinRpc(PythonBitcoinRpc):
 
   def set_tx_fee(self, amount):
     #Since we want to use the fee suggested by the node software, we don't make a RPC call to manually set the fee.
-    return True
+    return False
