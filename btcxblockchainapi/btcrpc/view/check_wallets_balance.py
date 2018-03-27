@@ -112,7 +112,7 @@ class CheckWalletsBalance(APIView):
             log_info(log, "Wallet balance response serializer", wallets_balance_response_serializer)
 
             if wallets_balance_response_serializer.is_valid():
-                log_info(log, "The response send_many_response_serializer was valid")
+                log_info(log, "The response wallet balance response serializer was valid")
                 return Response(wallets_balance_response_serializer.data, status=status.HTTP_201_CREATED)
             else:
                 log_error(log, "The wallet balance response serializer was not valid")
