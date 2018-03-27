@@ -21,6 +21,7 @@ class BTCSendManyView(APIView):
   permission_classes = (IsAdminUser,)
 
   def post(self, request):
+    log_info(log, "Request data", request.data)
     chain = ChainEnum.UNKNOWN
     semaphore = SemaphoreSingleton()
     serializer_post = send_many_vo.SendManyPostParametersSerializer(data=request.data)
@@ -100,6 +101,12 @@ class BTCSendManyView(APIView):
             response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                                                      fee=0, message=result.message,
                                                      chain=chain.value, error=1)
+          else:
+            semaphore.release(log)
+            log_error(log, "The rpc call was not successfull, result", result)
+            response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                                                     fee=0, message=result,
+                                                     chain=chain.value, error=1)
         else:
           log_error(log, "Error: The semaphore is already required, wait until semaphore is released")
           response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -143,8 +150,7 @@ class BTCSendManyView(APIView):
         response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                                                  fee=0, message=error_message,
                                                  chain=chain.value, error=1, error_message=error_message)
-
-      if (response is not None):
+      if response is not None:
         send_many_response_serializer = send_many_vo.SendManyResponseSerializer(data=response.__dict__)
       else:
         log_error(log, "Error: response is None")
@@ -153,15 +159,17 @@ class BTCSendManyView(APIView):
                                                  chain=chain.value, error=1)
         send_many_response_serializer = send_many_vo.SendManyResponseSerializer(data=response.__dict__)
 
-
+      log_info(log, "Send many response serializer", send_many_response_serializer)
       if send_many_response_serializer.is_valid():
-        log_error(log, "The response send_many_response_serializer was valid. The serializer data is",
+        log_info(log, "The response send_many_response_serializer was valid. The serializer data is",
                   send_many_response_serializer.data)
         return Response(send_many_response_serializer.data, status=status.HTTP_200_OK)
       else:
+        semaphore.release(log)
         log_error(log, "The response send_many_response_serializer was not valid.", send_many_response_serializer.errors)
         return Response(send_many_response_serializer.errors, status=status.HTTP_406_NOT_ACCEPTABLE)
 
+    semaphore.release(log)
     return Response(serializer_post.errors, status=status.HTTP_400_BAD_REQUEST)
 
   def get_output_details(self, transaction_detail, txid):
