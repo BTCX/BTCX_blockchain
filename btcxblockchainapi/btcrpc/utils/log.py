@@ -1,6 +1,6 @@
 import logging
 import sys
-
+import traceback
 
 def get_log(log_name):
 
@@ -43,6 +43,7 @@ def log_info(log_instance, informative_string, info_to_log = None):
 
 
 def log_error(log_instance, informative_error_string, error_info_to_log=None):
+    #traceback.print_exc()
     if (error_info_to_log):
         print(informative_error_string + ":")
         print(error_info_to_log)
