@@ -21,7 +21,6 @@ yml_config = ConfigFileReader()
 
 
 class CheckWalletsBalance(APIView):
-
     def post(self, request):
         log_info(log, "Request data", request.data)
         post_serializers = wallet_balance.GetWalletBalancePostParameterSerializer(data=request.data)
@@ -46,14 +45,16 @@ class CheckWalletsBalance(APIView):
                     balance = rpc_call.get_wallet_balance()
                     log_info(log, "Wallet balance", format(balance, '0.8f'))
                     wallet_balance_response = \
-                        self.create_wallet_balance_response_and_log(log_info,
-                                                                    "Generating a successful wallet balance response",
-                                                                    None,
-                                                                    wallet,
-                                                                    wallet_type,
-                                                                    balance,
-                                                                    chain)
-                    self.append_to_wallet_balance_list_and_log(wallet_balance_response_list, wallet_balance_response.__dict__)
+                        self.create_wallet_balance_response_and_log(
+                            log_info,
+                            "Generating a successful wallet balance response",
+                            None,
+                            wallet,
+                            wallet_type,
+                            balance,
+                            chain)
+                    self.append_to_wallet_balance_list_and_log(wallet_balance_response_list,
+                                                               wallet_balance_response.__dict__)
                 except socket_error as serr:
                     error_message = "Socket error: "
                     if serr.errno != errno.ECONNREFUSED:
@@ -62,47 +63,49 @@ class CheckWalletsBalance(APIView):
                         error_message = error_message + "Connection refused error, check if the wallet node is down."
 
                     wallet_balance_response = \
-                        self.create_wallet_balance_response_and_log(log_error,
-                                                                    error_message,
-                                                                    serr,
-                                                                    wallet,
-                                                                    wallet_type,
-                                                                    0,
-                                                                    chain,
-                                                                    error=1,
-                                                                    error_message=error_message)
+                        self.create_wallet_balance_response_and_log(
+                            log_error,
+                            error_message,
+                            serr,
+                            wallet,
+                            wallet_type,
+                            0,
+                            chain,
+                            error=1,
+                            error_message=error_message)
                     self.append_to_wallet_balance_list_and_log(wallet_balance_response_list,
                                                                wallet_balance_response.__dict__)
                 except JSONRPCException as ex:
                     error_message = "Bitcoin RPC error, check if username and password for node is correct. Message from python-bitcoinrpc: " + ex.message
                     wallet_balance_response = \
-                        self.create_wallet_balance_response_and_log(log_error,
-                                                                    error_message,
-                                                                    ex,
-                                                                    wallet,
-                                                                    wallet_type,
-                                                                    0,
-                                                                    chain,
-                                                                    error=1,
-                                                                    error_message=error_message)
+                        self.create_wallet_balance_response_and_log(
+                            log_error,
+                            error_message,
+                            ex,
+                            wallet,
+                            wallet_type,
+                            0,
+                            chain,
+                            error=1,
+                            error_message=error_message)
                     self.append_to_wallet_balance_list_and_log(wallet_balance_response_list,
                                                                wallet_balance_response.__dict__)
 
                 except BaseException as ex:
                     error_message = "An exception was raised. Error message: " + str(ex)
                     wallet_balance_response = \
-                        self.create_wallet_balance_response_and_log(log_error,
-                                                                    error_message,
-                                                                    ex,
-                                                                    wallet,
-                                                                    wallet_type,
-                                                                    0,
-                                                                    chain,
-                                                                    error=1,
-                                                                    error_message=error_message)
+                        self.create_wallet_balance_response_and_log(
+                            log_error,
+                            error_message,
+                            ex,
+                            wallet,
+                            wallet_type,
+                            0,
+                            chain,
+                            error=1,
+                            error_message=error_message)
                     self.append_to_wallet_balance_list_and_log(wallet_balance_response_list,
                                                                wallet_balance_response.__dict__)
-
 
             wallets_balance_response = wallet_balance.WalletsBalanceResponse(wallets=wallet_balance_response_list)
             log_info(log, "Full wallet balance response", wallets_balance_response.__dict__)
@@ -115,20 +118,23 @@ class CheckWalletsBalance(APIView):
                 log_info(log, "The response wallet balance response serializer was valid")
                 return Response(wallets_balance_response_serializer.data, status=status.HTTP_201_CREATED)
             else:
-                log_error(log, "The wallet balance response serializer was not valid", wallets_balance_response_serializer.errors)
+                log_error(log, "The wallet balance response serializer was not valid",
+                          wallets_balance_response_serializer.errors)
                 return Response(wallets_balance_response_serializer.errors, status=status.HTTP_406_NOT_ACCEPTABLE)
 
         log_error(log, "The post serializer was incorrect. Post serializer errors", post_serializers.errors)
         return Response(post_serializers.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def create_wallet_balance_response_and_log(self, log_function, log_message, log_item, wallet, wallet_type, balance, chain, error=0, error_message=""):
+    def create_wallet_balance_response_and_log(self, log_function, log_message, log_item, wallet, wallet_type, balance,
+                                               chain, error=0, error_message=""):
         log_function(log, log_message, log_item)
-        wallet_balance_response = wallet_balance.WalletBalanceResponse(wallet=wallet,
-                                                                       wallet_type=wallet_type,
-                                                                       balance=Decimal(balance),
-                                                                       chain=chain.value,
-                                                                       error=error,
-                                                                       error_message=error_message)
+        wallet_balance_response = wallet_balance.WalletBalanceResponse(
+            wallet=wallet,
+            wallet_type=wallet_type,
+            balance=Decimal(balance),
+            chain=chain.value,
+            error=error,
+            error_message=error_message)
         log_function(log, "The generated wallet balance response is", wallet_balance_response.__dict__)
         return wallet_balance_response
 

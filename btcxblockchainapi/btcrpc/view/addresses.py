@@ -16,6 +16,7 @@ from btcrpc.utils.chain_enum import ChainEnum
 
 log = get_log("Addresses view")
 
+
 class CreateNewAddresses(APIView):
     permission_classes = (IsAdminUser,)
 
@@ -49,44 +50,48 @@ class CreateNewAddresses(APIView):
                     new_addresses.append(new_address)
                     log_info(log, "new_addresses list after " + new_address + " has been added", new_addresses)
 
-                new_addresses_response = self.create_new_addresses_response_and_log(log_function=log_info,
-                                                                                    log_message="Generating successful response",
-                                                                                    log_item=None,
-                                                                                    new_addresses=new_addresses,
-                                                                                    chain=chain)
+                new_addresses_response = self.create_new_addresses_response_and_log(
+                    log_function=log_info,
+                    log_message="Generating successful response",
+                    log_item=None,
+                    new_addresses=new_addresses,
+                    chain=chain)
 
             except JSONRPCException as ex:
                 error_message = "Bitcoin RPC error, check if username and password for node is correct. Message from " \
                                 "python-bitcoinrpc: " + ex.message
-                new_addresses_response = self.create_new_addresses_response_and_log(log_function=log_error,
-                                                                                    log_message=error_message,
-                                                                                    log_item=ex,
-                                                                                    new_addresses=[],
-                                                                                    chain=chain,
-                                                                                    error=1,
-                                                                                    error_message=error_message)
+                new_addresses_response = self.create_new_addresses_response_and_log(
+                    log_function=log_error,
+                    log_message=error_message,
+                    log_item=ex,
+                    new_addresses=[],
+                    chain=chain,
+                    error=1,
+                    error_message=error_message)
             except socket_error as serr:
                 if serr.errno != errno.ECONNREFUSED:
-                    error_message="A general socket error was raised."
+                    error_message = "A general socket error was raised."
                 else:
-                    error_message="Connection refused error, check if the wallet node is down."
+                    error_message = "Connection refused error, check if the wallet node is down."
 
-                new_addresses_response = self.create_new_addresses_response_and_log(log_function=log_error,
-                                                                                    log_message=error_message,
-                                                                                    log_item=serr,
-                                                                                    new_addresses=[],
-                                                                                    chain=chain,
-                                                                                    error=1,
-                                                                                    error_message=error_message)
+                new_addresses_response = self.create_new_addresses_response_and_log(
+                    log_function=log_error,
+                    log_message=error_message,
+                    log_item=serr,
+                    new_addresses=[],
+                    chain=chain,
+                    error=1,
+                    error_message=error_message)
             except BaseException as ex:
                 error_message = "An exception was raised. Error message: " + str(ex)
-                new_addresses_response = self.create_new_addresses_response_and_log(log_function=log_error,
-                                                                                    log_message=error_message,
-                                                                                    log_item=ex,
-                                                                                    new_addresses=[],
-                                                                                    chain=chain,
-                                                                                    error=1,
-                                                                                    error_message=error_message)
+                new_addresses_response = self.create_new_addresses_response_and_log(
+                    log_function=log_error,
+                    log_message=error_message,
+                    log_item=ex,
+                    new_addresses=[],
+                    chain=chain,
+                    error=1,
+                    error_message=error_message)
 
             addresses_serializer = addresses.NewAddressesSerializer(data=new_addresses_response.__dict__)
             log_info(log, "New address serializer", addresses_serializer)
@@ -100,11 +105,13 @@ class CreateNewAddresses(APIView):
         log_error(log, "The post serializer was incorrect. Post serializer errors", serializer_input.errors)
         return Response(serializer_input.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def create_new_addresses_response_and_log(self, log_function, log_message, log_item, new_addresses, chain, error=0, error_message=""):
+    def create_new_addresses_response_and_log(self, log_function, log_message, log_item, new_addresses, chain, error=0,
+                                              error_message=""):
         log_function(log, log_message, log_item)
-        new_address_response = addresses.NewAddresses(addresses=new_addresses,
-                                                      chain=chain.value,
-                                                      error=error,
-                                                      error_message=error_message)
+        new_address_response = addresses.NewAddresses(
+            addresses=new_addresses,
+            chain=chain.value,
+            error=error,
+            error_message=error_message)
         log_function(log, "The generated new address response is", new_address_response.__dict__)
         return new_address_response

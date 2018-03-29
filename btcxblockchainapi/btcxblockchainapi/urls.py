@@ -5,7 +5,7 @@ from rest_framework.urlpatterns import format_suffix_patterns
 from btcrpc.view.check_wallets_balance import CheckWalletsBalance
 from btcrpc.view.wallet_notify import WalletNotify
 from btcrpc.view.send_many_view import BTCSendManyView
-from btcrpc.view.transfer_using_sendtoaddress import TransferCurrencyByUsingSendTaoAddress
+from btcrpc.view.transfer_using_sendtoaddress import TransferCurrencyByUsingSendToAddress
 
 from quickstart.views import *
 from btcrpc.view.addresses import *
@@ -30,7 +30,7 @@ urlpatterns = [
     url(r'^api/v1/validate/?$', ValidateAddress.as_view(), name="Validate_address"),
     url(r'^api/v1/receive/?$', CheckMultiAddressesReceive.as_view(), name="BTC_Check_Address_For_Bitcoin_Receiving"),
     url(r'^api/v1/wallet/balance/?$', CheckWalletsBalance.as_view(), name="Check_Wallets_Balance"),
-    url(r'^api/v1/transfer/?$', TransferCurrencyByUsingSendTaoAddress.as_view(),
+    url(r'^api/v1/transfer/?$', TransferCurrencyByUsingSendToAddress.as_view(),
         name="Transfer_currency_to_a_fixed_address"),
     url(r'^api/v1/sendmany/?$', BTCSendManyView.as_view(), name="BTC_Send_Many"),
     url(r'^api/v1/wallet_notify/?$', WalletNotify.as_view(), name="Wallet_notify")
