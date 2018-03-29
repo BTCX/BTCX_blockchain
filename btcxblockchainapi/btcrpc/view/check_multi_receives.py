@@ -137,7 +137,7 @@ class CheckMultiAddressesReceive(APIView):
         log_info(log, "The response_serializer was valid")
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
       else:
-        log_error(log, "The response_serializer was not valid")
+        log_error(log, "The response_serializer was not valid", response_serializer.errors)
         return Response(response_serializer.errors, status=status.HTTP_406_NOT_ACCEPTABLE)
 
     log_error(log, "The post serializer was incorrect. Post serializer errors", post_serializers.errors)

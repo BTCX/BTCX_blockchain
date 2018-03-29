@@ -32,7 +32,7 @@ def get_file_logger(log_name, filename):
 
 
 def log_info(log_instance, informative_string, info_to_log = None):
-    if(info_to_log):
+    if(info_to_log is not None):
         print(informative_string + ":")
         print(info_to_log)
         log_instance.info(informative_string + ":")

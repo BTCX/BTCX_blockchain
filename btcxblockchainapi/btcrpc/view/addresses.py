@@ -94,7 +94,7 @@ class CreateNewAddresses(APIView):
                 log_info(log, "New address serializer was valid")
                 return Response(addresses_serializer.data, status=status.HTTP_201_CREATED)
             else:
-                log_error(log, "New address serializer was invalid")
+                log_error(log, "New address serializer was invalid", addresses_serializer.errors)
                 return Response(addresses_serializer.errors, status=status.HTTP_406_NOT_ACCEPTABLE)
 
         log_error(log, "The post serializer was incorrect. Post serializer errors", serializer_input.errors)

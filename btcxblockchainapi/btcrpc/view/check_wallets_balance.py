@@ -115,7 +115,7 @@ class CheckWalletsBalance(APIView):
                 log_info(log, "The response wallet balance response serializer was valid")
                 return Response(wallets_balance_response_serializer.data, status=status.HTTP_201_CREATED)
             else:
-                log_error(log, "The wallet balance response serializer was not valid")
+                log_error(log, "The wallet balance response serializer was not valid", wallets_balance_response_serializer.errors)
                 return Response(wallets_balance_response_serializer.errors, status=status.HTTP_406_NOT_ACCEPTABLE)
 
         log_error(log, "The post serializer was incorrect. Post serializer errors", post_serializers.errors)
