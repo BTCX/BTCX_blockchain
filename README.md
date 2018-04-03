@@ -120,7 +120,7 @@ Response parameter/parameters definition:
 
 | Parameter   | Type   | Description | Possible values |
 | --------------| ------  | --------- | --------- |
-| transfers            | Array | Holds an array of JSON objects which represents the transfers that were handled of the requested transfers. NOTE: It can occur that a transfer fails when handled. Since the transfer array in the request are looped through and handled through iteration, the iteration may in some rare cases halt when the transfer fails. In such cases, the length of the array of transfers in the response, is shorter than the length of the array in the transfer request.   | |
+| transfers            | Array | Holds an array of JSON objects which represents the transfers that were successfully executed of the requested transfers. NOTE: It can occur that a transfer fails when handled. Since the transfer array in the request are looped through and handled through iteration, the iteration may in some rare cases halt when the transfer fails. In such cases, the length of the array of transfers in the response, is shorter than the length of the array in the transfer request.   | |
 | currency            | String | Specifies the currency of the specific transfer. | btc / ltc / bch |
 | to_address        | String | Specifies to which specific address the transfer output was locked. | |
 | amount              | Float | Specifies the total amount of the transaction for the specific transfer. NOTE: This amount is including the fee of the transaction. The fee must therefore be subtracted from the amount to get the actual value that was locked to the to_address  | |
