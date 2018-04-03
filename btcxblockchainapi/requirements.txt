@@ -1,6 +1,7 @@
 Django==2.0.2
 djangorestframework
 python-bitcoinrpc
+ethjsonrpc
 unittest2
 simplejson
 ddt
