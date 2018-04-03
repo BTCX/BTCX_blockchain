@@ -88,11 +88,15 @@ class BTCSendManyView(APIView):
                                 # we just continue no matter what exception we encounter
                                 log_error(log, "An error occured when checking the transactions details", e)
 
-                            response = send_many_vo.SendManyResponse(tx_id=result, status=status.HTTP_200_OK,
-                                                                     fee=abs(transaction["fee"]),
-                                                                     message="Send many is done.",
-                                                                     chain=chain.value, error=0, error_message="",
-                                                                     details=details_list)
+                            response = send_many_vo.SendManyResponse(
+                                tx_id=result,
+                                status=status.HTTP_200_OK,
+                                fee=abs(transaction["fee"]),
+                                message="Send many is done.",
+                                chain=chain.value,
+                                error=0,
+                                error_message="",
+                                details=details_list)
 
                     elif result is not None and isinstance(result, JSONRPCException):
                         semaphore.release(log)
@@ -104,9 +108,12 @@ class BTCSendManyView(APIView):
                         semaphore.release(log)
                         log_error(log, "Error: Is the error an Econnrefused error:", result.errno == errno.ECONNREFUSED)
                         log_error(log, "Error message", result.message)
-                        response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                                                 fee=0, message=result.message,
-                                                                 chain=chain.value, error=1)
+                        response = send_many_vo.SendManyResponse(
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            fee=0,
+                            message=result.message,
+                            chain=chain.value,
+                            error=1)
                     else:
                         semaphore.release(log)
                         log_error(log, "The rpc call was not successfull, result", result)
@@ -178,10 +185,11 @@ class BTCSendManyView(APIView):
                           send_many_response_serializer.errors)
                 return Response(send_many_response_serializer.errors, status=status.HTTP_406_NOT_ACCEPTABLE)
 
-        semaphore.release(log)
+        log_error(log, "The post serializer was incorrect. Post serializer errors", serializer_post.errors)
         return Response(serializer_post.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def get_output_details(self, transaction_detail, txid):
+        log_info(log, "Transaction detail for txid " + txid, transaction_detail)
         return {
             "address": transaction_detail['address'],
             "txid": txid,
