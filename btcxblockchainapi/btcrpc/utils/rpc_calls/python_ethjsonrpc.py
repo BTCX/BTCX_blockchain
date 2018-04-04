@@ -22,54 +22,40 @@ class PythonEthJsonRpc(RPCCall):
         self.access = w3
 
     def do_getinfo(self):
-        return self.access.getinfo()
+        raise NotImplementedError
 
     def do_get_new_address(self):
-        return self.access.getnewaddress()
+        raise NotImplementedError
 
     def do_set_account(self, address, account):
-        return self.access.setaccount(address, account)
+        raise NotImplementedError
 
     def do_get_transaction(self, txid):
-        try:
-            return self.access.gettransaction(txid)
-        except RuntimeError:
-            # return simplejson.dumps ({u'error' : u'txid is not valid'})
-            return None
+        raise NotImplementedError
 
     def do_list_transactions(self, account, count=10, from_index=0):
-        try:
-            return self.access.listtransactions(account, count, from_index)
-        except RuntimeError:
-            print("calling failure")
-
-        def do_get_transaction(self, tx_id):
-            try:
-                return self.access.gettransaction(tx_id)
-            except RuntimeError:
-                # return simplejson.dumps ({u'error' : u'txid is not valid'})
-                return None
+        raise NotImplementedError
 
     def amount_received_by_address(self, address="", confirms=0):
-        return self.access.getreceivedbyaddress(address, confirms)
+        raise NotImplementedError
 
     def do_validate_address(self, address=""):
-        return self.access.validateaddress(address)
+        raise NotImplementedError
 
     def list_transactions(self, account="", count=10, from_index=0):
-        return self.access.listtransactions(account, count, from_index)
+        raise NotImplementedError
 
     def send_from(self, from_account="", to_address="", amount=0, minconf=1):
-        return self.access.sendfrom(from_account, to_address, amount, minconf)
+        raise NotImplementedError
 
     def get_blockchain_info(self):
-        return self.access.getblockchaininfo()
+        raise NotImplementedError
 
     def get_received_amount_by_account(self, account="", minconf=1):
-        return self.access.getreceivedbyaccount(account, minconf)
+        raise NotImplementedError
 
     def get_balance(self, account="", minconf=1):
-        return self.access.getbalance(account, minconf)
+        raise NotImplementedError
 
     def get_wallet_balance(self):
         accounts = self.access.eth.accounts
@@ -97,33 +83,23 @@ class PythonEthJsonRpc(RPCCall):
             return ChainEnum.UNKNOWN
 
     def move(self, from_account="", to_account="", amount=0, minconf=1):
-        return self.access.move(from_account, to_account, amount, minconf)
+        raise NotImplementedError
 
     def list_accounts(self, confirmations=1):
-        return self.access.listaccounts(confirmations)
+        return self.access.eth.accounts
 
     def list_received_by_address(self, confirmations=1, include_empty=False):
-        return self.access.listreceivedbyaddress(confirmations, include_empty)
+        raise NotImplementedError
 
     def get_addresses_by_account(self, account):
-        return self.access.getaddressesbyaccount(account)
+        raise NotImplementedError
 
     def set_tx_fee(self, amount):
-        return self.access.settxfee(amount)
+        raise NotImplementedError
 
     def send_to_address(self, address, amount, subtractfeefromamount=True):
-        return self.access.sendtoaddress(address, amount, "", "", subtractfeefromamount)
+        raise NotImplementedError
 
     # amount is type of dictionary
     def send_many(self, from_account="", minconf=1, **amounts):
-        log.info("From account: %s", from_account)
-        log.info("To accounts: %s", json.dumps(amounts))
-        amounts_string = json.dumps(amounts['amounts'])
-        amounts_object = json.loads(amounts_string)
-        try:
-            return True, self.access.sendmany(from_account, amounts_object, minconf)
-            return True, self.access.sendmany(from_account, amounts_object, minconf)
-        except JSONRPCException as ex:
-            return False, ex
-        except socket.error as e:
-            return False, e
+        raise NotImplementedError
