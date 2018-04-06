@@ -92,3 +92,14 @@ class ConfigFileReader(object, metaclass=Singleton):
     def get_confirmations_mapping_to_risk(self, currency, risk):
         currency_config = self.server_map[currency]
         return currency_config['risk_confirmations'][risk]
+
+    def get_wallet_key(self, currency, wallet):
+        servers = self.server_map[currency]
+        wallet_server = servers[wallet]
+        # For safety reasons we only return the real key if it is for a currency we can't do anything with it without
+        # direct connection to the node.
+        # Note that we are not using the values from constants in the currency check, as those values are mutable.
+        if currency == 'eth':
+            return wallet_server['key']
+        else:
+            raise KeyError("The currency you request the key for does not support the functionality")

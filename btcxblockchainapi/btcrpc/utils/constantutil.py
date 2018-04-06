@@ -1,5 +1,8 @@
 from btcrpc.utils.rpc_calls.rpc_call import RPCCall
 
+from btcrpc.utils.constant_values import Constants
+from btcrpc.utils.address_encoding_flag import AddressEncodingFlag
+
 def constant(f):
     def fset(self, value):
         raise SyntaxError
@@ -31,3 +34,9 @@ def check_for_failed_transactions(transaction_responses):
           next((transaction for transaction in transaction_responses if transaction['status'] == 'fail'),
                None)
     return transaction is not None
+
+def get_safe_address_encoding(currency):
+    if currency == Constants.Currencies.ETHEREUM:
+        return AddressEncodingFlag.ETHEREUM_CHECKSUM_ADDRESS
+    else:
+        return AddressEncodingFlag.NO_SPECIFIC_ENCODING

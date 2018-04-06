@@ -2,6 +2,8 @@ from bitcoinrpc.authproxy import AuthServiceProxy, JSONRPCException
 from btcrpc.utils.config_file_reader import ConfigFileReader
 from btcrpc.utils.rpc_calls.rpc_call import RPCCall
 from btcrpc.utils.chain_enum import ChainEnum
+from btcrpc.utils.address_encoding_flag import AddressEncodingFlag
+from btcrpc.utils.constant_values import Constants
 import json
 import socket, errno
 from web3 import Web3, HTTPProvider
@@ -18,6 +20,9 @@ class PythonEthJsonRpc(RPCCall):
         w3 = Web3(HTTPProvider(url))
         self.access = w3
 
+    def amount_received_by_address(self, address="", confirms=0):
+        raise NotImplementedError
+
     def do_getinfo(self):
         raise NotImplementedError
 
@@ -28,24 +33,36 @@ class PythonEthJsonRpc(RPCCall):
         raise NotImplementedError
 
     def do_get_transaction(self, txid):
-        raise NotImplementedError
+        return {"fee": 210000}
 
     def do_list_transactions(self, account, count=10, from_index=0):
         raise NotImplementedError
 
-    def amount_received_by_address(self, address="", confirms=0):
-        raise NotImplementedError
-
     def do_validate_address(self, address=""):
-        #Since the address sent in might not be in checksum format, we convert it. Note: self.access.eth.accounts always
-        #returns the accounts in checksum format.
+
+        is_valid_address = self.access.isAddress(address)
+        if not is_valid_address:
+            return {'isvalid': is_valid_address, 'ismine': False}
+
+        # Since the address sent in might not be in checksum format, we convert it. Note: self.access.eth.accounts always
+        # returns the accounts in checksum format. The toChecksumAddress also throws an exception if the address is not
+        # valid hex format, therefore we check if it is valid before passing it to the toChecksumAddress function.
         check_sum_address = self.access.toChecksumAddress(address)
-        is_valid_address = self.access.isAddress(check_sum_address)
         wallet_account = \
             next((account for account in self.access.eth.accounts if account == self.access.toChecksumAddress(check_sum_address)),
                  None)
         address_is_mine = wallet_account is not None
         return {'isvalid': is_valid_address, 'ismine': address_is_mine}
+
+    def encode_address(self, address, encoding_flag=AddressEncodingFlag.NO_SPECIFIC_ENCODING):
+        print(encoding_flag)
+        if encoding_flag == AddressEncodingFlag.ETHEREUM_CHECKSUM_ADDRESS:
+            if self.access.isAddress(address):
+                return self.access.toChecksumAddress(address)
+            else:
+                return address
+        else:
+            return address
 
     def list_transactions(self, account="", count=10, from_index=0):
         raise NotImplementedError
@@ -104,7 +121,7 @@ class PythonEthJsonRpc(RPCCall):
         # Since we want to use the fee suggested by the node software, we don't make a RPC call to manually set the fee.
         return False
 
-    def send_to_address(self, address, amount, subtractfeefromamount=True):
+    def send_to_address(self, address, amount, subtractfeefromamount=True, from_wallet=''):
         txids = []
         check_sum_address = self.access.toChecksumAddress(address)
         amount_left_to_send = self.access.toWei(amount, "ether")
@@ -115,14 +132,19 @@ class PythonEthJsonRpc(RPCCall):
             sender = account
             receiver = check_sum_address
             balance = self.access.eth.getBalance(sender)
+            gas_price = self.access.eth.gasPrice
             transactionObject = {
                 'from': sender,
-                'to': receiver
+                'to': receiver,
+                'gasPrice': gas_price,
             }
-            transactionFee = self.access.eth.gasPrice * self.access.eth.estimateGas(transactionObject)
-            if balance < transactionFee: #Theres either no balance to send or, only balance lower than the transactionfee
+            gas_amount = self.access.eth.estimateGas(transactionObject)
+            transactionObject['gas'] = gas_amount
+            transactionFee = gas_amount * gas_price
+
+            if balance < transactionFee: #Theres either no balance to send or, only balance is lower than the transactionfee
                 continue
-            print(account)
+
             if balance < amount_left_to_send:
                 transactionValue = balance - transactionFee
             else:
@@ -134,18 +156,21 @@ class PythonEthJsonRpc(RPCCall):
                     transactionValue = amount_left_to_send
 
             transactionObject['value'] = transactionValue
-            self.access.personal.unlockAccount(account, "vt_test4")
+            yml_config_reader = ConfigFileReader()
+            key = yml_config_reader.get_wallet_key(currency=Constants.Currencies.ETHEREUM, wallet=from_wallet)
+            self.access.personal.unlockAccount(sender, key)
             txid = self.access.eth.sendTransaction(transactionObject)
-            self.access.personal.lockAccount(account)
-            txids.append(txid)
+            self.access.personal.lockAccount(sender)
+            txids.append(str(txid))
             #self.access.eth.sendTransaction(transactionObject, callback_function)
             amount_left_to_send = amount_left_to_send - transactionValue
             if subtractfeefromamount:
                 amount_left_to_send = amount_left_to_send - transactionFee
             if amount_left_to_send <= 0:
                 break
-        return txids
+        return txids[0]
 
     # amount is type of dictionary
     def send_many(self, from_account="", minconf=1, **amounts):
         raise NotImplementedError
+

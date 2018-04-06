@@ -53,11 +53,14 @@ class TransferCurrencyByUsingSendToAddress(APIView):
 
                         chain = constantutil.check_service_chain(rpc_call)
                         log_info(log, "Chain", chain.value)
-
-                        log_info(log, "Safe address to try to send to", safe_address)
+                        encoding_flag = constantutil.get_safe_address_encoding(currency)
+                        correct_encoded_safe_address = rpc_call.encode_address(
+                            address=safe_address,
+                            encoding_flag=encoding_flag)
+                        log_info(log, "Safe address to try to send to", correct_encoded_safe_address)
                         to_address = yml_config.get_safe_address_to_be_transferred(
                             currency=currency,
-                            safe_address=safe_address)
+                            safe_address=correct_encoded_safe_address)
                         log_info(log, "To address after config file check", to_address)
 
                         to_address_is_invalid = not (rpc_call.do_validate_address(address=to_address))["isvalid"]
@@ -82,7 +85,11 @@ class TransferCurrencyByUsingSendToAddress(APIView):
                                 txfee_set = rpc_call.set_tx_fee(txFee)
                                 log_info(log, "Using the suggested txfee " + str(txFee), txfee_set)
 
-                                send_response_tx_id = rpc_call.send_to_address(address=to_address, amount=send_amount)
+                                send_response_tx_id = rpc_call.send_to_address(
+                                    address=to_address,
+                                    amount=send_amount,
+                                    subtractfeefromamount=True,
+                                    from_wallet=wallet)
                                 log_info(log, "Send response tx_id is", send_response_tx_id)
 
                                 transaction = rpc_call.do_get_transaction(send_response_tx_id)

@@ -127,5 +127,51 @@ bch:
     medium: 1
     low: 6
 
+eth:
+    wallet_types:
+    - receive
+    - send
+  receive:
+    - wallet1
+  send:
+    - wallet2
+  wallet1:
+    wallet_url_extension: ''
+    host: 127.0.0.1
+    username: username
+    key: password
+    port: 8336
+    protocol: http
+  wallet2:
+    wallet_url_extension: ''
+    host: 127.0.0.1
+    username: username
+    key: password
+    port: 8337
+    protocol: http
+  multiple_wallet_url: ''
+  min_transfer_confirmations: 7
+  min_transfer_amount: 0.16
+  reserved_fee: 0.001
+  safe_addresses:
+    - primary_send
+    - secondary_send
+    - cold_storage
+    - exchange1
+    - exchange2
+  multiple_wallet_url: ''
+  min_transfer_confirmations: 7
+  min_transfer_amount: 0.16
+  reserved_fee: 0.001
+  safe_addresses:
+    - primary_send
+    - secondary_send
+  primary_send: PRIMARY_SEND_ADDRESS_IN_CHECKSUM_FORMAT
+  secondary_send: SECONDARY_SEND_ADDRESS_IN_CHECKSUM_FORMAT
+  #high risk maps to confirmations: 0 confirmation, medium risk: 1 confirmation, low risk: 6 confirmations.
+  risk_confirmations:
+    high: 0
+    medium: 1
+    low: 6
 dogecoin:
 
