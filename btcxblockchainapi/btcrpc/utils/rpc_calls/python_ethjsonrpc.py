@@ -140,8 +140,8 @@ class PythonEthJsonRpc(RPCCall):
         amount_left_to_send = self.access.toWei(amount, "ether")
         for account in self.access.eth.accounts:
             #NOTE TO BE REMOVED: ONLY FOR TESTING
-            if account == self.access.eth.accounts[0]:
-                continue
+            # if account == self.access.eth.accounts[0]:
+            #     continue
             sender = account
             receiver = check_sum_address
             balance = self.access.eth.getBalance(sender)
