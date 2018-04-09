@@ -34,7 +34,7 @@ class PythonBitcoinRpc(RPCCall):
         txids_with_fee = []
         for txid in txids:
             transaction_info = self.do_get_transaction(txid)
-            fee = transaction_info['fee']
+            fee = abs(transaction_info['fee'])
             txid_with_fee = TransactionFeeInfo(txid, fee)
             txids_with_fee.append(txid_with_fee)
         return txids_with_fee
