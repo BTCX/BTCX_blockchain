@@ -25,26 +25,35 @@ class PostParametersSerializer(serializers.Serializer):
     transfers = TransfersSerializer(many=True)
 
 
+class TransactionWithFeeInformationResponse(object):
+    def __init__(self, txid="", fee=0.0):
+        self.fee = fee
+        self.txid = txid
+
+
+class TransactionWithFeeInformationResponseSerializer(serializers.Serializer):
+    fee = serializers.DecimalField(max_digits=18, decimal_places=8, coerce_to_string=False)
+    txid = serializers.CharField(max_length=128, allow_blank=True)
+
+
 class TransferInformationResponse(object):
     def __init__(self, currency="btc", to_address="", amount=Decimal(0), message="",
-                 fee=0.0, status="", txid=""):
+                 status="", transaction_fee_infos=[]):
         self.currency = currency
         self.to_address = to_address
         self.amount = amount
         self.message = message
-        self.fee = fee
         self.status = status
-        self.txid = txid
+        self.transactions = transaction_fee_infos
 
 
 class TransferInformationResponseSerializer(serializers.Serializer):
     currency = serializers.CharField(max_length=20)
     to_address = serializers.CharField(max_length=128)
     amount = serializers.DecimalField(max_digits=16, decimal_places=8, coerce_to_string=False)
-    fee = serializers.DecimalField(max_digits=18, decimal_places=8, coerce_to_string=False)
     message = serializers.CharField(max_length=256, allow_blank=True)
     status = serializers.CharField(max_length=10)  # ok/fail
-    txid = serializers.CharField(max_length=128, allow_blank=True)
+    transactions = serializers.ListField(child=TransactionWithFeeInformationResponseSerializer())
 
 
 class TransfersInformationResponse(object):

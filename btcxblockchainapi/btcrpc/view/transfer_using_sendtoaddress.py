@@ -15,6 +15,7 @@ from btcrpc.utils.semaphore import SemaphoreSingleton
 from btcrpc.utils.rpc_calls.rpc_instance_generator import RpcGenerator
 from btcrpc.utils.chain_enum import ChainEnum
 
+
 import errno
 from socket import error as socket_error
 
@@ -85,15 +86,15 @@ class TransferCurrencyByUsingSendToAddress(APIView):
                                 txfee_set = rpc_call.set_tx_fee(txFee)
                                 log_info(log, "Using the suggested txfee " + str(txFee), txfee_set)
 
-                                send_response_tx_id = rpc_call.send_to_address(
+                                send_response_txids = rpc_call.send_to_address(
                                     address=to_address,
                                     amount=send_amount,
                                     subtractfeefromamount=True,
                                     from_wallet=wallet)
-                                log_info(log, "Send response tx_id is", send_response_tx_id)
+                                log_info(log, "Send response tx_id is", send_response_txids)
 
-                                transaction = rpc_call.do_get_transaction(send_response_tx_id)
-                                log_info(log, "Transaction of txid is", transaction)
+                                transactions_fee_infos = rpc_call.do_get_fees_of_transactions(send_response_txids)
+                                log_info(log, "Transaction of txids is", transactions_fee_infos)
 
                                 response = self.create_transfer_information_response_and_log(
                                     log_function=log_info,
@@ -102,10 +103,9 @@ class TransferCurrencyByUsingSendToAddress(APIView):
                                     currency=currency,
                                     to_address=to_address,
                                     amount=Decimal(str(send_amount)),
-                                    fee=abs(transaction["fee"]),
                                     message="Transfer is done",
                                     status="ok",
-                                    txid=send_response_tx_id)
+                                    transaction_fee_info_list=transactions_fee_infos)
                                 self.append_to_response_list_and_log(response_list, response.__dict__)
                             except JSONRPCException as ex:
                                 error_message = "Error: " + ex.error['message']
@@ -232,16 +232,28 @@ class TransferCurrencyByUsingSendToAddress(APIView):
         return Response(post_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def create_transfer_information_response_and_log(self, log_function, log_message, log_item, currency, to_address="",
-                                                     amount=Decimal(0), message="", fee=0.0, status="", txid=""):
+                                                     amount=Decimal(0), message="", status="", transaction_fee_info_list = []):
         log_function(log, log_message, log_item)
+        transaction_fee_info_responses = \
+            [transfers_using_sendtoaddress.TransactionWithFeeInformationResponse(trans.txid, trans.fee).__dict__
+             for trans in transaction_fee_info_list]
+
+        # Lines above can be replaced by the code below. This code does however mess upp the logging as it will include map objects.
+        # transaction_fee_info_responses = map(
+        #     lambda trans : transfers_using_sendtoaddress.TransactionWithFeeInformationResponse(trans.txid, trans.fee).__dict__,
+        #     transaction_fee_info_list
+        # )
+
+        log_function(log, "The generated TransactionWithFeeInformationResponse list is", transaction_fee_info_responses)
+
         response = transfers_using_sendtoaddress.TransferInformationResponse(
             currency=currency,
             to_address=to_address,
             amount=amount,
-            fee=fee,
             message=message,
             status=status,
-            txid=txid)
+            transaction_fee_infos=transaction_fee_info_responses
+        )
         log_function(log, "The generated Transfer information response is", response.__dict__)
         return response
 

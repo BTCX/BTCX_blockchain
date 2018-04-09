@@ -13,7 +13,7 @@ class ConfigFileReader(object, metaclass=Singleton):
         servers = self.server_map[currency]
         wallet_server = servers[wallet]
         username = wallet_server['username']
-        key = wallet_server['key']
+        key = wallet_server['rpc_key']
         protocol = wallet_server['protocol']
         host = wallet_server['host']
         port = wallet_server['port']
@@ -93,13 +93,7 @@ class ConfigFileReader(object, metaclass=Singleton):
         currency_config = self.server_map[currency]
         return currency_config['risk_confirmations'][risk]
 
-    def get_wallet_key(self, currency, wallet):
+    def get_private_key_encryption_password(self, currency, wallet):
         servers = self.server_map[currency]
         wallet_server = servers[wallet]
-        # For safety reasons we only return the real key if it is for a currency we can't do anything with it without
-        # direct connection to the node.
-        # Note that we are not using the values from constants in the currency check, as those values are mutable.
-        if currency == 'eth':
-            return wallet_server['key']
-        else:
-            raise KeyError("The currency you request the key for does not support the functionality")
+        return wallet_server['private_key_encryption_password']

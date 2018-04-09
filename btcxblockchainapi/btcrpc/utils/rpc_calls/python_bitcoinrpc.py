@@ -3,6 +3,7 @@ from btcrpc.utils.config_file_reader import ConfigFileReader
 from btcrpc.utils.rpc_calls.rpc_call import RPCCall
 from btcrpc.utils.chain_enum import ChainEnum
 from btcrpc.utils.address_encoding_flag import AddressEncodingFlag
+from btcrpc.view.models.transaction_fee_info import TransactionFeeInfo
 import json
 import socket, errno
 
@@ -28,6 +29,15 @@ class PythonBitcoinRpc(RPCCall):
 
     def do_set_account(self, address, account):
         return self.access.setaccount(address, account)
+
+    def do_get_fees_of_transactions(self, txids):
+        txids_with_fee = []
+        for txid in txids:
+            transaction_info = self.do_get_transaction(txid)
+            fee = transaction_info['fee']
+            txid_with_fee = TransactionFeeInfo(txid, fee)
+            txids_with_fee.append(txid_with_fee)
+        return txids_with_fee
 
     def do_get_transaction(self, txid):
         try:
@@ -100,7 +110,7 @@ class PythonBitcoinRpc(RPCCall):
         return self.access.settxfee(amount)
 
     def send_to_address(self, address, amount, subtractfeefromamount=True, from_wallet=''):
-        return self.access.sendtoaddress(address, amount, "", "", subtractfeefromamount)
+        return [self.access.sendtoaddress(address, amount, "", "", subtractfeefromamount)]
 
     # amount is type of dictionary
     def send_many(self, from_account="", minconf=1, **amounts):
@@ -109,7 +119,6 @@ class PythonBitcoinRpc(RPCCall):
         amounts_string = json.dumps(amounts['amounts'])
         amounts_object = json.loads(amounts_string)
         try:
-            return True, self.access.sendmany(from_account, amounts_object, minconf)
             return True, self.access.sendmany(from_account, amounts_object, minconf)
         except JSONRPCException as ex:
             return False, ex

@@ -40,3 +40,9 @@ def get_safe_address_encoding(currency):
         return AddressEncodingFlag.ETHEREUM_CHECKSUM_ADDRESS
     else:
         return AddressEncodingFlag.NO_SPECIFIC_ENCODING
+
+def not_none(value):
+    if value is not None:
+        return value
+    else:
+        raise TypeError("The value is none")

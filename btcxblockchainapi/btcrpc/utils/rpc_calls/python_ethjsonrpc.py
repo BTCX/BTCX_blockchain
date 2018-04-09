@@ -4,6 +4,7 @@ from btcrpc.utils.rpc_calls.rpc_call import RPCCall
 from btcrpc.utils.chain_enum import ChainEnum
 from btcrpc.utils.address_encoding_flag import AddressEncodingFlag
 from btcrpc.utils.constant_values import Constants
+from btcrpc.view.models.transaction_fee_info import TransactionFeeInfo
 import json
 import socket, errno
 from web3 import Web3, HTTPProvider
@@ -33,7 +34,19 @@ class PythonEthJsonRpc(RPCCall):
         raise NotImplementedError
 
     def do_get_transaction(self, txid):
-        return {"fee": 210000}
+        return self.access.eth.getTransaction(txid)
+
+    def do_get_fees_of_transactions(self, txids):
+        txids_with_fee = []
+        for txid in txids:
+            transaction_info = self.do_get_transaction(txid)
+            gas_amount = transaction_info['gas']
+            gas_price = transaction_info['gasPrice']
+            transactionFeeInWei = gas_amount * gas_price
+            transactionFeeInEther = self.access.fromWei(transactionFeeInWei, "ether")
+            txid_with_fee = TransactionFeeInfo(txid, transactionFeeInEther)
+            txids_with_fee.append(txid_with_fee)
+        return txids_with_fee
 
     def do_list_transactions(self, account, count=10, from_index=0):
         raise NotImplementedError
@@ -157,18 +170,18 @@ class PythonEthJsonRpc(RPCCall):
 
             transactionObject['value'] = transactionValue
             yml_config_reader = ConfigFileReader()
-            key = yml_config_reader.get_wallet_key(currency=Constants.Currencies.ETHEREUM, wallet=from_wallet)
+            key = yml_config_reader.get_private_key_encryption_password(currency=Constants.Currencies.ETHEREUM, wallet=from_wallet)
             self.access.personal.unlockAccount(sender, key)
             txid = self.access.eth.sendTransaction(transactionObject)
             self.access.personal.lockAccount(sender)
-            txids.append(str(txid))
+            txids.append(txid.hex())
             #self.access.eth.sendTransaction(transactionObject, callback_function)
             amount_left_to_send = amount_left_to_send - transactionValue
             if subtractfeefromamount:
                 amount_left_to_send = amount_left_to_send - transactionFee
             if amount_left_to_send <= 0:
                 break
-        return txids[0]
+        return txids
 
     # amount is type of dictionary
     def send_many(self, from_account="", minconf=1, **amounts):

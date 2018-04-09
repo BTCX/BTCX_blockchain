@@ -10,14 +10,16 @@ btc:
     wallet_url_extension: wallet.dat
     host: 127.0.0.1
     username: username
-    key: password
+    rpc_key: password
+    private_key_encryption_password: undefined
     port: 8332
     protocol: http
   wallet2:
     wallet_url_extension: wallet2.dat
     host: 127.0.0.1
     username: username
-    key: password
+    rpc_key: password
+    private_key_encryption_password: undefined
     port: 8332
     protocol: http
   multiple_wallet_url: /wallet/
@@ -53,14 +55,16 @@ ltc:
     wallet_url_extension: ''
     host: 127.0.0.1
     username: username
-    key: password
+    rpc_key: password
+    private_key_encryption_password: undefined
     port: 8334
     protocol: http
   wallet2:
     wallet_url_extension: ''
     host: 127.0.0.1
     username: username
-    key: password
+    rpc_key: password
+    private_key_encryption_password: undefined
     port: 8335
     protocol: http
   multiple_wallet_url: ''
@@ -96,14 +100,16 @@ bch:
     wallet_url_extension: ''
     host: 127.0.0.1
     username: username
-    key: password
+    rpc_key: password
+    private_key_encryption_password: undefined
     port: 8336
     protocol: http
   wallet2:
     wallet_url_extension: ''
     host: 127.0.0.1
     username: username
-    key: password
+    rpc_key: password
+    private_key_encryption_password: undefined
     port: 8337
     protocol: http
   multiple_wallet_url: ''
@@ -138,15 +144,17 @@ eth:
   wallet1:
     wallet_url_extension: ''
     host: 127.0.0.1
-    username: username
-    key: password
+    username: undefined
+    rpc_key: undefined
+    private_key_encryption_password: password
     port: 8336
     protocol: http
   wallet2:
     wallet_url_extension: ''
     host: 127.0.0.1
-    username: username
-    key: password
+    username: undefined
+    rpc_key: undefined
+    private_key_encryption_password: password
     port: 8337
     protocol: http
   multiple_wallet_url: ''
