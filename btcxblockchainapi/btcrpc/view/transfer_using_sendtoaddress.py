@@ -67,8 +67,27 @@ class TransferCurrencyByUsingSendToAddress(APIView):
                         to_address_is_invalid = not (rpc_call.do_validate_address(address=to_address))["isvalid"]
                         log_info(log, "To address is invalid is", to_address_is_invalid)
 
+                        wallet_balance = rpc_call.get_wallet_balance();
+                        log_info(log, "The wallet balance is", wallet_balance)
+                        log_info(log, "Send amount is", send_amount)
+
                         if to_address_is_invalid:
                             error_message = "to_address is not valid"
+                            response = self.create_transfer_information_response_and_log(
+                                log_function=log_info,
+                                log_message=error_message,
+                                log_item=None,
+                                currency=currency,
+                                to_address=to_address,
+                                amount=Decimal(str(send_amount)),
+                                message=error_message,
+                                status="fail")
+                            self.append_to_response_list_and_log(response_list, response.__dict__)
+
+                        elif wallet_balance < send_amount:
+                            error_message = "Insufficient funds in wallet to send the requested amount. " \
+                                            "Wallet balance is: " + str(wallet_balance) + \
+                                            ". Amount to send is: " + str(send_amount)
                             response = self.create_transfer_information_response_and_log(
                                 log_function=log_info,
                                 log_message=error_message,
