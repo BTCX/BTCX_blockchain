@@ -124,12 +124,13 @@ Response parameter/parameters definition:
 | currency            | String | Specifies the currency of the specific transfer. | btc / ltc / bch |
 | to_address        | String | Specifies to which specific address the transfer output was locked. | |
 | amount              | Float | Specifies the total amount of the transaction for the specific transfer. NOTE: This amount is including the fee of the transaction. The fee must therefore be subtracted from the amount to get the actual value that was locked to the to_address  | |
-| fee                     | Float | Definies the total fee of the transaction for the specific transfer. This is specified in the highest denominator for the currency. For bitcoin the fee is in BTC (hence 0.00000001 is one satoshi)  | |
 | message           | String | Includes a message corresponding how well the transfer was executed | |
 | status                | String | Indicates if the transaction of the transfer succeeded or not. | ok / fail |
-| txid                    | String | Corresponds to the txid of the transaction of the specific transfer, if it was successful.  | |
+| transactions      | JSON Array | Holds an array of JSON objects which represents every transaction that the transfer request resulted in. NOTE: For most currencies, this array will only hold one objects (hence one transaction), as multiple inputs can easily be added to a single transaction. Ethereum is different, and with the current implementation that does not use Contracts, multiple inputs result in multiple transactions (hence multiple objects in the array) | |
+| fee                     | Float | Definies the total fee of the transaction for the specific transfer. This is specified in the highest denominator for the currency. For bitcoin the fee is in BTC (hence 0.00000001 is one satoshi)  | |
+| txid                    | String | Corresponds to the txid of the transaction of the specific transaction, if it was successful.  | |
 | chain                 | Int | Specifies which chain the wallet node is configured for | 0 (Unknown) / 1 (Mainnet) / 2 (Testnet) / 3 (Regtest) |
-| error                  | Int | Indicates if an error occurred when requesting the balance for the specific wallet | 0 (No error) / 1 (Error occurred) |
+| error                  | Int | Indicates if an error occurred when requesting the transfer for the specific wallet | 0 (No error) / 1 (Error occurred) |
 | error_message  | String | Holds a descriptive message corresponding to the error  | |
 
 Request body:
@@ -137,11 +138,11 @@ Request body:
     {
         "transfers":[
             {
-                "currency":"btc",
-                "wallet":"primary_btc_receive",
-                "safe_address":"2MzmvJ4L5drgV4yjonxgrvpZkEVaySBZr6N",
-                "amount":0.123,
-                "txFee":0.00123
+                "safe_address" : "0x0520274aC441f796C42c554E4660781aE766cfB8",
+                "currency":"eth",
+                "wallet":"primary_eth_receive",
+                "amount":1,
+                "txFee":0.001
             }
         ]
     }
@@ -151,16 +152,24 @@ Response body:
     {
         "transfers": [
             {
-                "currency": "btc",
-                "to_address": "2MzmvJ4L5drgV4yjonxgrvpZkEVaySBZr6N",
-                "amount": 0.123,
-                "fee": 0.00016,
+                "currency": "eth",
+                "to_address": "0x0520274aC441f796C42c554E4660781aE766cfB8",
+                "amount": 12.0,
                 "message": "Transfer is done",
                 "status": "ok",
-                "txid": "0dc909844511f8e8e99d04abee8g4e223c4b8cf43584e0899ef2d6c4841aed7f"
+                "transactions": [
+                    {
+                        "fee": 0.000378,
+                        "txid": "0x7a976c8c46e4ffbe0a682836fc7ef765c1b2e5ae21d428101e148f04f69c50cc"
+                    },
+                    {
+                        "fee": 0.000378,
+                        "txid": "0x37f317039ae8f54551c95452e52884256756727e49744f0730f84c79ec091c75"
+                    }
+                ]
             }
         ],
-        "chain": 2,
+        "chain": 3,
         "error": 0,
         "error_message": ""
     }
@@ -186,7 +195,7 @@ Response parameter/parameters definition:
 | --------------| ------  | --------- | --------- |
 | chain                 | Int                  | Specifies for which chain the wallet node is configured | 0 (Unknown) / 1 (Mainnet) / 2 (Testnet) / 3 (Regtest) |
 | addresses         | String Array   | An array of strings where every string represents a generated address. | |
-| error                  | Int                  | Indicates if an error occurred when requesting the balance for the specific wallet. | 0 (No error) / 1 (Error occurred) |
+| error                  | Int                  | Indicates if an error occurred during the genereate new addresses request. | 0 (No error) / 1 (Error occurred) |
 | error_message  | String            | Holds a descriptive message corresponding to the error.  | |
 
 Request body:
@@ -241,7 +250,7 @@ Response parameter/parameters definition:
 | confirmations     | Int                 | Number of confirmations for the specific transaction  | |
 | date                   | String            | The date of the specific transaction | |
 | chain                 | Int                  | Specifies for which chain the wallet node is configured | 0 (Unknown) / 1 (Mainnet) / 2 (Testnet) / 3 (Regtest) |
-| error                  | Int                  | Indicates if an error occurred when requesting the balance for the specific wallet. | 0 (No error) / 1 (Error occurred) |
+| error                  | Int                  | Indicates if an error occurred when requesting the receive check for the specific address. | 0 (No error) / 1 (Error occurred) |
 | error_message  | String            | Holds a descriptive message corresponding to the error.  | |
 
 Request body:
@@ -314,7 +323,7 @@ Response parameter/parameters definition:
 | fee                     | Float              | Defines the total fee of the sendmany transaction. This is specified in the highest denominator for the currency. For bitcoin the fee is in BTC (hence 0.00000001 is one satoshi)  | |
 | message           | String             | Includes a message corresponding how well the transfer was executed | |
 | chain                 | Int                  | Specifies for which chain the wallet node is configured | 0 (Unknown) / 1 (Mainnet) / 2 (Testnet) / 3 (Regtest) |
-| error                  | Int                  | Indicates if an error occurred when requesting the balance for the specific wallet. | 0 (No error) / 1 (Error occurred) |
+| error                  | Int                  | Indicates if an error occurred when executing the sendmany request. | 0 (No error) / 1 (Error occurred) |
 | error_message  | String            | Holds a descriptive message corresponding to the error.  | |
 
 Request body:
@@ -367,7 +376,7 @@ Response parameter/parameters definition:
 | Parameter   | Type   | Description | Possible values |
 | --------------| ------  | --------- | --------- |
 | chain                 | Int                  | Specifies for which chain the wallet node is configured | 0 (Unknown) / 1 (Mainnet) / 2 (Testnet) / 3 (Regtest) |
-| error                  | Int                  | Indicates if an error occurred when requesting the balance for the specific wallet. | 0 (No error) / 1 (Error occurred) |
+| error                  | Int                  | Indicates if an error occurred during the wallet notify request. | 0 (No error) / 1 (Error occurred) |
 | error_message  | String            | Holds a descriptive message corresponding to the error.  | |
 
 Request body:
