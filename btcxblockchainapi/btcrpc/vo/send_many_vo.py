@@ -16,17 +16,36 @@ class SendManyPostParametersSerializer(serializers.Serializer):
 
 
 
-class SendManyResponse(object):
-
-  def __init__(self, tx_id="", status=0, fee=0, message="", chain=ChainEnum.UNKNOWN, error=0, error_message="", details=[]):
-    self.txid = tx_id
-    self.status = status
-    self.fee = fee
-    self.message = message
-    self.chain = chain
-    self.error = error
-    self.error_message = error_message
-    self.details = details
+# class SendManyResponse(object):
+#
+#   def __init__(self, tx_id="", status=0, fee=0, message="", chain=ChainEnum.UNKNOWN, error=0, error_message="", details=[]):
+#     self.txid = tx_id
+#     self.status = status
+#     self.fee = fee
+#     self.message = message
+#     self.chain = chain
+#     self.error = error
+#     self.error_message = error_message
+#     self.details = details
+#
+# class DetailsResponseSerializer(serializers.Serializer):
+#   address = serializers.CharField(max_length=128)
+#   txid = serializers.CharField(max_length=128)
+#   vout = serializers.IntegerField()
+#   amount = serializers.DecimalField(max_digits=18, decimal_places=8, coerce_to_string=True)
+#
+# class DetailsListField(serializers.ListField):
+#   child = DetailsResponseSerializer()
+#
+# class SendManyResponseSerializer(serializers.Serializer):
+#   txid = serializers.CharField(max_length=128, allow_blank=True)
+#   status = serializers.IntegerField()
+#   fee = serializers.DecimalField(max_digits=16, decimal_places=8, coerce_to_string=True)
+#   message = serializers.CharField(max_length=512)
+#   chain = serializers.IntegerField()
+#   error = serializers.IntegerField()
+#   error_message = serializers.CharField(max_length=512, allow_blank=True)
+#   details = DetailsListField()
 
 class DetailsResponseSerializer(serializers.Serializer):
   address = serializers.CharField(max_length=128)
@@ -37,13 +56,26 @@ class DetailsResponseSerializer(serializers.Serializer):
 class DetailsListField(serializers.ListField):
   child = DetailsResponseSerializer()
 
-class SendManyResponseSerializer(serializers.Serializer):
+class TransactionsListFieldResponseSerializer(serializers.Serializer):
   txid = serializers.CharField(max_length=128, allow_blank=True)
-  status = serializers.IntegerField()
   fee = serializers.DecimalField(max_digits=16, decimal_places=8, coerce_to_string=True)
+  details = DetailsListField()
+
+class SendManyResponseSerializer(serializers.Serializer):
+  status = serializers.IntegerField()
   message = serializers.CharField(max_length=512)
   chain = serializers.IntegerField()
   error = serializers.IntegerField()
   error_message = serializers.CharField(max_length=512, allow_blank=True)
-  details = DetailsListField()
+  transactions = serializers.ListField(child=TransactionsListFieldResponseSerializer())
+
+class SendManyResponse(object):
+  def __init__(self, status=0, message="", chain=ChainEnum.UNKNOWN, error=0, error_message="", transactions=[]):
+    self.status = status
+    self.message = message
+    self.chain = chain
+    self.error = error
+    self.error_message = error_message
+    self.transactions = transactions
+
 

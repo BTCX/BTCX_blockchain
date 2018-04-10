@@ -46,18 +46,42 @@ class PythonBitcoinRpc(RPCCall):
             # return simplejson.dumps ({u'error' : u'txid is not valid'})
             return None
 
+    def do_get_transaction_details(self, transaction_fee_info):
+        transaction_info = self.do_get_transaction(transaction_fee_info.txid)
+        details = transaction_info["details"]
+        details_list = []
+        for transactionDetail in details:
+            if (transactionDetail['category'] == 'send'):
+                details_list.append(self.get_output_details(transactionDetail, transaction_fee_info.txid))
+        return {
+            "txid": transaction_fee_info.txid,
+            "fee": transaction_fee_info.fee,
+            "details": details_list
+        }
+        # try:
+        # for transactionDetail in details:3
+        #     if (transactionDetail['category'] == 'send'):
+        #         details_list.append(self.get_output_details(transactionDetail, transaction_fee_info.txid))
+            #log_info(log, "Details list", details_list)
+        # except BaseException as e:
+        #     # Since we wan't to make sure that a successfull response actually is sent if the rpc sendmany succeeds
+        #     # we just continue no matter what exception we encounter
+        #     log_error(log, "An error occured when checking the transactions details", e)
+
+    def get_output_details(self, transaction_detail, txid):
+        #log_info(log, "Transaction detail for txid " + txid, transaction_detail)
+        return {
+            "address": transaction_detail['address'],
+            "txid": txid,
+            "vout": transaction_detail['vout'],
+            "amount": -transaction_detail['amount']
+        }
+
     def do_list_transactions(self, account, count=10, from_index=0):
         try:
             return self.access.listtransactions(account, count, from_index)
         except RuntimeError:
             print("calling failure")
-
-        def do_get_transaction(self, tx_id):
-            try:
-                return self.access.gettransaction(tx_id)
-            except RuntimeError:
-                # return simplejson.dumps ({u'error' : u'txid is not valid'})
-                return None
 
     def do_validate_address(self, address=""):
         return self.access.validateaddress(address)
@@ -113,14 +137,30 @@ class PythonBitcoinRpc(RPCCall):
         return [self.access.sendtoaddress(address, amount, "", "", subtractfeefromamount)]
 
     # amount is type of dictionary
-    def send_many(self, from_account="", minconf=1, **amounts):
+    def send_many(self, from_account="", minconf=1, from_wallet="", **amounts):
         log.info("From account: %s", from_account)
         log.info("To accounts: %s", json.dumps(amounts))
         amounts_string = json.dumps(amounts['amounts'])
         amounts_object = json.loads(amounts_string)
         try:
-            return True, self.access.sendmany(from_account, amounts_object, minconf)
-        except JSONRPCException as ex:
-            return False, ex
-        except socket.error as e:
-            return False, e
+            txid = self.access.sendmany(from_account, amounts_object, minconf)
+            response = self.generate_send_many_response(
+                    [txid],
+                    "ok",
+                    "Transfer is done"
+                )
+            return True, [response]
+        except JSONRPCException as j_ex:
+            response = self.generate_send_many_response(
+                [],
+                "fail",
+                "RPC error. Message from rpc client: " + j_ex.message
+            )
+            return False, [response]
+        except BaseException as ex:
+            response = self.generate_send_many_response(
+                [],
+                "fail",
+                "Base exception error. Error message: " + str(ex)
+            )
+            return False, [response]

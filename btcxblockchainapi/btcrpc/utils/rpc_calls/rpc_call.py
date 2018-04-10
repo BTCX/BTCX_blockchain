@@ -2,7 +2,7 @@ from abc import ABCMeta, abstractmethod
 from btcrpc.utils.address_encoding_flag import AddressEncodingFlag
 
 from btcrpc.utils.log import *
-
+from btcrpc.view.models.transaction_to_address_info import TransactionToAddressInfo
 
 class RPCCall():
     __metaclass__ = ABCMeta
@@ -88,5 +88,8 @@ class RPCCall():
         raise NotImplementedError
 
     @abstractmethod
-    def send_many(self, from_account="", minconf=1, **amounts):
+    def send_many(self, from_account="", minconf=1, from_wallet="", **amounts):
         raise NotImplementedError
+
+    def generate_send_many_response(self, txids, status, message):
+        return TransactionToAddressInfo(txids, status, message)

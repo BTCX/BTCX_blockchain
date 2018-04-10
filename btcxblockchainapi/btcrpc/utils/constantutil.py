@@ -35,11 +35,13 @@ def check_for_failed_transactions(transaction_responses):
                None)
     return transaction is not None
 
+
 def get_safe_address_encoding(currency):
     if currency == Constants.Currencies.ETHEREUM:
         return AddressEncodingFlag.ETHEREUM_CHECKSUM_ADDRESS
     else:
         return AddressEncodingFlag.NO_SPECIFIC_ENCODING
+
 
 def not_none(value):
     if value is not None:
