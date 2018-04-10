@@ -16,7 +16,7 @@ class RPCCall():
         raise NotImplementedError
 
     @abstractmethod
-    def do_get_new_address(self):
+    def do_get_new_address(self, wallet):
         raise NotImplementedError
 
     @abstractmethod

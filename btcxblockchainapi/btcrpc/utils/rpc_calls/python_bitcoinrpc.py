@@ -24,7 +24,7 @@ class PythonBitcoinRpc(RPCCall):
     def do_getinfo(self):
         return self.access.getinfo()
 
-    def do_get_new_address(self):
+    def do_get_new_address(self, wallet):
         return self.access.getnewaddress()
 
     def do_set_account(self, address, account):

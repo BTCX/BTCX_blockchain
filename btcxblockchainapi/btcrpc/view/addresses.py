@@ -43,7 +43,7 @@ class CreateNewAddresses(APIView):
                 log_info(log, "Number of new addresses to create", number_of_new_addresses)
 
                 for x in range(0, number_of_new_addresses):
-                    new_address = rpc_call.do_get_new_address()
+                    new_address = rpc_call.do_get_new_address(wallet=wallet)
                     log_info(log, "Generated address " + str(x + 1), new_address)
                     rpc_call.do_set_account(new_address, new_address)
                     log_info(log, "Setting account for address " + new_address + " to", new_address)

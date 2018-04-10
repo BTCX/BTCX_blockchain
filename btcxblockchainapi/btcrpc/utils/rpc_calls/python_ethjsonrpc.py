@@ -27,11 +27,16 @@ class PythonEthJsonRpc(RPCCall):
     def do_getinfo(self):
         raise NotImplementedError
 
-    def do_get_new_address(self):
-        raise NotImplementedError
+    def do_get_new_address(self, wallet):
+        yml_config_reader = ConfigFileReader()
+        key_encrypt_pass = yml_config_reader.get_private_key_encryption_password(
+            currency=Constants.Currencies.ETHEREUM,
+            wallet=wallet)
+        address = self.access.personal.newAccount(key_encrypt_pass)
+        return address
 
     def do_set_account(self, address, account):
-        raise NotImplementedError
+        return True
 
     def do_get_transaction(self, txid):
         return self.access.eth.getTransaction(txid)
@@ -170,8 +175,10 @@ class PythonEthJsonRpc(RPCCall):
 
             transactionObject['value'] = transactionValue
             yml_config_reader = ConfigFileReader()
-            key = yml_config_reader.get_private_key_encryption_password(currency=Constants.Currencies.ETHEREUM, wallet=from_wallet)
-            self.access.personal.unlockAccount(sender, key)
+            key_encrypt_pass = yml_config_reader.get_private_key_encryption_password(
+                currency=Constants.Currencies.ETHEREUM,
+                wallet=from_wallet)
+            self.access.personal.unlockAccount(sender, key_encrypt_pass)
             txid = self.access.eth.sendTransaction(transactionObject)
             self.access.personal.lockAccount(sender)
             txids.append(txid.hex())
