@@ -220,7 +220,7 @@ class BTCSendManyView(APIView):
                 response = self.create_send_many_response_and_log(
                     log_function=log_error,
                     log_message=error_message,
-                    log_item=serr,
+                    log_item=ex,
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                     message=error_message,
                     transactions_with_details_list=transactions_with_details_list,
@@ -235,7 +235,7 @@ class BTCSendManyView(APIView):
                 response = self.create_send_many_response_and_log(
                     log_function=log_error,
                     log_message=error_message,
-                    log_item=serr,
+                    log_item=None,
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                     message=error_message,
                     transactions_with_details_list=transactions_with_details_list,
