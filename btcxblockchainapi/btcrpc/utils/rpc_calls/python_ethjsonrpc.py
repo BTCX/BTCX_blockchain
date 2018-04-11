@@ -169,8 +169,8 @@ class PythonEthJsonRpc(RPCCall):
         transaction_objects_list = []
         for account in self.access.eth.accounts:
             #NOTE TO BE REMOVED: ONLY FOR TESTING
-            # if account == self.access.eth.accounts[0]:
-            #     continue
+            if account == self.access.eth.accounts[0]:
+                continue
             sender = account
             receiver = check_sum_address
             balance = self.access.eth.getBalance(sender)
@@ -207,14 +207,9 @@ class PythonEthJsonRpc(RPCCall):
 
         # If this if case is hit, there is not enough funds in the wallet to send the entire amount to the address
         if amount_left_to_send > 0:
-            raise JSONRPCException(
-                "There are not enough funds in the wallet: "
-                + from_wallet +
-                " to fund the transaction of the amount: "
-                + str(amount) +
-                " To address: "
-                + address
-            )
+            exception_string = "There are not enough funds in the wallet: " + from_wallet + " to fund the transaction "\
+                                "of the amount: " + str(amount) + " To address: " + address
+            raise JSONRPCException({'code': -343, 'message': exception_string})
 
         # We seperate the actual send of funds from the calculation and creation of the transactions, to make sure that
         # we don't run into a situation where there's only funds to partially fund the transaction. If that would happen,
@@ -226,15 +221,15 @@ class PythonEthJsonRpc(RPCCall):
             key_encrypt_pass = yml_config_reader.get_private_key_encryption_password(
                 currency=Constants.Currencies.ETHEREUM,
                 wallet=from_wallet)
+            sender = trans_object['from']
             self.access.personal.unlockAccount(sender, key_encrypt_pass)
-            txid = self.access.eth.sendTransaction(trans_object)
+            txidBytes = self.access.eth.sendTransaction(trans_object)
             self.access.personal.lockAccount(sender)
-            txids.append(txid.hex())
-            #self.access.eth.sendTransaction(transactionObject, callback_function)
-
+            txid = txidBytes.hex()
+            txids.append(txid)
         return txids
 
-    # amount is type of dictionary
+
     def send_many(self, from_account="", minconf=1, from_wallet='', **amounts):
         transactions_succeeded = True
         transactions = []
@@ -254,11 +249,12 @@ class PythonEthJsonRpc(RPCCall):
                 )
                 transactions.append(transaction)
             except JSONRPCException as j_ex:
+                print("JSON EXCEPTION!!!!")
                 transactions_succeeded = False
                 transaction = self.generate_send_many_response(
                     [],
                     "fail",
-                    "RPC error. Message from rpc client: " + j_ex.message
+                    "RPC error. Message from rpc client: " + str(j_ex)
                 )
                 transactions.append(transaction)
             except BaseException as ex:

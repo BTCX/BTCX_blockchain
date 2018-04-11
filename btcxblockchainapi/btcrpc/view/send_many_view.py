@@ -26,6 +26,7 @@ class BTCSendManyView(APIView):
         chain = ChainEnum.UNKNOWN
         semaphore = SemaphoreSingleton()
         serializer_post = send_many_vo.SendManyPostParametersSerializer(data=request.data)
+        transactions_with_details_list = []
 
         if serializer_post.is_valid():
             log_info(log, "Post input data", serializer_post.data)
@@ -65,27 +66,42 @@ class BTCSendManyView(APIView):
 
                     if (isSuccess):
                         semaphore.release(log)
-                        transactions_with_details_list = []
-
                         for transaction in transactions:
                             try:
-                                tx_id_with_fee = rpc_call.do_get_fees_of_transactions(transaction.txids)
-                                #NOTE!!!! THE tx_id_with_fee is a list, not a single object.
-                                log_info(log, "Tx id with fee object", tx_id_with_fee)
-                                transaction_with_details = rpc_call.do_get_transaction_details(tx_id_with_fee)
-                                log_info(log, "Transaction with detail object", tx_id_with_fee)
-                                transactions_with_details_list.append(transaction_with_details)
+                                tx_ids_with_fee = rpc_call.do_get_fees_of_transactions(transaction.txids)
+                                for tx_id_with_fee in tx_ids_with_fee:
+                                    log_info(log, "Tx id with fee object", tx_id_with_fee)
+                                    transaction_with_details = rpc_call.do_get_transaction_details(tx_id_with_fee)
+                                    log_info(log, "Transaction with detail object", tx_id_with_fee)
+                                    transactions_with_details_list.append(transaction_with_details)
                             except BaseException as e:
                                 # Since we wan't to make sure that a successfull response actually is sent if the rpc sendmany succeeds
                                 # we just continue no matter what exception we encounter
                                 log_error(log, "An error occured when checking the transactions details", e)
-                        response = send_many_vo.SendManyResponse(
+                        response = self.create_send_many_response_and_log(
+                            log_function=log_info,
+                            log_message="Send many is done.",
+                            log_item=None,
                             status=status.HTTP_200_OK,
                             message="Send many is done.",
-                            chain=chain.value,
+                            transactions_with_details_list=transactions_with_details_list,
+                            chain=chain,
                             error=0,
-                            error_message="",
-                            transactions=transactions_with_details_list)
+                            error_message="")
+                    else:
+                        semaphore.release(log)
+                        error_message = "Not all of the transactions were successful, the transactions that succeeded are" \
+                                        "included in the transactions list"
+                        response = self.create_send_many_response_and_log(
+                            log_function=log_error,
+                            log_message=error_message,
+                            log_item=None,
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            message=error_message,
+                            transactions_with_details_list=transactions_with_details_list,
+                            chain=chain,
+                            error=1,
+                            error_message=error_message)
 
 
                         # transaction = rpc_call.do_get_transaction(transactions)
@@ -121,79 +137,111 @@ class BTCSendManyView(APIView):
                         #         error_message="",
                         #         details=details_list)
 
-                    elif transactions is not None and isinstance(transactions, JSONRPCException):
-                        semaphore.release(log)
-                        log_error(log, "Error: %s" % transactions.error['message'])
-                        response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                                                 fee=0, message=transactions.error['message'],
-                                                                 chain=chain.value, error=1)
-                    elif transactions is not None and isinstance(transactions, socket.error):
-                        semaphore.release(log)
-                        log_error(log, "Error: Is the error an Econnrefused error:", transactions.errno == errno.ECONNREFUSED)
-                        log_error(log, "Error message", transactions.message)
-                        response = send_many_vo.SendManyResponse(
-                            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            fee=0,
-                            message=transactions.message,
-                            chain=chain.value,
-                            error=1)
-                    else:
-                        semaphore.release(log)
-                        log_error(log, "The rpc call was not successfull, result", transactions)
-                        response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                                                 fee=0, message=transactions,
-                                                                 chain=chain.value, error=1)
-                else:
-                    log_error(log, "Error: The semaphore is already required, wait until semaphore is released")
-                    response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                                             fee=0,
-                                                             message="Semaphore is already acquired, wait until semaphore"
-                                                                     " is released.",
-                                                             chain=chain.value, error=1)
+                    # elif transactions is not None and isinstance(transactions, JSONRPCException):
+                    #     semaphore.release(log)
+                    #     log_error(log, "Error: %s" % transactions.error['message'])
+                    #     response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    #                                              fee=0, message=transactions.error['message'],
+                    #                                              chain=chain.value, error=1)
+                    # elif transactions is not None and isinstance(transactions, socket.error):
+                    #     semaphore.release(log)
+                    #     log_error(log, "Error: Is the error an Econnrefused error:", transactions.errno == errno.ECONNREFUSED)
+                    #     log_error(log, "Error message", transactions.message)
+                    #     response = send_many_vo.SendManyResponse(
+                    #         status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    #         fee=0,
+                    #         message=transactions.message,
+                    #         chain=chain.value,
+                    #         error=1)
 
-            except (ConnectionError, ServerDown):
+                else:
+                    error_message = "Error: The semaphore is already required, wait until semaphore is released"
+                    response = self.create_send_many_response_and_log(
+                        log_function=log_error,
+                        log_message=error_message,
+                        log_item=None,
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                        message=error_message,
+                        transactions_with_details_list=transactions_with_details_list,
+                        chain=chain,
+                        error=1,
+                        error_message=error_message)
+
+            except (ConnectionError, ServerDown) as ex:
                 semaphore.release(log)
-                log_error(log, "Error: ConnectionError or ServerDown exception")
-                response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                                         fee=0,
-                                                         message="Error: ConnectionError or ServerDown exception",
-                                                         chain=chain.value, error=1)
+                error_message = "Error: ConnectionError or ServerDown exception"
+                response = self.create_send_many_response_and_log(
+                    log_function=log_error,
+                    log_message=error_message,
+                    log_item=ex,
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    message=error_message,
+                    transactions_with_details_list=transactions_with_details_list,
+                    chain=chain,
+                    error=1,
+                    error_message=error_message)
 
             except JSONRPCException as ex:
                 semaphore.release(log)
-                log_error(log, "Bitcoin RPC error. Message from python-bitcoinrpc", ex.message)
                 error_message = "Bitcoin RPC error, check if username and password for node is correct. Message from " \
                                 "python-bitcoinrpc: " + ex.message
-                response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                                         fee=0, message=error_message,
-                                                         chain=chain.value, error=1, error_message=error_message)
+                response = self.create_send_many_response_and_log(
+                    log_function=log_error,
+                    log_message=error_message,
+                    log_item=ex,
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    message=error_message,
+                    transactions_with_details_list=transactions_with_details_list,
+                    chain=chain,
+                    error=1,
+                    error_message=error_message)
+
             except socket_error as serr:
                 semaphore.release(log)
+                error_message = "Error: "
                 if serr.errno != errno.ECONNREFUSED:
-                    error_message = "A general socket error was raised."
-                    log_error(log, error_message, serr)
-                    response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                                             fee=0, message=error_message,
-                                                             chain=chain.value, error=1, error_message=error_message)
+                    error_message = error_message + "A general socket error was raised."
                 else:
-                    error_message = "Connection refused error, check if the wallet node is down."
-                    log_error(log, error_message, serr)
-                    response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                                             fee=0, message=error_message,
-                                                             chain=chain.value, error=1, error_message=error_message)
+                    error_message = error_message + "Connection refused error, check if the wallet node is down."
+                response = self.create_send_many_response_and_log(
+                    log_function=log_error,
+                    log_message=error_message,
+                    log_item=serr,
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    message=error_message,
+                    transactions_with_details_list=transactions_with_details_list,
+                    chain=chain,
+                    error=1,
+                    error_message=error_message)
+
             except BaseException as ex:
                 semaphore.release(log)
                 error_message = "An exception was raised. Error message: " + str(ex)
-                log_error(log, "An exception was raised. Error message", str(ex))
-                response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR, message=error_message,
-                                                         chain=chain.value, error=1, error_message=error_message)
+                response = self.create_send_many_response_and_log(
+                    log_function=log_error,
+                    log_message=error_message,
+                    log_item=serr,
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    message=error_message,
+                    transactions_with_details_list=transactions_with_details_list,
+                    chain=chain,
+                    error=1,
+                    error_message=error_message)
+
             if response is not None:
                 send_many_response_serializer = send_many_vo.SendManyResponseSerializer(data=response.__dict__)
             else:
-                log_error(log, "Error: response is None")
-                response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                                         fee=0, message="Error: response is None",
-                                                         chain=chain.value, error=1)
+                error_message = "Error: response is None"
+                response = self.create_send_many_response_and_log(
+                    log_function=log_error,
+                    log_message=error_message,
+                    log_item=serr,
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    message=error_message,
+                    transactions_with_details_list=transactions_with_details_list,
+                    chain=chain,
+                    error=1,
+                    error_message=error_message)
                 send_many_response_serializer = send_many_vo.SendManyResponseSerializer(data=response.__dict__)
 
             log_info(log, "Send many response serializer", send_many_response_serializer)
@@ -210,11 +258,15 @@ class BTCSendManyView(APIView):
         log_error(log, "The post serializer was incorrect. Post serializer errors", serializer_post.errors)
         return Response(serializer_post.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def get_output_details(self, transaction_detail, txid):
-        log_info(log, "Transaction detail for txid " + txid, transaction_detail)
-        return {
-            "address": transaction_detail['address'],
-            "txid": txid,
-            "vout": transaction_detail['vout'],
-            "amount": -transaction_detail['amount']
-        }
+    def create_send_many_response_and_log(self, log_function, log_message, log_item, status, message,
+                                          transactions_with_details_list, chain, error=0, error_message=""):
+        log_function(log, log_message, log_item)
+        wallet_balance_response = send_many_vo.SendManyResponse(
+            status=status.HTTP_200_OK,
+            message=message,
+            chain=chain.value,
+            error=error,
+            error_message=error_message,
+            transactions=transactions_with_details_list)
+        log_function(log, "The generated wallet balance response is", wallet_balance_response.__dict__)
+        return wallet_balance_response
