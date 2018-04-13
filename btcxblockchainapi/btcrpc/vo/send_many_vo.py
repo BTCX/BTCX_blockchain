@@ -48,8 +48,8 @@ class SendManyPostParametersSerializer(serializers.Serializer):
 #   details = DetailsListField()
 
 class DetailsResponseSerializer(serializers.Serializer):
-  address = serializers.CharField(max_length=128)
-  txid = serializers.CharField(max_length=128)
+  address = serializers.CharField(max_length=128, allow_blank=True)
+  txid = serializers.CharField(max_length=128, allow_blank=True)
   vout = serializers.IntegerField()
   amount = serializers.DecimalField(max_digits=18, decimal_places=8, coerce_to_string=True)
 
@@ -57,7 +57,7 @@ class DetailsListField(serializers.ListField):
   child = DetailsResponseSerializer()
 
 class TransactionsListFieldResponseSerializer(serializers.Serializer):
-  txid = serializers.CharField(max_length=128, allow_blank=True)
+  txid = serializers.CharField(max_length=128)
   fee = serializers.DecimalField(max_digits=16, decimal_places=8, coerce_to_string=True)
   details = DetailsListField()
 

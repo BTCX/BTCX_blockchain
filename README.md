@@ -318,19 +318,27 @@ Response parameter/parameters definition:
 
 | Parameter   | Type   | Description | Possible values |
 | --------------| ------  | --------- | --------- |
-| txid                     | String            | The txid of the transaction broadcasted to the network. | |
 | status                | String             | Indicates if the transaction of the transfer succeeded or not. | 200 / 400 / 406 / 500 |
-| fee                     | Float              | Defines the total fee of the sendmany transaction. This is specified in the highest denominator for the currency. For bitcoin the fee is in BTC (hence 0.00000001 is one satoshi)  | |
 | message           | String             | Includes a message corresponding how well the transfer was executed | |
 | chain                 | Int                  | Specifies for which chain the wallet node is configured | 0 (Unknown) / 1 (Mainnet) / 2 (Testnet) / 3 (Regtest) |
 | error                  | Int                  | Indicates if an error occurred when executing the sendmany request. | 0 (No error) / 1 (Error occurred) |
 | error_message  | String            | Holds a descriptive message corresponding to the error.  | |
+| transactions       | JSON Array  | A JSON array where every JSON object represents a transaction that was actually sucessfully executed on the respective blockchain. Note that if a transaction of the toSend request parameter does not succeed it will not be included in this array.  | |
+| txid                     | String            | Represents a txid of a transaction that was successfully broadcasted to the network. Note that this field is never set if the transaction unless the transaction was successfully broadcasted. | |
+| fee                     | Float              | Defines the total fee of the transaction. This is specified in the highest denominator for the currency. For bitcoin the fee is in BTC (hence 0.00000001 is one satoshi) NOTE: this field can be 0 if the code to get the transaction fee of the txid fails. | |
+| details                 | JSON Array | A JSON array where every JSON object represents a detail object for the transactions txid. This can be a multiple if the transaction includes more than one output. NOTE: this field can be an empty array if the code to get the transaction details of the txid fails. | |
+| address              | String            | Represents the address the detail output was sent to. NOTE: this field can be blank if the code to get the transaction details of the txid fails. | |
+| txid                     | String            | Represents the txid of the transaction the detail output is part of. NOTE: this field can be blank if the code to get the transaction details of the txid fails. | |
+| vout                    | Int                 | Represents which output index the detail output is of the transaction it is part of. NOTE: this field can be -1 if the code to get the transaction details of the txid fails.  | |
+| amount               | Decimal        | Represents the amount of the detail output. NOTE: this field can be 0 if the code to get the transaction details of the txid fails.  | |
+
+Example 1, Bitcoin:
 
 Request body:
 
     {
         "currency":"btc",
-        "toSend": [
+        "toSend":[
             {
                 "amount":0.001,
                 "toAddress":"2N7nCLKXxWrUEqyZFvt7eahvEaxAZni1fwK"
@@ -348,15 +356,90 @@ Request body:
 Response body:
 
     {
-        "txid": "1cd8b891bc0ffb291848f1a2b45b236f0da1b333bdc2124310c106b32b7fb143",
         "status": 200,
-        "fee": "0.00004980",
         "message": "Send many is done.",
         "chain": 2,
         "error": 0,
-        "error_message": ""
+        "error_message": "",
+        "transactions": [
+            {
+                "txid": "1b3598b268b8v53b67c0552a27eg5664a54283gh3d9817cf821daf7jj4cklc30",
+                "fee": "0.00002930",
+                "details": [
+                    {
+                        "address": "2N7nCLKXxWrUEqyZFvt7eahvEaxAZni1fwK",
+                        "txid": "1b3598b268b8v53b67c0552a27eg5664a54283gh3d9817cf821daf7jj4cklc30",
+                        "vout": 0,
+                        "amount": "0.00100000"
+                    },
+                    {
+                        "address": "mvqYeeAJ2UU6w8PfLKdHxNyr39ST1zuxPE",
+                        "txid": "1b3598b268b8v53b67c0552a27eg5664a54283gh3d9817cf821daf7jj4cklc30",
+                        "vout": 1,
+                        "amount": "0.00200000"
+                    }
+                ]
+            }
+        ]
     }
 
+Example 2, Ethereum:
+
+Request body:
+
+    {
+        "currency":"eth",
+        "toSend":[
+            {
+                "amount":10,
+                "toAddress":"0xA5C36a42888F27c75902E58d90B2f586A0757d9d"
+            },
+            {
+                "amount":10,
+                "toAddress":"0x4e67f6ff52b061E9C24Dfd5838f8eB1ceE5f0b03"
+            }
+        ],
+        "fromAddress":"0x1e5212c7abc429cb619f9c003687a92622caaa06",
+        "txFee":0.0001,
+        "wallet":"primary_eth_send"
+    }
+
+Response body:
+
+
+    {
+        "status": 200,
+        "message": "Send many is done.",
+        "chain": 3,
+        "error": 0,
+        "error_message": "",
+        "transactions": [
+            {
+                "txid": "0x7b4c68a5b0e6f40b3b9bb3f820b01ff48adde52102a6e2573090947373d45f47",
+                "fee": "0.00037800",
+                "details": [
+                    {
+                        "address": "0xA5C36a42888F27c75902E58d90B2f586A0757d9d",
+                        "txid": "0x7b4c68a5b0e6f40b3b9bb3f820b01ff48adde52102a6e2573090947373d45f47",
+                        "vout": 0,
+                        "amount": "10.00000000"
+                    }
+                ]
+            },
+            {
+                "txid": "0x885c944dd8cc33ca15d8785e84a317808f64c1d20e69ef362ec51b1ebbd89bde",
+                "fee": "0.00037800",
+                "details": [
+                    {
+                        "address": "0x4e67f6ff52b061E9C24Dfd5838f8eB1ceE5f0b03",
+                        "txid": "0x885c944dd8cc33ca15d8785e84a317808f64c1d20e69ef362ec51b1ebbd89bde",
+                        "vout": 0,
+                        "amount": "10.00000000"
+                    }
+                ]
+            }
+        ]
+    }
 
 ### POST /wallet_notify
 

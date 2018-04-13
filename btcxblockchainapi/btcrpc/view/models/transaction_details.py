@@ -1,5 +1,5 @@
 class TransactionDetails(object):
-    def __init__(self, to_address="", txid="", vout=0, amount=0.0):
+    def __init__(self, to_address="", txid="", vout=-1, amount=0.0):
         self.to_address = to_address
         self.txid = txid
         self.vout = vout
