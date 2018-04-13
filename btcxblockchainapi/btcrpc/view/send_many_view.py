@@ -133,20 +133,6 @@ class BTCSendManyView(APIView):
                                 error=1,
                                 error_message=error_message)
 
-                        # except BaseException as e:
-                        #     # Since we wan't to make sure that a successfull response actually is sent if the rpc sendmany succeeds
-                        #     # we just continue no matter what exception we encounter
-                        #     log_error(log, "An error occured when checking the transactions details", e)
-                        # response = self.create_send_many_response_and_log(
-                        #     log_function=log_info,
-                        #     log_message="Send many is done.",
-                        #     log_item=None,
-                        #     status=status.HTTP_200_OK,
-                        #     message="Send many is done.",
-                        #     transactions_with_details_list=transactions_with_details_list,
-                        #     chain=chain,
-                        #     error=0,
-                        #     error_message="")
                     else:
                         semaphore.release(log)
                         error_message = "Not all of the transactions were successful, the transactions that succeeded are " \
@@ -161,57 +147,6 @@ class BTCSendManyView(APIView):
                             chain=chain,
                             error=1,
                             error_message=error_message)
-
-
-                        # transaction = rpc_call.do_get_transaction(transactions)
-                        # if transaction is None:
-                        #     log_error(log,
-                        #               "The transaction request with the txid:" + result + " did not result in a transaction.")
-                        #     response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                        #                                              fee=0,
-                        #                                              message="BTC server - " + wallet + "is done.",
-                        #                                              chain=chain.value, error=1)
-                        #
-                        # else:
-                        #     log_info(log, "Transaction sent", transaction)
-                        #     details = transaction["details"]
-                        #     details_list = []
-                        #     try:
-                        #         for transactionDetail in details:
-                        #             if (transactionDetail['category'] == 'send'):
-                        #                 details_list.append(self.get_output_details(transactionDetail, result))
-                        #         log_info(log, "Details list", details_list)
-                        #     except BaseException as e:
-                        #         # Since we wan't to make sure that a successfull response actually is sent if the rpc sendmany succeeds
-                        #         # we just continue no matter what exception we encounter
-                        #         log_error(log, "An error occured when checking the transactions details", e)
-                        #
-                        #     response = send_many_vo.SendManyResponse(
-                        #         tx_id=result,
-                        #         status=status.HTTP_200_OK,
-                        #         fee=abs(transaction["fee"]),
-                        #         message="Send many is done.",
-                        #         chain=chain.value,
-                        #         error=0,
-                        #         error_message="",
-                        #         details=details_list)
-
-                    # elif transactions is not None and isinstance(transactions, JSONRPCException):
-                    #     semaphore.release(log)
-                    #     log_error(log, "Error: %s" % transactions.error['message'])
-                    #     response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    #                                              fee=0, message=transactions.error['message'],
-                    #                                              chain=chain.value, error=1)
-                    # elif transactions is not None and isinstance(transactions, socket.error):
-                    #     semaphore.release(log)
-                    #     log_error(log, "Error: Is the error an Econnrefused error:", transactions.errno == errno.ECONNREFUSED)
-                    #     log_error(log, "Error message", transactions.message)
-                    #     response = send_many_vo.SendManyResponse(
-                    #         status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    #         fee=0,
-                    #         message=transactions.message,
-                    #         chain=chain.value,
-                    #         error=1)
 
                 else:
                     error_message = "Error: The semaphore is already required, wait until semaphore is released"

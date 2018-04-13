@@ -174,13 +174,14 @@ class PythonEthJsonRpc(RPCCall):
                 account = account_iterator.get_next_suitable_account()
                 while account is not None:
                     #NOTE TO BE REMOVED: ONLY FOR TESTING
-                    # if account == self.access.eth.accounts[0]:
-                    #     account_iterator.increase_account_index()
-                    #     continue
+                    if account == self.access.eth.accounts[0]:
+                        account_iterator.increase_account_index()
+                        account = account_iterator.get_next_suitable_account()
+                        continue
 
                     sender = account
                     receiver = check_sum_address
-                    balance = account_iterator.get_set_balance_of_account(sender) \
+                    balance = account_iterator.get_balance_of_account(sender) \
                         if account_iterator.has_balance_set_for_account(sender) \
                         else self.access.eth.getBalance(sender)
                     gas_price = self.access.eth.gasPrice
@@ -195,6 +196,7 @@ class PythonEthJsonRpc(RPCCall):
 
                     if balance < transactionFee: #Theres either no balance to send or, only balance is lower than the transactionfee
                         account_iterator.increase_account_index()
+                        account = account_iterator.get_next_suitable_account()
                         continue
 
                     if balance < amount_left_to_send:
