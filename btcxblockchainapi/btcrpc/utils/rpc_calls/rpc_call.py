@@ -2,7 +2,6 @@ from abc import ABCMeta, abstractmethod
 from btcrpc.utils.address_encoding_flag import AddressEncodingFlag
 
 from btcrpc.utils.log import *
-from btcrpc.view.models.transaction_to_address_info import TransactionToAddressInfo
 
 class RPCCall():
     __metaclass__ = ABCMeta
