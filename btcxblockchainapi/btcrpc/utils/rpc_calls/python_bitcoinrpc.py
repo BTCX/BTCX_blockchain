@@ -4,10 +4,12 @@ from btcrpc.utils.rpc_calls.rpc_call import RPCCall
 from btcrpc.utils.chain_enum import ChainEnum
 from btcrpc.utils.address_encoding_flag import AddressEncodingFlag
 from btcrpc.view.models.transaction_fee_info import TransactionFeeInfo
+from btcrpc.view.models.transaction_object import TransactionObject
+from btcrpc.view.models.transaction_details import TransactionDetails
 import json
 import socket, errno
 
-from btcrpc.utils.log import *
+from btcrpc.utils.log import get_log, log_info, log_error
 
 log = get_log("PythonBitcoinRpc Call:")
 
@@ -46,36 +48,23 @@ class PythonBitcoinRpc(RPCCall):
             # return simplejson.dumps ({u'error' : u'txid is not valid'})
             return None
 
-    def do_get_transaction_details(self, transaction_fee_info):
-        transaction_info = self.do_get_transaction(transaction_fee_info.txid)
+
+    def do_get_transaction_details(self, transaction_object):
+        transaction_info = self.do_get_transaction(transaction_object.txid)
         details = transaction_info["details"]
         details_list = []
         for transactionDetail in details:
             if (transactionDetail['category'] == 'send'):
-                details_list.append(self.get_output_details(transactionDetail, transaction_fee_info.txid))
-        return {
-            "txid": transaction_fee_info.txid,
-            "fee": transaction_fee_info.fee,
-            "details": details_list
-        }
-        # try:
-        # for transactionDetail in details:3
-        #     if (transactionDetail['category'] == 'send'):
-        #         details_list.append(self.get_output_details(transactionDetail, transaction_fee_info.txid))
-            #log_info(log, "Details list", details_list)
-        # except BaseException as e:
-        #     # Since we wan't to make sure that a successfull response actually is sent if the rpc sendmany succeeds
-        #     # we just continue no matter what exception we encounter
-        #     log_error(log, "An error occured when checking the transactions details", e)
+                details_list.append(self.get_output_details(transactionDetail, transaction_object.txid))
+        return  TransactionObject(transaction_object.txid, fee = transaction_object.fee, details = details_list)
+
 
     def get_output_details(self, transaction_detail, txid):
         #log_info(log, "Transaction detail for txid " + txid, transaction_detail)
-        return {
-            "address": transaction_detail['address'],
-            "txid": txid,
-            "vout": transaction_detail['vout'],
-            "amount": -transaction_detail['amount']
-        }
+        return TransactionDetails(to_address=transaction_detail['address'],
+                                  txid=txid,
+                                  vout=transaction_detail['vout'],
+                                  amount=abs(transaction_detail['amount']))
 
     def do_list_transactions(self, account, count=10, from_index=0):
         try:
@@ -144,23 +133,13 @@ class PythonBitcoinRpc(RPCCall):
         amounts_object = json.loads(amounts_string)
         try:
             txid = self.access.sendmany(from_account, amounts_object, minconf)
-            response = self.generate_send_many_response(
-                    [txid],
-                    "ok",
-                    "Transfer is done"
-                )
-            return True, [response]
+            log_info(log, "Send many request succeeded with txid", txid)
+            return True, [txid]
         except JSONRPCException as j_ex:
-            response = self.generate_send_many_response(
-                [],
-                "fail",
-                "RPC error. Message from rpc client: " + j_ex.message
-            )
-            return False, [response]
+            error_message = "RPC error. Message from rpc client: " + str(j_ex)
+            log_error(log, error_message, j_ex)
+            return False, []
         except BaseException as ex:
-            response = self.generate_send_many_response(
-                [],
-                "fail",
-                "Base exception error. Error message: " + str(ex)
-            )
-            return False, [response]
+            error_message = "Base exception error. Error message: " + str(ex)
+            log_error(log, error_message, ex)
+            return False, []

@@ -5,13 +5,15 @@ from btcrpc.utils.chain_enum import ChainEnum
 from btcrpc.utils.address_encoding_flag import AddressEncodingFlag
 from btcrpc.utils.constant_values import Constants
 from btcrpc.view.models.transaction_fee_info import TransactionFeeInfo
+from btcrpc.view.models.get_account_iterator import GetAccountIterator
+from btcrpc.view.models.transaction_object import TransactionObject
+from btcrpc.view.models.transaction_details import TransactionDetails
+from btcrpc.utils.log import get_log, log_info, log_error
 import json
 import socket, errno
 from web3 import Web3, HTTPProvider
 
-from btcrpc.utils.log import *
-
-log = get_log("PythonBitcoinRpc Call:")
+log = get_log("PythonEthereumRpc Call:")
 
 
 class PythonEthJsonRpc(RPCCall):
@@ -41,29 +43,12 @@ class PythonEthJsonRpc(RPCCall):
     def do_get_transaction(self, txid):
         return self.access.eth.getTransaction(txid)
 
-    def do_get_transaction_details(self, transaction_fee_info):
-        transaction_info = self.do_get_transaction(transaction_fee_info.txid)
+    def do_get_transaction_details(self, transaction_object):
+        transaction_info = self.do_get_transaction(transaction_object.txid)
         to_address = transaction_info['to']
         amount = self.access.fromWei(abs(transaction_info['value']), "ether")
-        return {
-            "txid": transaction_fee_info.txid,
-            "fee": transaction_fee_info.fee,
-            "details": [
-                {
-                    "address": to_address,
-                    "txid": transaction_fee_info.txid,
-                    "vout": 0,
-                    "amount": amount
-                }
-            ]
-        }
-
-
-    # def do_get_transactions_info(self, transactions):
-    #     for transaction in transactions:
-    #         txids = transaction["txids"]
-    #         for txid in txids:
-    #             transaction_info = self.do_get_transaction(txid)
+        details = TransactionDetails(to_address=to_address, txid=transaction_object.txid, vout=0, amount=amount)
+        return TransactionObject(transaction_object.txid, fee = transaction_object.fee, details = [details])
 
     def do_get_fees_of_transactions(self, txids):
         txids_with_fee = []
@@ -164,106 +149,128 @@ class PythonEthJsonRpc(RPCCall):
         return False
 
     def send_to_address(self, address, amount, subtractfeefromamount=True, from_wallet=''):
-        check_sum_address = self.access.toChecksumAddress(address)
-        amount_left_to_send = self.access.toWei(amount, "ether")
-        transaction_objects_list = []
-        for account in self.access.eth.accounts:
-            #NOTE TO BE REMOVED: ONLY FOR TESTING
-            if account == self.access.eth.accounts[0]:
-                continue
-            sender = account
-            receiver = check_sum_address
-            balance = self.access.eth.getBalance(sender)
-            gas_price = self.access.eth.gasPrice
-            transaction_object = {
-                'from': sender,
-                'to': receiver,
-                'gasPrice': gas_price,
-            }
-            gas_amount = self.access.eth.estimateGas(transaction_object)
-            transaction_object['gas'] = gas_amount
-            transactionFee = gas_amount * gas_price
+        addresses_and_amounts_dict = {}
+        addresses_and_amounts_dict[address] = amount
+        return self.send_to_addresses(addresses_and_amounts_dict, subtractfeefromamount, from_wallet)
 
-            if balance < transactionFee: #Theres either no balance to send or, only balance is lower than the transactionfee
-                continue
-
-            if balance < amount_left_to_send:
-                transactionValue = balance - transactionFee
-            else:
-                if subtractfeefromamount:
-                    transactionValue = amount_left_to_send - transactionFee
-                elif amount_left_to_send + transactionFee > balance:
-                    transactionValue = balance - transactionFee
-                else:
-                    transactionValue = amount_left_to_send
-
-            transaction_object['value'] = transactionValue
-            transaction_objects_list.append(transaction_object)
-            amount_left_to_send = amount_left_to_send - transactionValue
-            if subtractfeefromamount:
-                amount_left_to_send = amount_left_to_send - transactionFee
-            if amount_left_to_send <= 0:
-                break
-
-        # If this if case is hit, there is not enough funds in the wallet to send the entire amount to the address
-        if amount_left_to_send > 0:
-            exception_string = "There are not enough funds in the wallet: " + from_wallet + " to fund the transaction "\
-                                "of the amount: " + str(amount) + " To address: " + address
-            raise JSONRPCException({'code': -343, 'message': exception_string})
-
-        # We seperate the actual send of funds from the calculation and creation of the transactions, to make sure that
-        # we don't run into a situation where there's only funds to partially fund the transaction. If that would happen,
-        # It could potentially lead to that only of the percentage offunds was sent to the address, which would make the
-        # situation tricky, as we would then need to have error handling to send the rest of the funds later.
+    def send_to_addresses(self, addresses_and_amounts = {}, subtractfeefromamount=True, from_wallet=''):
+        # The reason we define the account list before the addresses_and_amounts.items() loop is because the
+        # eth.sendTransaction(trans_object) does not immediately update the account balance for an eth.getBalance(sender)
+        # request. It is only updated once a transaction from the account is confirmed in a block.
+        # Therefore if we made a loop over all accounts inside the addresses_and_amounts.items() loop that restarts with
+        # every step in the addresses_and_amounts.items() loop, the balances for the accounts might not be updated that
+        # we have just sent transactions from. The loop would then use the same accounts again to send new transactions,
+        # leading to double spend transactions where only one transaction would be accepted.
+        account_iterator = GetAccountIterator(self.access.eth.accounts)
         txids = []
-        for trans_object in transaction_objects_list:
-            yml_config_reader = ConfigFileReader()
-            key_encrypt_pass = yml_config_reader.get_private_key_encryption_password(
-                currency=Constants.Currencies.ETHEREUM,
-                wallet=from_wallet)
-            sender = trans_object['from']
-            self.access.personal.unlockAccount(sender, key_encrypt_pass)
-            txidBytes = self.access.eth.sendTransaction(trans_object)
-            self.access.personal.lockAccount(sender)
-            txid = txidBytes.hex()
-            txids.append(txid)
+        try:
+            for to_address, amount in addresses_and_amounts.items():
+                check_sum_address = self.access.toChecksumAddress(to_address)
+                amount_left_to_send = self.access.toWei(amount, "ether")
+                transaction_objects_list = []
+
+                # Could likely be replaced by making the GetAccountIterator class ovveride the ___iter___ function to and use
+                # the get_next_suitable_account function to set the item returned
+                account = account_iterator.get_next_suitable_account()
+                while account is not None:
+                    #NOTE TO BE REMOVED: ONLY FOR TESTING
+                    # if account == self.access.eth.accounts[0]:
+                    #     account_iterator.increase_account_index()
+                    #     continue
+
+                    sender = account
+                    receiver = check_sum_address
+                    balance = account_iterator.get_set_balance_of_account(sender) \
+                        if account_iterator.has_balance_set_for_account(sender) \
+                        else self.access.eth.getBalance(sender)
+                    gas_price = self.access.eth.gasPrice
+                    transaction_object = {
+                        'from': sender,
+                        'to': receiver,
+                        'gasPrice': gas_price,
+                    }
+                    gas_amount = self.access.eth.estimateGas(transaction_object)
+                    transaction_object['gas'] = gas_amount
+                    transactionFee = gas_amount * gas_price
+
+                    if balance < transactionFee: #Theres either no balance to send or, only balance is lower than the transactionfee
+                        account_iterator.increase_account_index()
+                        continue
+
+                    if balance < amount_left_to_send:
+                        transactionValue = balance - transactionFee
+                    else:
+                        if subtractfeefromamount:
+                            transactionValue = amount_left_to_send - transactionFee
+                        elif amount_left_to_send + transactionFee > balance:
+                            transactionValue = balance - transactionFee
+                        else:
+                            transactionValue = amount_left_to_send
+
+                    transaction_object['value'] = transactionValue
+                    transaction_objects_list.append(transaction_object)
+                    amount_left_to_send = amount_left_to_send - transactionValue
+
+                    new_account_balance = balance - transactionValue - transactionFee
+                    # Ensures that the account_iterator has the new balance of the account, even though eth.getBalance will
+                    # not have updated.
+                    account_iterator.set_balance_of_account(sender, new_account_balance)
+
+                    if subtractfeefromamount:
+                        amount_left_to_send = amount_left_to_send - transactionFee
+                    if amount_left_to_send <= 0:
+                        break
+                    account = account_iterator.get_next_suitable_account()
+
+                # If this if case is hit, there is not enough funds in the wallet to send the entire amount to the address
+                if amount_left_to_send > 0:
+                    exception_string = "There are not enough funds in the wallet: " + from_wallet + " to fund the transaction "\
+                                        "of the amount: " + str(amount) + " To address: " + to_address
+                    raise JSONRPCException({'code': -343, 'message': exception_string})
+
+                # We seperate the actual send of funds from the calculation and creation of the transactions, to make sure that
+                # we don't run into a situation where there's only funds to partially fund the transaction. If that would happen,
+                # It could potentially lead to that only of the percentage offunds was sent to the address, which would make the
+                # situation tricky, as we would then need to have error handling to send the rest of the funds later.
+                for trans_object in transaction_objects_list:
+                    yml_config_reader = ConfigFileReader()
+                    key_encrypt_pass = yml_config_reader.get_private_key_encryption_password(
+                        currency=Constants.Currencies.ETHEREUM,
+                        wallet=from_wallet)
+                    sender = trans_object['from']
+                    self.access.personal.unlockAccount(sender, key_encrypt_pass)
+                    txidBytes = self.access.eth.sendTransaction(trans_object)
+                    self.access.personal.lockAccount(sender)
+                    txid = txidBytes.hex()
+                    propagated_transaction = self.access.eth.getTransaction(txid)
+                    if propagated_transaction is not None:
+                        txids.append(txid)
+                    else:
+                        # NOTE: If this case executes, it means that sendTransaction never propagated the transaction to the network.
+                        # This can unfortunatly happen sometimes, for some strange reason.
+                        error_message = "The eth.sendTransaction generated the txid " + txid + \
+                                        " even though the transaction was never popagted to the network. " \
+                                        "Transaction object to send"
+                        log_error(log, error_message, trans_object)
+
+        except JSONRPCException as j_ex:
+            error_message = "RPC error. Message from rpc client: " + str(j_ex)
+            log_error(log, error_message, j_ex)
+        except BaseException as ex:
+            error_message = "Base exception error. Error message: " + str(ex)
+            log_error(log, error_message, ex)
+
+        # We want to make sure that we return any txids that actually succeeded, even if an exception was raised,
+        # therefore we never return anything and just log the exception from the exception clauses,
+        # and always return the txids.
         return txids
 
 
     def send_many(self, from_account="", minconf=1, from_wallet='', **amounts):
-        transactions_succeeded = True
-        transactions = []
         send_amount_dict = amounts['amounts']
-        for to_address, amount in send_amount_dict.items():
-            try:
-                txids = self.send_to_address(
-                    address=to_address,
-                    amount=amount,
-                    subtractfeefromamount=False,
-                    from_wallet=from_wallet
-                )
-                transaction = self.generate_send_many_response(
-                    txids,
-                    "ok",
-                    "Transfer is done"
-                )
-                transactions.append(transaction)
-            except JSONRPCException as j_ex:
-                print("JSON EXCEPTION!!!!")
-                transactions_succeeded = False
-                transaction = self.generate_send_many_response(
-                    [],
-                    "fail",
-                    "RPC error. Message from rpc client: " + str(j_ex)
-                )
-                transactions.append(transaction)
-            except BaseException as ex:
-                transactions_succeeded = False
-                transaction = self.generate_send_many_response(
-                    [],
-                    "fail",
-                    "Base exception error. Error message: " + str(ex)
-                )
-                transactions.append(transaction)
-
-        return transactions_succeeded, transactions
+        txids = self.send_to_addresses(
+            addresses_and_amounts = send_amount_dict,
+            subtractfeefromamount=False,
+            from_wallet=from_wallet)
+        any_transaction_succeeded = len(txids) > 0
+        return any_transaction_succeeded, txids

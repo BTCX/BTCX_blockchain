@@ -90,6 +90,3 @@ class RPCCall():
     @abstractmethod
     def send_many(self, from_account="", minconf=1, from_wallet="", **amounts):
         raise NotImplementedError
-
-    def generate_send_many_response(self, txids, status, message):
-        return TransactionToAddressInfo(txids, status, message)

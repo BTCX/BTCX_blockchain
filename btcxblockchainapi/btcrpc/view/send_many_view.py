@@ -60,37 +60,88 @@ class BTCSendManyView(APIView):
                     log_info(log, "Trying to set the txfee to", str(txFee))
                     txfee_set = rpc_call.set_tx_fee(txFee)
                     log_info(log, "Using the suggested txfee " + str(txFee), txfee_set)
-                    isSuccess, transactions = rpc_call.send_many(from_account=from_account, from_wallet=wallet, amounts=amounts_dict)
+
+                    isSuccess, txids = rpc_call.send_many(from_account=from_account, from_wallet=wallet, amounts=amounts_dict)
+                    # We want to make sure that transactions_with_details_list contains all txids that succeeded, no
+                    # matter if the rest of the function below fails and raises exceptions, so that we atleast return
+                    # any txids that succeeded
+                    transactions_with_details_list = constantutil.create_transaction_object_list_from_txids(txids)
+
                     log_info(log, "Is send many request successful", isSuccess)
-                    log_info(log, "Transactions of send many request", transactions)
+                    log_info(log, "Transactions of send many request", txids)
 
                     if (isSuccess):
                         semaphore.release(log)
-                        for transaction in transactions:
-                            try:
-                                tx_ids_with_fee = rpc_call.do_get_fees_of_transactions(transaction.txids)
-                                for tx_id_with_fee in tx_ids_with_fee:
-                                    log_info(log, "Tx id with fee object", tx_id_with_fee)
-                                    transaction_with_details = rpc_call.do_get_transaction_details(tx_id_with_fee)
-                                    log_info(log, "Transaction with detail object", tx_id_with_fee)
-                                    transactions_with_details_list.append(transaction_with_details)
-                            except BaseException as e:
-                                # Since we wan't to make sure that a successfull response actually is sent if the rpc sendmany succeeds
-                                # we just continue no matter what exception we encounter
-                                log_error(log, "An error occured when checking the transactions details", e)
-                        response = self.create_send_many_response_and_log(
-                            log_function=log_info,
-                            log_message="Send many is done.",
-                            log_item=None,
-                            status=status.HTTP_200_OK,
-                            message="Send many is done.",
-                            transactions_with_details_list=transactions_with_details_list,
-                            chain=chain,
-                            error=0,
-                            error_message="")
+                        txids_with_fee = rpc_call.do_get_fees_of_transactions(txids)
+                        txids_with_fee_transaction_object_list = \
+                            constantutil.create_transaction_object_list_from_transaction_fee_info_list(txids_with_fee)
+
+                        self.validate_that_length_is_equal_or_longer(
+                            txids_with_fee_transaction_object_list,
+                            transactions_with_details_list,
+                            "rpc_call.do_get_fees_of_transactions"
+                        )
+                        #Update the transactions_with_details_list with the new info since validate call succeeded
+                        transactions_with_details_list = txids_with_fee_transaction_object_list
+
+                        updated_transaction_with_details = []
+                        for transaction_object in txids_with_fee_transaction_object_list:
+                            log_info(log, "Txid with fee object", transaction_object)
+                            transaction_with_details = rpc_call.do_get_transaction_details(transaction_object)
+                            log_info(log, "Transaction with details object", transaction_with_details)
+                            updated_transaction_with_details.append(transaction_with_details)
+
+                        self.validate_that_length_is_equal_or_longer(
+                            updated_transaction_with_details,
+                            transactions_with_details_list,
+                            "rpc_call.do_get_transaction_details"
+                        )
+                        # Update the transactions_with_details_list with the new info since validate call succeeded
+                        transactions_with_details_list = updated_transaction_with_details
+
+                        if self.amounts_dict_total_amount_matches_details_list\
+                                (amounts_dict, transactions_with_details_list):
+                            response = self.create_send_many_response_and_log(
+                                log_function=log_info,
+                                log_message="Send many is done.",
+                                log_item=None,
+                                status=status.HTTP_200_OK,
+                                message="Send many is done.",
+                                transactions_with_details_list=transactions_with_details_list,
+                                chain=chain,
+                                error=0,
+                                error_message="")
+                        else:
+                            error_message = "It seems as not all of the total amount requested to send was actually sent. " \
+                                            "This indicates that not all trnasactions were executed successfully."
+                            response = self.create_send_many_response_and_log(
+                                log_function=log_error,
+                                log_message=error_message,
+                                log_item=None,
+                                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                                message=error_message,
+                                transactions_with_details_list=transactions_with_details_list,
+                                chain=chain,
+                                error=1,
+                                error_message=error_message)
+
+                        # except BaseException as e:
+                        #     # Since we wan't to make sure that a successfull response actually is sent if the rpc sendmany succeeds
+                        #     # we just continue no matter what exception we encounter
+                        #     log_error(log, "An error occured when checking the transactions details", e)
+                        # response = self.create_send_many_response_and_log(
+                        #     log_function=log_info,
+                        #     log_message="Send many is done.",
+                        #     log_item=None,
+                        #     status=status.HTTP_200_OK,
+                        #     message="Send many is done.",
+                        #     transactions_with_details_list=transactions_with_details_list,
+                        #     chain=chain,
+                        #     error=0,
+                        #     error_message="")
                     else:
                         semaphore.release(log)
-                        error_message = "Not all of the transactions were successful, the transactions that succeeded are" \
+                        error_message = "Not all of the transactions were successful, the transactions that succeeded are " \
                                         "included in the transactions list"
                         response = self.create_send_many_response_and_log(
                             log_function=log_error,
@@ -262,11 +313,27 @@ class BTCSendManyView(APIView):
                                           transactions_with_details_list, chain, error=0, error_message=""):
         log_function(log, log_message, log_item)
         wallet_balance_response = send_many_vo.SendManyResponse(
-            status=status.HTTP_200_OK,
+            status=status,
             message=message,
             chain=chain.value,
             error=error,
             error_message=error_message,
             transactions=transactions_with_details_list)
-        log_function(log, "The generated wallet balance response is", wallet_balance_response.__dict__)
+        log_function(log, "The generated send many response is", wallet_balance_response.__dict__)
         return wallet_balance_response
+
+    def validate_that_length_is_equal_or_longer(self, new_transactions_with_details_list, transactions_with_details_list,
+                                                last_function_call_name):
+        if not len(new_transactions_with_details_list) >= len(transactions_with_details_list):
+            exception_string = "One or more txids was lost during the " + last_function_call_name + " call."
+            raise JSONRPCException({'code': -343, 'message': exception_string})
+
+    def amounts_dict_total_amount_matches_details_list(self, amounts_dict, transactions_with_details_list):
+        amounts_dict_total_amount = 0
+        for to_address, amount in amounts_dict.items():
+            amounts_dict_total_amount += amount
+
+        transactions_with_details_list_total_amount = 0
+        for transaction in transactions_with_details_list:
+            for detail in transaction.details:
+                transactions_with_details_list_total_amount += detail.amount

@@ -2,6 +2,7 @@ from btcrpc.utils.rpc_calls.rpc_call import RPCCall
 
 from btcrpc.utils.constant_values import Constants
 from btcrpc.utils.address_encoding_flag import AddressEncodingFlag
+from btcrpc.view.models.transaction_object import TransactionObject
 
 def constant(f):
     def fset(self, value):
@@ -48,3 +49,12 @@ def not_none(value):
         return value
     else:
         raise TypeError("The value is none")
+
+
+def create_transaction_object_list_from_txids(txids):
+     return [TransactionObject(txid=txid) for txid in txids]
+
+
+def create_transaction_object_list_from_transaction_fee_info_list(transaction_fee_info_list):
+    return [TransactionObject(txid=transaction_fee_info.txid, fee=transaction_fee_info.fee)
+            for transaction_fee_info in transaction_fee_info_list]
