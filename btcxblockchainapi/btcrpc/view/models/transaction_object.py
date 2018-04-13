@@ -7,14 +7,24 @@ class TransactionObject(object):
         self.details = details
 
     def __str__(self):
-        return str(self.__dict__)
+        return self.get_self_str()
 
     def __repr__(self):
-        return str(self.__dict__)
+        return self.get_self_str()
 
-    def __dict__(self):
+    def get_self_str(self):
+        details_string = "["
+        for index, detail in enumerate(self.details):
+            if index > 0:
+                details_string += ", "
+            details_string += str(detail)
+        details_string += "]"
+        return "{'txid': '" + self.txid + "', 'fee': '" + str(self.fee) + "',  'details': " + details_string + "}"
+
+    def as_dict(self):
+        details_dict_list = [detail.as_dict() for detail in self.details]
         return {
             "txid" : self.txid,
             "fee" : self.fee,
-            "details" : self.details
+            "details" : details_dict_list
         }

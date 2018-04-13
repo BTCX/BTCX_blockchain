@@ -6,12 +6,16 @@ class TransactionDetails(object):
         self.amount = amount
 
     def __str__(self):
-        return str(self.__dict__)
+        return self.get_self_str()
 
     def __repr__(self):
-        return str(self.__dict__)
+        return self.get_self_str()
 
-    def __dict__(self):
+    def get_self_str(self):
+        return "{'address': '" + self.to_address + "', 'txid': '" + self.txid + "',  'vout': '" \
+               + str(self.vout) + "',  'amount': '" + str(self.amount) + "'}"
+
+    def as_dict(self):
         return {
             "address" : self.to_address,
             "txid" : self.txid,

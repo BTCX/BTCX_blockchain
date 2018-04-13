@@ -65,7 +65,8 @@ class BTCSendManyView(APIView):
                     # We want to make sure that transactions_with_details_list contains all txids that succeeded, no
                     # matter if the rest of the function below fails and raises exceptions, so that we atleast return
                     # any txids that succeeded
-                    transactions_with_details_list = constantutil.create_transaction_object_list_from_txids(txids)
+                    transactions_with_details_list = constantutil.create_transaction_object_dict_list_from_transaction_object_list(
+                        constantutil.create_transaction_object_list_from_txids(txids))
 
                     log_info(log, "Is send many request successful", isSuccess)
                     log_info(log, "Transactions of send many request", txids)
@@ -82,7 +83,9 @@ class BTCSendManyView(APIView):
                             "rpc_call.do_get_fees_of_transactions"
                         )
                         #Update the transactions_with_details_list with the new info since validate call succeeded
-                        transactions_with_details_list = txids_with_fee_transaction_object_list
+                        transactions_with_details_list = \
+                            constantutil.create_transaction_object_dict_list_from_transaction_object_list(
+                                txids_with_fee_transaction_object_list)
 
                         updated_transaction_with_details = []
                         for transaction_object in txids_with_fee_transaction_object_list:
@@ -97,10 +100,15 @@ class BTCSendManyView(APIView):
                             "rpc_call.do_get_transaction_details"
                         )
                         # Update the transactions_with_details_list with the new info since validate call succeeded
-                        transactions_with_details_list = updated_transaction_with_details
+                        transactions_with_details_list = \
+                            constantutil.create_transaction_object_dict_list_from_transaction_object_list(
+                                updated_transaction_with_details)
 
+                        # note that we are send in the updated_transaction_with_details that includes TransactionObjects
+                        # and not the dict objects. This is so we can call the class properties and do not need to access
+                        # the dictionary in the amounts_dict_total_amount_matches_details_list function.
                         if self.amounts_dict_total_amount_matches_details_list\
-                                (amounts_dict, transactions_with_details_list):
+                                (amounts_dict, updated_transaction_with_details):
                             response = self.create_send_many_response_and_log(
                                 log_function=log_info,
                                 log_message="Send many is done.",
@@ -331,9 +339,11 @@ class BTCSendManyView(APIView):
     def amounts_dict_total_amount_matches_details_list(self, amounts_dict, transactions_with_details_list):
         amounts_dict_total_amount = 0
         for to_address, amount in amounts_dict.items():
-            amounts_dict_total_amount += amount
+            amounts_dict_total_amount += float(amount)
 
         transactions_with_details_list_total_amount = 0
         for transaction in transactions_with_details_list:
             for detail in transaction.details:
-                transactions_with_details_list_total_amount += detail.amount
+                transactions_with_details_list_total_amount += float(detail.amount)
+
+        return amounts_dict_total_amount == transactions_with_details_list_total_amount

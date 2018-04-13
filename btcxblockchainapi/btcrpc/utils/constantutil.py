@@ -58,3 +58,7 @@ def create_transaction_object_list_from_txids(txids):
 def create_transaction_object_list_from_transaction_fee_info_list(transaction_fee_info_list):
     return [TransactionObject(txid=transaction_fee_info.txid, fee=transaction_fee_info.fee)
             for transaction_fee_info in transaction_fee_info_list]
+
+def create_transaction_object_dict_list_from_transaction_object_list(transaction_object_list):
+    return [transaction_object.as_dict()
+            for transaction_object in transaction_object_list]
