@@ -174,10 +174,10 @@ class PythonEthJsonRpc(RPCCall):
                 account = account_iterator.get_next_suitable_account()
                 while account is not None:
                     #NOTE TO BE REMOVED: ONLY FOR TESTING
-                    if account == self.access.eth.accounts[0]:
-                        account_iterator.increase_account_index()
-                        account = account_iterator.get_next_suitable_account()
-                        continue
+                    # if account == self.access.eth.accounts[0]:
+                    #     account_iterator.increase_account_index()
+                    #     account = account_iterator.get_next_suitable_account()
+                    #     continue
 
                     sender = account
                     receiver = check_sum_address
