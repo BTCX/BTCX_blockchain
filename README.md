@@ -315,6 +315,12 @@ Response parameter/parameters definition:
 | chain                 | Int                  | Specifies for which chain the wallet node is configured | 0 (Unknown) / 1 (Mainnet) / 2 (Testnet) / 3 (Regtest) |
 | error                  | Int                  | Indicates if an error occurred when requesting the balance for the specific wallet. | 0 (No error) / 1 (Error occurred) |
 | error_message  | String            | Holds a descriptive message corresponding to the error.  | |
+| details               | JSON Array   | A JSON Array where every object represnts an output of the sendmany transaction EXCEPT the change transaction output. | |
+| address             | String            | The address the specific output has been sent to. | |
+| txid                    | String            | The txid of the entire transaction broadcasted to the network.    | |
+| vout                   | Int                 | The index of the specific output in the transaction. | |
+| amount              | String            | The amount sent (locked) with the specific output.  | |
+
 
 Request body:
 
