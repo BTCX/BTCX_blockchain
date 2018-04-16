@@ -35,7 +35,7 @@ Request parameter/parameters definition:
 
 | Parameter   | Type   | Description | Possible values |
 | --------------| ------  | --------- | --------- |
-| currency      | String | Specifies the currency for which the balance is returned.  | btc / ltc / bch |
+| currency      | String | Specifies the currency for which the balance is returned.  |  btc / ltc / bch /eth |
 
 Response parameter/parameters definition:
 
@@ -110,7 +110,7 @@ Request parameter/parameters definition:
 | Parameter   | Type   | Description | Possible values | Optional |
 | --------------| ------  | --------- | --------- | --------- |
 | transfers        | Array | Holds an array of JSON objects which represents the different transfers to be executed. Supports multi currency transfers with the same request. | | |
-| currency        | String | Specifies the currency of the transfer | btc / ltc / bch | |
+| currency        | String | Specifies the currency of the transfer |  btc / ltc / bch /eth  | |
 | wallet             | String | Specifies which specific wallet will be used when setting the inputs for the transfer transaction | | |
 | safe_address | String | Specifies which specific address the transaction outputs will be locked to. The address MUST correspond to an address defined in config file under /btcxblockchainapi/btcxblockchainapi/config.yml. | | |
 | amount          | Float | Defines the total amount that will be transferred. NOTE: this amount is the total amount including fees, and the request will therefore fail if the total amount does not exceed the transaction fee.  | | |
@@ -121,7 +121,7 @@ Response parameter/parameters definition:
 | Parameter   | Type   | Description | Possible values |
 | --------------| ------  | --------- | --------- |
 | transfers            | Array | Holds an array of JSON objects which represents the transfers that were successfully executed of the requested transfers. NOTE: It can occur that a transfer fails when handled. Since the transfer array in the request are looped through and handled through iteration, the iteration may in some rare cases halt when the transfer fails. In such cases, the length of the array of transfers in the response, is shorter than the length of the array in the transfer request.   | |
-| currency            | String | Specifies the currency of the specific transfer. | btc / ltc / bch |
+| currency            | String | Specifies the currency of the specific transfer. |  btc / ltc / bch /eth  |
 | to_address        | String | Specifies to which specific address the transfer output was locked. | |
 | amount              | Float | Specifies the total amount of the transaction for the specific transfer. NOTE: This amount is including the fee of the transaction. The fee must therefore be subtracted from the amount to get the actual value that was locked to the to_address  | |
 | message           | String | Includes a message corresponding how well the transfer was executed | |
@@ -185,7 +185,7 @@ Request parameter/parameters definition:
 
 | Parameter   | Type   | Description | Possible values |
 | --------------| ------  | --------- | --------- |
-| currency      | String | Specifies which currency the addresses should be generated for. | btc / ltc / bch |
+| currency      | String | Specifies which currency the addresses should be generated for. | btc / ltc / bch /eth  |
 | wallet           | String | Specifies which specific wallet the addresses (and keys corresponding to the addresses) will be generated in.  | |
 | quantity       | Int | Defines how many addresses should be generated. | |
 
@@ -231,7 +231,7 @@ Request parameter/parameters definition:
 | Parameter   | Type   | Description | Possible values |
 | --------------| ------  | --------- | --------- |
 | transactions | JSON Array | And array of JSON objects, where every object represents the received payment to check. Supports multi currency checks. | |
-| currency      | String | Specifies which currency the specific received payment should be checked for | btc / ltc / bch |
+| currency      | String | Specifies which currency the specific received payment should be checked for |  btc / ltc / bch /eth  |
 | address       | String | Defines the address the received payment should be checked for. NOTE: The address must be part of the specified wallet. | |
 | wallet           | String | Specifies which specific wallet the address sent in the address parameter should be "stored" (e.g. hold keys that correspond to the address).  | |
 
@@ -240,7 +240,7 @@ Response parameter/parameters definition:
 | Parameter   | Type   | Description | Possible values |
 | --------------| ------  | --------- | --------- |
 | receives              | JSON Array   | An array that holds JSON objects representing the receive response to the corresponding receive request in the request body "transactions" parameter.  NOTE: It can occur that a receive request fails when handled. Since the "transaction" array in the request are looped through and handled through iteration, the iteration may in some rare cases halt when the receive request fails. In such cases, the length of the array of receive responses in the response, is shorter than the length of the transaction array in the request. |  |
-| currency             | String            | Specifies which currency the specific received payment has been checked for. | btc / ltc / bch |
+| currency             | String            | Specifies which currency the specific received payment has been checked for. |  btc / ltc / bch /eth |
 | address              | String            | Defines the address the specific received payment has be checked for.  | |
 | received             | String            | The total amount that has been received for the specific address in the highest denominator for the currency. For bitcoin the fee is in BTC (hence 0.00000001 is one satoshi) | |
 | risk                     | String            | Indicates if any of the transactions sent to the address is at risk of being forked away (based on number of confirmations). The minimum confirmations required for the specific alternatives is defined in the in config file under /btcxblockchainapi/btcxblockchainapi/config.yml.   | low / medium / high |
@@ -306,7 +306,7 @@ Request parameter/parameters definition:
 
 | Parameter   | Type   | Description | Possible values |
 | --------------| ------  | --------- | --------- |
-| currency      | String            | Specifies the currency of the sendmany request (Only one currency per request is supported) | btc / ltc / bch |
+| currency      | String            | Specifies the currency of the sendmany request (Only one currency per request is supported) | btc / ltc / bch /eth  |
 | toSend        | JSON Array   | An JSON array where every object represents a request to send a specific amount to a specific address | |
 | amount        | Float             | The amount to send to the specified address for the specific send request. NOTE: This amount is excluding the transaction fee (the fee will therefore be added to the total transaction) | |
 | toAddress    | String           | The address to send the specified amount to for the specific send request. | |
@@ -451,7 +451,7 @@ Request parameter/parameters definition:
 
 | Parameter   | Type   | Description | Possible values |
 | --------------| ------  | --------- | --------- |
-| currency      | String            | Specifies the currency the wallet notify event was triggered for. | btc / ltc / bch |
+| currency      | String            | Specifies the currency the wallet notify event was triggered for. |  btc / ltc / bch /eth  |
 | txid              | String            | Specifies the txid that triggered wallet notify event sent. |  |
 
 Response parameter/parameters definition:
@@ -476,4 +476,50 @@ Response body:
         "error": 0,
         "error_message": ""
     }
+
+### POST /validate
+
+Function:
+
+Validates if an address is a valid address for a specified currency, and if the address is one of our addresses.
+
+
+Request parameter/parameters definition:
+
+| Parameter   | Type   | Description | Possible values |
+| --------------| ------  | --------- | --------- |
+| currency      | String        | The address parameter should be valid address for this currency. | btc / ltc / bch /eth |
+| address    | String           | The address to validate. | |
+
+Response parameter/parameters definition:
+
+| Parameter   | Type   | Description | Possible values |
+| --------------| ------  | --------- | --------- |
+| is_valid              | Bool            | Returns True if the address is a valid address, or False if not. | True / False |
+| is_mine             | Bool             | Indicaties if the address is part of any of the node's / nodes' wallets. | True / False |
+| address             | String          | The address the request was made with. | |
+| wallet                | String            | Specifies which specific wallet the address is part of. If it's not part of any wallet, the result is an empty string. | |
+| chain                 | Int                  | Specifies for which chain address is part of. | 0 (Unknown) / 1 (Mainnet) / 2 (Testnet) / 3 (Regtest) |
+| error                  | Int                  | Indicates if an error occurred. | 0 (No error) / 1 (Error occurred) |
+| error_message  | String            | Holds a descriptive message corresponding to the error.  | |
+
+Request body:
+
+    {
+        "currency":"btc",
+        "address":"2NDZjCHRgRme9FoUqrU441pW9Lo1Ht46F99"
+    }
+
+Response body:
+
+    {
+        "is_valid": true,
+        "is_mine": false,
+        "address": "2NDZjCHRgRme9FoUqrU441pW9Lo1Ht46F99",
+        "wallet": "",
+        "chain": 2,
+        "error": 0,
+        "error_message": ""
+    }
+
 
