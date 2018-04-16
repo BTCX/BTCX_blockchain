@@ -100,11 +100,47 @@ class PythonEthJsonRpc(RPCCall):
     def get_blockchain_info(self):
         raise NotImplementedError
 
+    def get_pending_transactions(self):
+        return self.access.manager.request_blocking(
+            "eth_pendingTransactions",
+            []
+        )
+
     def get_received_amount_by_account(self, account="", minconf=1):
         raise NotImplementedError
 
     def get_balance(self, account="", minconf=1):
         raise NotImplementedError
+
+    def get_real_account_balance(self, account):
+        confirmed_account_balance = self.access.fromWei(self.access.eth.getBalance(account), "ether")
+        #retrieves only the pending transactions sent by the wallet
+        pending_transactions = self.get_pending_transactions()
+        queued_transactions = {}
+        print("Queued transactions")
+        print(queued_transactions)
+        txpool_status = self.access.txpool.status
+        number_of_queued_transactions = txpool_status['queued']
+        print("number of queued transactions")
+        print(number_of_queued_transactions)
+        if number_of_queued_transactions > 0:
+            queued_transactions = self.access.txpool.content['queued']
+            print("Queued transactions")
+            print(queued_transactions)
+
+        for pending_transaction_account, account_pending_transactions in pending_transactions.items():
+            if account == pending_transaction_account:
+                for nonce, transactions_for_nonce in account_pending_transactions.items():
+                    max_gas_price = 0.0
+                    max_priced_transaction_index = 0
+                    for transaction_index, transaction in enumerate(transactions_for_nonce):
+                        transaction_gas_price = self.access.fromWei(transaction['gasPrice'], "ether")
+                        if(transaction_gas_price > max_gas_price):
+                            max_gas_price = transaction_gas_price
+                            max_priced_transaction_index = transaction_index
+                    max_priced_transaction = transactions_for_nonce[max_priced_transaction_index]
+
+
 
     def get_wallet_balance(self):
         accounts = self.access.eth.accounts
@@ -234,6 +270,9 @@ class PythonEthJsonRpc(RPCCall):
                 # we don't run into a situation where there's only funds to partially fund the transaction. If that would happen,
                 # It could potentially lead to that only of the percentage offunds was sent to the address, which would make the
                 # situation tricky, as we would then need to have error handling to send the rest of the funds later.
+
+                pending_transactions = self.get_pending_transactions()
+
                 for trans_object in transaction_objects_list:
                     yml_config_reader = ConfigFileReader()
                     key_encrypt_pass = yml_config_reader.get_private_key_encryption_password(
@@ -243,13 +282,20 @@ class PythonEthJsonRpc(RPCCall):
                     self.access.personal.unlockAccount(sender, key_encrypt_pass)
                     txidBytes = self.access.eth.sendTransaction(trans_object)
                     self.access.personal.lockAccount(sender)
+
+                    new_pending_transactions = self.get_pending_transactions()
+
+                    if txidBytes is None:
+                        error_message = "txidBytes is None, this could mean that the transaction was never " \
+                                        "broadcasted to the network."
+                        log_error(log, error_message, trans_object)
                     txid = txidBytes.hex()
                     propagated_transaction = self.access.eth.getTransaction(txid)
                     if propagated_transaction is not None:
                         txids.append(txid)
                     else:
-                        # NOTE: If this case executes, it means that sendTransaction never propagated the transaction to the network.
-                        # This can unfortunatly happen sometimes, for some strange reason.
+                        # NOTE: If this case executes, it means that sendTransaction never propagated the transaction
+                        # to the network. This can unfortunatly happen sometimes, for some strange reason.
                         error_message = "The eth.sendTransaction generated the txid " + txid + \
                                         " even though the transaction was never popagted to the network. " \
                                         "Transaction object to send"
