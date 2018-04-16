@@ -131,15 +131,24 @@ class PythonEthJsonRpc(RPCCall):
         for pending_transaction_account, account_pending_transactions in pending_transactions.items():
             if account == pending_transaction_account:
                 for nonce, transactions_for_nonce in account_pending_transactions.items():
-                    max_gas_price = 0.0
+                    max_gas_price = 0
                     max_priced_transaction_index = 0
                     for transaction_index, transaction in enumerate(transactions_for_nonce):
-                        transaction_gas_price = self.access.fromWei(transaction['gasPrice'], "ether")
-                        if(transaction_gas_price > max_gas_price):
+                        transaction_gas_price = transaction['gasPrice']
+                        if transaction_gas_price > max_gas_price:
                             max_gas_price = transaction_gas_price
                             max_priced_transaction_index = transaction_index
                     max_priced_transaction = transactions_for_nonce[max_priced_transaction_index]
+                    max_priced_gas_amount = max_priced_transaction['gas']
+                    max_priced_transaction_transaction_value = max_priced_transaction['value']
+                    max_priced_transaction_fee = max_priced_gas_amount * max_gas_price
+                    amount_to_subtract_from_balance = self.access.fromWei(
+                        max_priced_transaction_transaction_value + max_priced_transaction_fee,
+                        "ether"
+                    )
+                    confirmed_account_balance -= amount_to_subtract_from_balance
 
+        return confirmed_account_balance
 
 
     def get_wallet_balance(self):
