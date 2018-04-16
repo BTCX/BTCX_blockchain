@@ -4,7 +4,7 @@ from .singleton import Singleton
 class ConfigFileReader(object, metaclass=Singleton):
 
     def __init__(self):
-        server_config = open("./btcxblockchainapi/config_v2.yml")
+        server_config = open("./btcxblockchainapi/config.yml")
         self.server_map = yaml.safe_load(server_config)
 
     def get_rpc_server(self, currency, wallet):

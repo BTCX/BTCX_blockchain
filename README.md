@@ -344,6 +344,66 @@ Response body:
         "message": "Send many is done.",
         "chain": 2,
         "error": 0,
+        "error_message": "",
+        "details": [
+            {
+                "address": "2N7nCLKXxWrUEqyZFvt7eahvEaxAZni1fwK",
+                "txid": "cbvb35c5c0de7fh42390abe65b685cg4c296c7f7c49d9j7fce5hg2092d3de7c5",
+                "vout": 0,
+                "amount": "0.01000000"
+            },
+            {
+                "address": "2NAiERRHtLevi4uf4iMuDgLoyvAKkg2jVj2",
+                "txid": "cbvb35c5c0de7fh42390abe65b685cg4c296c7f7c49d9j7fce5hg2092d3de7c5",
+                "vout": 1,
+                "amount": "0.07000000"
+            }
+        ]
+    }
+        
+        
+### POST /validate
+
+Function:
+
+Validates if an address is a valid address for a specified currency, and if the address is one of our addresses.
+
+
+Request parameter/parameters definition:
+
+| Parameter   | Type   | Description | Possible values |
+| --------------| ------  | --------- | --------- |
+| currency      | String        | The address parameter should be valid address for this currency. | btc / ltc / bch |
+| address    | String           | The address to validate. | |
+
+Response parameter/parameters definition:
+
+| Parameter   | Type   | Description | Possible values |
+| --------------| ------  | --------- | --------- |
+| is_valid              | Bool            | Returns True if the address is a valid address, or False if not. | True / False |
+| is_mine             | Bool             | Indicaties if the address is part of any of the node's / nodes' wallets. | True / False |
+| address             | String          | The address the request was made with. | |
+| wallet                | String            | Specifies which specific wallet the address is part of. If it's not part of any wallet, the result is an empty string. | |
+| chain                 | Int                  | Specifies for which chain address is part of. | 0 (Unknown) / 1 (Mainnet) / 2 (Testnet) / 3 (Regtest) |
+| error                  | Int                  | Indicates if an error occurred. | 0 (No error) / 1 (Error occurred) |
+| error_message  | String            | Holds a descriptive message corresponding to the error.  | |
+        
+Request body:
+        
+    {
+        "currency":"btc",
+        "address":"2NDZjCHRgRme9FoUqrU441pW9Lo1Ht46F99"
+    }
+        
+Response body:
+        
+    {
+        "is_valid": true,
+        "is_mine": false,
+        "address": "2NDZjCHRgRme9FoUqrU441pW9Lo1Ht46F99",
+        "wallet": "",
+        "chain": 2,
+        "error": 0,
         "error_message": ""
     }
 
