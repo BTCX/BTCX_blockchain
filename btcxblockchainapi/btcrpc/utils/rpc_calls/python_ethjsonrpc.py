@@ -5,7 +5,6 @@ from btcrpc.utils.chain_enum import ChainEnum
 from btcrpc.utils.address_encoding_flag import AddressEncodingFlag
 from btcrpc.utils.constant_values import Constants
 from btcrpc.view.models.transaction_fee_info import TransactionFeeInfo
-from btcrpc.view.models.get_account_iterator import GetAccountIterator
 from btcrpc.view.models.transaction_object import TransactionObject
 from btcrpc.view.models.transaction_details import TransactionDetails
 from btcrpc.utils.log import get_log, log_info, log_error
@@ -112,43 +111,92 @@ class PythonEthJsonRpc(RPCCall):
     def get_balance(self, account="", minconf=1):
         raise NotImplementedError
 
-    def get_real_account_balance(self, account):
-        confirmed_account_balance = self.access.fromWei(self.access.eth.getBalance(account), "ether")
+    def get_real_account_balance_in_wei(self, account):
+        (pending_account_balance, confirmed_account_balance, pending_transactions) = \
+            self.get_pending_and_confirmed_balance_in_wei_and_pending_transactions(account)
+        return pending_account_balance
+
+    def get_pending_and_confirmed_balance_in_wei_and_pending_transactions(self, account):
+        account_as_checksum_address = self.access.toChecksumAddress(account)
+        # confirmed_account_balance = self.access.fromWei(self.access.eth.getBalance(account), "ether")
+        (confirmed_account_balance, pending_transactions) = \
+            self.get_confirmed_balance_with_pending_transactions(account_as_checksum_address)
+        print("Confirmed balance for account " + account_as_checksum_address)
+        print(confirmed_account_balance)
+        pending_account_balance = confirmed_account_balance
         #retrieves only the pending transactions sent by the wallet
-        pending_transactions = self.get_pending_transactions()
-        queued_transactions = {}
-        print("Queued transactions")
-        print(queued_transactions)
+        print("After queued transactions")
+        print("Pending transactions")
+        print(pending_transactions)
+
+        for pending_transaction in pending_transactions:
+            if account_as_checksum_address == self.access.toChecksumAddress(pending_transaction['from']):
+                #All values in the transaction are in hex, so we need to convert them to ints.
+                transaction_value = int(pending_transaction['value'], 0)
+                pending_transaction_gas_price = int(pending_transaction['gasPrice'], 0)
+                pending_transaction_gas_amount = int(pending_transaction['gas'], 0)
+                pending_transaction_fee = pending_transaction_gas_amount * pending_transaction_gas_price
+                pending_account_balance -= (transaction_value + pending_transaction_fee)
+        print("Real balance for account " + account_as_checksum_address)
+        print(pending_account_balance)
+        return (pending_account_balance, confirmed_account_balance, pending_transactions)
+
+    '''This function makes sure that the we get the real confirmed account balance with the corresponding pending 
+    transactions. If we did not do the equal checks that is in this function, and just did first the eth.getBalance
+    followed by the get_pending_transaction call and jsut returned those, we could end up with a situation where
+    the pending transaction list could have changed between the two calls, and therefore returning an incorrect balance 
+    value'''
+    def get_confirmed_balance_with_pending_transactions(self, account):
+
+        confirmed_account_balance_first_check = self.access.eth.getBalance(account)
+        pending_transactions_first_check = self.get_pending_transactions()
+        confirmed_account_balance_second_check = self.access.eth.getBalance(account)
+        pending_transactions_second_check = self.get_pending_transactions()
+        # We need to do this second check of the pending transactions also, because theoretically between the first
+        # pending transaction check and sencond balance check there could have been pending transactions confirmed, and
+        # also new ones that entered the pending pool that confirmed, that EXACTLY set the balance to the same balance
+        # as the first check for the secnond balance check
+
+        if confirmed_account_balance_first_check != confirmed_account_balance_second_check:
+            return self.get_confirmed_balance_with_pending_transactions(account)
+        elif pending_transactions_first_check != pending_transactions_second_check:
+            return self.get_confirmed_balance_with_pending_transactions(account)
+        else:
+            #The balance and pending transactions are correct
+            return (confirmed_account_balance_first_check, pending_transactions_first_check)
+
+
+    def get_wallet_has_queued_transactions(self):
+        accounts = self.access.eth.accounts
         txpool_status = self.access.txpool.status
-        number_of_queued_transactions = txpool_status['queued']
-        print("number of queued transactions")
-        print(number_of_queued_transactions)
-        if number_of_queued_transactions > 0:
-            queued_transactions = self.access.txpool.content['queued']
-            print("Queued transactions")
-            print(queued_transactions)
-
-        for pending_transaction_account, account_pending_transactions in pending_transactions.items():
-            if account == pending_transaction_account:
-                for nonce, transactions_for_nonce in account_pending_transactions.items():
-                    max_gas_price = 0
-                    max_priced_transaction_index = 0
-                    for transaction_index, transaction in enumerate(transactions_for_nonce):
-                        transaction_gas_price = transaction['gasPrice']
-                        if transaction_gas_price > max_gas_price:
-                            max_gas_price = transaction_gas_price
-                            max_priced_transaction_index = transaction_index
-                    max_priced_transaction = transactions_for_nonce[max_priced_transaction_index]
-                    max_priced_gas_amount = max_priced_transaction['gas']
-                    max_priced_transaction_transaction_value = max_priced_transaction['value']
-                    max_priced_transaction_fee = max_priced_gas_amount * max_gas_price
-                    amount_to_subtract_from_balance = self.access.fromWei(
-                        max_priced_transaction_transaction_value + max_priced_transaction_fee,
-                        "ether"
-                    )
-                    confirmed_account_balance -= amount_to_subtract_from_balance
-
-        return confirmed_account_balance
+        number_of_queued_transactions = int(txpool_status['queued'], 0)
+        if number_of_queued_transactions == 0:
+            return False
+        queued_transactions = self.access.txpool.content['queued']
+        for account in accounts:
+            for queued_transaction_account, account_queued_transactions in queued_transactions.items():
+                if account == account:
+                    return True
+        return False
+        # for pending_transaction_account, account_pending_transactions in pending_transactions.items():
+        #     if account == pending_transaction_account:
+        #         for nonce, transactions_for_nonce in account_pending_transactions.items():
+        #             max_gas_price = 0
+        #             max_priced_transaction_index = 0
+        #             for transaction_index, transaction in enumerate(transactions_for_nonce):
+        #                 transaction_gas_price = transaction['gasPrice']
+        #                 if transaction_gas_price > max_gas_price:
+        #                     max_gas_price = transaction_gas_price
+        #                     max_priced_transaction_index = transaction_index
+        #             max_priced_transaction = transactions_for_nonce[max_priced_transaction_index]
+        #             max_priced_gas_amount = max_priced_transaction['gas']
+        #             max_priced_transaction_transaction_value = max_priced_transaction['value']
+        #             max_priced_transaction_fee = max_priced_gas_amount * max_gas_price
+        #             amount_to_subtract_from_balance = self.access.fromWei(
+        #                 max_priced_transaction_transaction_value + max_priced_transaction_fee,
+        #                 "ether"
+        #             )
+        #             real_account_balance_with_pending_transactions -= amount_to_subtract_from_balance
 
 
     def get_wallet_balance(self):
@@ -199,14 +247,6 @@ class PythonEthJsonRpc(RPCCall):
         return self.send_to_addresses(addresses_and_amounts_dict, subtractfeefromamount, from_wallet)
 
     def send_to_addresses(self, addresses_and_amounts = {}, subtractfeefromamount=True, from_wallet=''):
-        # The reason we define the account list before the addresses_and_amounts.items() loop is because the
-        # eth.sendTransaction(trans_object) does not immediately update the account balance for an eth.getBalance(sender)
-        # request. It is only updated once a transaction from the account is confirmed in a block.
-        # Therefore if we made a loop over all accounts inside the addresses_and_amounts.items() loop that restarts with
-        # every step in the addresses_and_amounts.items() loop, the balances for the accounts might not be updated that
-        # we have just sent transactions from. The loop would then use the same accounts again to send new transactions,
-        # leading to double spend transactions where only one transaction would be accepted.
-        account_iterator = GetAccountIterator(self.access.eth.accounts)
         txids = []
         try:
             for to_address, amount in addresses_and_amounts.items():
@@ -214,21 +254,16 @@ class PythonEthJsonRpc(RPCCall):
                 amount_left_to_send = self.access.toWei(amount, "ether")
                 transaction_objects_list = []
 
-                # Could likely be replaced by making the GetAccountIterator class ovveride the ___iter___ function to and use
-                # the get_next_suitable_account function to set the item returned
-                account = account_iterator.get_next_suitable_account()
-                while account is not None:
+                for account in self.access.eth.accounts:
                     #NOTE TO BE REMOVED: ONLY FOR TESTING
                     # if account == self.access.eth.accounts[0]:
-                    #     account_iterator.increase_account_index()
-                    #     account = account_iterator.get_next_suitable_account()
                     #     continue
 
                     sender = account
                     receiver = check_sum_address
-                    balance = account_iterator.get_balance_of_account(sender) \
-                        if account_iterator.has_balance_set_for_account(sender) \
-                        else self.access.eth.getBalance(sender)
+                    # NOTE!!! Make sure to use a balance that subtracts pending transactions (which
+                    # get_real_account_balance_in_wei does), else this function will lead to double spend transactions.
+                    balance = self.get_real_account_balance_in_wei(account)
                     gas_price = self.access.eth.gasPrice
                     transaction_object = {
                         'from': sender,
@@ -240,8 +275,6 @@ class PythonEthJsonRpc(RPCCall):
                     transactionFee = gas_amount * gas_price
 
                     if balance < transactionFee: #Theres either no balance to send or, only balance is lower than the transactionfee
-                        account_iterator.increase_account_index()
-                        account = account_iterator.get_next_suitable_account()
                         continue
 
                     if balance < amount_left_to_send:
@@ -258,16 +291,10 @@ class PythonEthJsonRpc(RPCCall):
                     transaction_objects_list.append(transaction_object)
                     amount_left_to_send = amount_left_to_send - transactionValue
 
-                    new_account_balance = balance - transactionValue - transactionFee
-                    # Ensures that the account_iterator has the new balance of the account, even though eth.getBalance will
-                    # not have updated.
-                    account_iterator.set_balance_of_account(sender, new_account_balance)
-
                     if subtractfeefromamount:
                         amount_left_to_send = amount_left_to_send - transactionFee
                     if amount_left_to_send <= 0:
                         break
-                    account = account_iterator.get_next_suitable_account()
 
                 # If this if case is hit, there is not enough funds in the wallet to send the entire amount to the address
                 if amount_left_to_send > 0:
@@ -280,25 +307,46 @@ class PythonEthJsonRpc(RPCCall):
                 # It could potentially lead to that only of the percentage offunds was sent to the address, which would make the
                 # situation tricky, as we would then need to have error handling to send the rest of the funds later.
 
-                pending_transactions = self.get_pending_transactions()
-
                 for trans_object in transaction_objects_list:
                     yml_config_reader = ConfigFileReader()
                     key_encrypt_pass = yml_config_reader.get_private_key_encryption_password(
                         currency=Constants.Currencies.ETHEREUM,
                         wallet=from_wallet)
                     sender = trans_object['from']
+
                     self.access.personal.unlockAccount(sender, key_encrypt_pass)
+
+                    (pending_b1, confirmed_b1, pending_txs1) = \
+                        self.get_pending_and_confirmed_balance_in_wei_and_pending_transactions(sender)
+
                     txidBytes = self.access.eth.sendTransaction(trans_object)
+
+                    (pending_b2, confirmed_b2, pending_txs2) = \
+                        self.get_pending_and_confirmed_balance_in_wei_and_pending_transactions(sender)
+
                     self.access.personal.lockAccount(sender)
 
-                    new_pending_transactions = self.get_pending_transactions()
 
-                    if txidBytes is None:
-                        error_message = "txidBytes is None, this could mean that the transaction was never " \
-                                        "broadcasted to the network."
-                        log_error(log, error_message, trans_object)
-                    txid = txidBytes.hex()
+                    if txidBytes is not None:
+                        #The txid returned by sendTransaction is of type hexBytes. To get the hex string, we run .hex()
+                        txid = txidBytes.hex()
+                    else:
+                        # The sendTransaction returned nothing. However ethereum sometimes still sends a transaction when
+                        # even though sendTransaction returns nothing. We must check if there is a new txid added.
+                        fetched_txid = self.handle_no_txid_returned_for_sendtransaction(
+                            trans_object=trans_object,
+                            pending_balance_before_sent=pending_b1,
+                            pending_balance_after_sent=pending_b2,
+                            confirmed_balance_before_sent=confirmed_b1,
+                            confirmed_balance_after_sent=confirmed_b2,
+                            pending_transactions_before_sent=pending_txs1,
+                            pending_transactions_after_sent=pending_txs2
+                        )
+                        txid = fetched_txid
+                        #No txid was found
+                        if fetched_txid is None:
+                            continue
+
                     propagated_transaction = self.access.eth.getTransaction(txid)
                     if propagated_transaction is not None:
                         txids.append(txid)
@@ -321,6 +369,25 @@ class PythonEthJsonRpc(RPCCall):
         # therefore we never return anything and just log the exception from the exception clauses,
         # and always return the txids.
         return txids
+
+    def handle_no_txid_returned_for_sendtransaction(self, trans_object, pending_balance_before_sent, pending_balance_after_sent,
+                                                    confirmed_balance_before_sent, confirmed_balance_after_sent,
+                                                    pending_transactions_before_sent, pending_transactions_after_sent):
+        for pending_transaction_after in pending_transactions_after_sent:
+            pending_transaction_existed_before_sending = pending_transaction_after in pending_transactions_before_sent
+            if not pending_transaction_existed_before_sending:
+                #The pending transaction was added after the transaction was sent, therefore it must have been sent now.
+                error_message = "A new transaction was found in the pending transactions that was not returned when " \
+                                "sending the trans_object, which was"
+                log_error(log, error_message, pending_transaction_after)
+                txid = pending_transaction_after['hash']
+                return txid
+
+        account=trans_object['from']
+        error_message = "txidBytes is None, this could mean that the transaction was never " \
+                        "broadcasted to the network."
+        log_error(log, error_message, trans_object)
+        return None
 
 
     def send_many(self, from_account="", minconf=1, from_wallet='', **amounts):
