@@ -249,20 +249,34 @@ class PythonEthJsonRpc(RPCCall):
     def send_to_addresses(self, addresses_and_amounts = {}, subtractfeefromamount=True, from_wallet=''):
         txids = []
         try:
+            account_start_index = 0
             for to_address, amount in addresses_and_amounts.items():
                 check_sum_address = self.access.toChecksumAddress(to_address)
                 amount_left_to_send = self.access.toWei(amount, "ether")
                 transaction_objects_list = []
 
-                for account in self.access.eth.accounts:
+                # The [account_start_index:] ensures that we don't loop over accounts already determined to be empty.
+                # This is only made to optimise the runtime of the loop, as if this was not done, we would loop over
+                # The entire account list for every step in the addresses_and_amounts.items() loop
+                account_list_with_empty_accounts_skipped = self.access.eth.accounts[account_start_index:]
+                number_of_elements_skipped = account_start_index
+
+                for index, account in enumerate(account_list_with_empty_accounts_skipped):
+
+                    # Please note that we don't use index + number_of_elements_skipped + 1 as there can still be balance
+                    # on the account of index, after the funds has been used for this specific transaction.
+                    account_start_index = index + number_of_elements_skipped
+
                     #NOTE TO BE REMOVED: ONLY FOR TESTING
-                    # if account == self.access.eth.accounts[0]:
-                    #     continue
+                    if account == self.access.eth.accounts[0]:
+                        continue
 
                     sender = account
                     receiver = check_sum_address
+                    
                     # NOTE!!! Make sure to use a balance that subtracts pending transactions (which
                     # get_real_account_balance_in_wei does), else this function will lead to double spend transactions.
+                    # as the account list resets for every new transaction to send to.
                     balance = self.get_real_account_balance_in_wei(account)
                     gas_price = self.access.eth.gasPrice
                     transaction_object = {
