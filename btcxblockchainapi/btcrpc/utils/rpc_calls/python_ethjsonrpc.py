@@ -132,14 +132,23 @@ class PythonEthJsonRpc(RPCCall):
         for pending_transaction in pending_transactions:
             if account_as_checksum_address == self.access.toChecksumAddress(pending_transaction['from']):
                 #All values in the transaction are in hex, so we need to convert them to ints.
-                transaction_value = int(pending_transaction['value'], 0)
-                pending_transaction_gas_price = int(pending_transaction['gasPrice'], 0)
-                pending_transaction_gas_amount = int(pending_transaction['gas'], 0)
-                pending_transaction_fee = pending_transaction_gas_amount * pending_transaction_gas_price
-                pending_account_balance -= (transaction_value + pending_transaction_fee)
+                pending_transaction_full_amount = self.get_full_transaction_amount_in_wei(pending_transaction)
+                pending_account_balance -= pending_transaction_full_amount
         print("Real balance for account " + account_as_checksum_address)
         print(pending_account_balance)
         return (pending_account_balance, confirmed_account_balance, pending_transactions)
+
+    def get_full_transaction_amount_in_wei(self, transaction_dict):
+        (transaction_value, transaction_gas_price, transaction_gas_amount) = \
+            self.get_transaction_amounts_in_wei(transaction_dict)
+        transaction_fee = transaction_gas_amount * transaction_gas_price
+        return transaction_value + transaction_fee
+
+    def get_transaction_amounts_in_wei(self, transaction_dict):
+        transaction_value = int(str(transaction_dict['value']), 0)
+        transaction_gas_price = int(str(transaction_dict['gasPrice']), 0)
+        transaction_gas_amount = int(str(transaction_dict['gas']), 0)
+        return (transaction_value, transaction_gas_price, transaction_gas_amount)
 
     '''This function makes sure that the we get the real confirmed account balance with the corresponding pending 
     transactions. If we did not do the equal checks that is in this function, and just did first the eth.getBalance
@@ -273,7 +282,7 @@ class PythonEthJsonRpc(RPCCall):
 
                     sender = account
                     receiver = check_sum_address
-                    
+
                     # NOTE!!! Make sure to use a balance that subtracts pending transactions (which
                     # get_real_account_balance_in_wei does), else this function will lead to double spend transactions.
                     # as the account list resets for every new transaction to send to.
@@ -334,6 +343,7 @@ class PythonEthJsonRpc(RPCCall):
                         self.get_pending_and_confirmed_balance_in_wei_and_pending_transactions(sender)
 
                     txidBytes = self.access.eth.sendTransaction(trans_object)
+                    txidBytes = None
 
                     (pending_b2, confirmed_b2, pending_txs2) = \
                         self.get_pending_and_confirmed_balance_in_wei_and_pending_transactions(sender)
@@ -354,7 +364,8 @@ class PythonEthJsonRpc(RPCCall):
                             confirmed_balance_before_sent=confirmed_b1,
                             confirmed_balance_after_sent=confirmed_b2,
                             pending_transactions_before_sent=pending_txs1,
-                            pending_transactions_after_sent=pending_txs2
+                            pending_transactions_after_sent=pending_txs2,
+                            key_encrypt_pass=key_encrypt_pass
                         )
                         txid = fetched_txid
                         #No txid was found
@@ -386,20 +397,54 @@ class PythonEthJsonRpc(RPCCall):
 
     def handle_no_txid_returned_for_sendtransaction(self, trans_object, pending_balance_before_sent, pending_balance_after_sent,
                                                     confirmed_balance_before_sent, confirmed_balance_after_sent,
-                                                    pending_transactions_before_sent, pending_transactions_after_sent):
+                                                    pending_transactions_before_sent, pending_transactions_after_sent,
+                                                    key_encrypt_pass):
+        error_message = "No txid was returned from eth.sendTransaction. Error message: "
+        account = self.access.toChecksumAddress(trans_object['from'])
         for pending_transaction_after in pending_transactions_after_sent:
             pending_transaction_existed_before_sending = pending_transaction_after in pending_transactions_before_sent
             if not pending_transaction_existed_before_sending:
                 #The pending transaction was added after the transaction was sent, therefore it must have been sent now.
-                error_message = "A new transaction was found in the pending transactions that was not returned when " \
+                error_message += "A new transaction was found in the pending transactions that was not returned when " \
                                 "sending the trans_object, which was"
                 log_error(log, error_message, pending_transaction_after)
                 txid = pending_transaction_after['hash']
-                return txid
+                full_transaction_amount_trans_object = self.get_full_transaction_amount_in_wei(trans_object)
+                new_transaction_found = self.do_get_transaction(txid)
+                new_transaction_from_account = self.access.toChecksumAddress(new_transaction_found['from'])
+                full_transaction_amount_new_transaction = self.get_full_transaction_amount_in_wei(new_transaction_found)
+                if(full_transaction_amount_trans_object == full_transaction_amount_new_transaction
+                    and account == new_transaction_from_account):
+                    error_message += "A new transaction was found in the pending transactions that corresponds to the " \
+                                     "trans_object. Returning the txid"
+                    log_error(log, error_message, txid)
+                    return txid
 
-        account=trans_object['from']
-        error_message = "txidBytes is None, this could mean that the transaction was never " \
-                        "broadcasted to the network."
+        if pending_balance_before_sent != pending_balance_after_sent or confirmed_balance_before_sent != confirmed_balance_after_sent:
+
+            pending_blance_difference_before_sent = confirmed_balance_before_sent - pending_balance_before_sent
+            pending_blance_difference_after_sent = confirmed_balance_after_sent - pending_balance_after_sent
+
+            if pending_blance_difference_before_sent != pending_blance_difference_after_sent:
+                full_transaction_amount = self.get_full_transaction_amount_in_wei(trans_object)
+                abs_difference = abs(pending_blance_difference_before_sent - pending_blance_difference_after_sent)
+                if full_transaction_amount == abs_difference:
+                    # A transaction has almost certainly happened! This is a serious error as we cant get transaction
+                    # without a txid.
+                    likely_nonce = int(self.access.eth.getTransactionCount(account, "pending"), 0) - 1
+                    error_message += "A transaction has most likely happend that has not been registred by the api. This" \
+                                     " has happend for account: " +account + " With transaction nonce: " \
+                                     + str(likely_nonce) + " Transaction object"
+                    log_error(log, error_message, trans_object)
+                    return None
+                else:
+                    error_message += "A transaction might have happend that has not been registered by the api. " \
+                                     "Transaction object"
+                    log_error(log, error_message, trans_object)
+                    return None
+
+        # it seems as if no transaction was actually transmitted.
+        error_message += "txidBytes is None, this most likely means that a transaction was never broadcasted to the network."
         log_error(log, error_message, trans_object)
         return None
 
