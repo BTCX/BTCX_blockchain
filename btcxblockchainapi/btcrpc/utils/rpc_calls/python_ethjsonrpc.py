@@ -413,15 +413,15 @@ class PythonEthJsonRpc(RPCCall):
                 abs_difference = abs(pending_balance_before_sent - pending_balance_after_sent)
                 if full_transaction_amount == abs_difference:
                     # A transaction has almost certainly happened! This is a serious error as we cant get the txid of
-                    # the transaction that has happend.
+                    # the transaction that has happened.
                     likely_nonce = self.access.eth.getTransactionCount(account, "pending") - 1
-                    error_message += "A transaction has most likely happend that has not been registred by the api. This" \
-                                     " has happend for account: " + account + " With transaction nonce: " \
+                    error_message += "A transaction has most likely happened that has not been registred by the api. This" \
+                                     " has happened for account: " + account + " With transaction nonce: " \
                                      + str(likely_nonce) + " Transaction object"
                     log_error(log, error_message, trans_object)
                     return None
                 else:
-                    error_message += "A transaction might have happend that has not been registered by the api. " \
+                    error_message += "A transaction might have happened that has not been registered by the api. " \
                                      "Transaction object"
                     log_error(log, error_message, trans_object)
                     return None
