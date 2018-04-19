@@ -81,7 +81,6 @@ class PythonEthJsonRpc(RPCCall):
         return {'isvalid': is_valid_address, 'ismine': address_is_mine}
 
     def encode_address(self, address, encoding_flag=AddressEncodingFlag.NO_SPECIFIC_ENCODING):
-        print(encoding_flag)
         if encoding_flag == AddressEncodingFlag.ETHEREUM_CHECKSUM_ADDRESS:
             if self.access.isAddress(address):
                 return self.access.toChecksumAddress(address)
@@ -121,21 +120,14 @@ class PythonEthJsonRpc(RPCCall):
         # confirmed_account_balance = self.access.fromWei(self.access.eth.getBalance(account), "ether")
         (confirmed_account_balance, pending_transactions) = \
             self.get_confirmed_balance_with_pending_transactions(account_as_checksum_address)
-        print("Confirmed balance for account " + account_as_checksum_address)
-        print(confirmed_account_balance)
         pending_account_balance = confirmed_account_balance
         #retrieves only the pending transactions sent by the wallet
-        print("After queued transactions")
-        print("Pending transactions")
-        print(pending_transactions)
 
         for pending_transaction in pending_transactions:
             if account_as_checksum_address == self.access.toChecksumAddress(pending_transaction['from']):
                 #All values in the transaction are in hex, so we need to convert them to ints.
                 pending_transaction_full_amount = self.get_full_transaction_amount_in_wei(pending_transaction)
                 pending_account_balance -= pending_transaction_full_amount
-        print("Real balance for account " + account_as_checksum_address)
-        print(pending_account_balance)
         return (pending_account_balance, confirmed_account_balance, pending_transactions)
 
     def get_full_transaction_amount_in_wei(self, transaction_dict):
@@ -343,7 +335,6 @@ class PythonEthJsonRpc(RPCCall):
                         self.get_pending_and_confirmed_balance_in_wei_and_pending_transactions(sender)
 
                     txidBytes = self.access.eth.sendTransaction(trans_object)
-                    txidBytes = None
 
                     (pending_b2, confirmed_b2, pending_txs2) = \
                         self.get_pending_and_confirmed_balance_in_wei_and_pending_transactions(sender)
@@ -361,11 +352,8 @@ class PythonEthJsonRpc(RPCCall):
                             trans_object=trans_object,
                             pending_balance_before_sent=pending_b1,
                             pending_balance_after_sent=pending_b2,
-                            confirmed_balance_before_sent=confirmed_b1,
-                            confirmed_balance_after_sent=confirmed_b2,
                             pending_transactions_before_sent=pending_txs1,
-                            pending_transactions_after_sent=pending_txs2,
-                            key_encrypt_pass=key_encrypt_pass
+                            pending_transactions_after_sent=pending_txs2
                         )
                         txid = fetched_txid
                         #No txid was found
@@ -396,11 +384,10 @@ class PythonEthJsonRpc(RPCCall):
         return txids
 
     def handle_no_txid_returned_for_sendtransaction(self, trans_object, pending_balance_before_sent, pending_balance_after_sent,
-                                                    confirmed_balance_before_sent, confirmed_balance_after_sent,
-                                                    pending_transactions_before_sent, pending_transactions_after_sent,
-                                                    key_encrypt_pass):
+                                                    pending_transactions_before_sent, pending_transactions_after_sent):
         error_message = "No txid was returned from eth.sendTransaction. Error message: "
         account = self.access.toChecksumAddress(trans_object['from'])
+
         for pending_transaction_after in pending_transactions_after_sent:
             pending_transaction_existed_before_sending = pending_transaction_after in pending_transactions_before_sent
             if not pending_transaction_existed_before_sending:
@@ -420,20 +407,16 @@ class PythonEthJsonRpc(RPCCall):
                     log_error(log, error_message, txid)
                     return txid
 
-        if pending_balance_before_sent != pending_balance_after_sent or confirmed_balance_before_sent != confirmed_balance_after_sent:
+        if pending_balance_before_sent != pending_balance_after_sent:
 
-            pending_blance_difference_before_sent = confirmed_balance_before_sent - pending_balance_before_sent
-            pending_blance_difference_after_sent = confirmed_balance_after_sent - pending_balance_after_sent
-
-            if pending_blance_difference_before_sent != pending_blance_difference_after_sent:
                 full_transaction_amount = self.get_full_transaction_amount_in_wei(trans_object)
-                abs_difference = abs(pending_blance_difference_before_sent - pending_blance_difference_after_sent)
+                abs_difference = abs(pending_balance_before_sent - pending_balance_after_sent)
                 if full_transaction_amount == abs_difference:
-                    # A transaction has almost certainly happened! This is a serious error as we cant get transaction
-                    # without a txid.
-                    likely_nonce = int(self.access.eth.getTransactionCount(account, "pending"), 0) - 1
+                    # A transaction has almost certainly happened! This is a serious error as we cant get the txid of
+                    # the transaction that has happend.
+                    likely_nonce = self.access.eth.getTransactionCount(account, "pending") - 1
                     error_message += "A transaction has most likely happend that has not been registred by the api. This" \
-                                     " has happend for account: " +account + " With transaction nonce: " \
+                                     " has happend for account: " + account + " With transaction nonce: " \
                                      + str(likely_nonce) + " Transaction object"
                     log_error(log, error_message, trans_object)
                     return None
