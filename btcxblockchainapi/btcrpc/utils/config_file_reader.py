@@ -97,3 +97,7 @@ class ConfigFileReader(object, metaclass=Singleton):
         servers = self.server_map[currency]
         wallet_server = servers[wallet]
         return wallet_server['private_key_encryption_password']
+
+    def get_api_key(self, api_key_service_name):
+        api_keys = self.server_map['api_keys']
+        return api_keys[api_key_service_name]

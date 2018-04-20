@@ -282,3 +282,4 @@ class BTCSendManyView(APIView):
                 transactions_with_details_list_total_amount += float(detail.amount)
 
         return amounts_dict_total_amount == transactions_with_details_list_total_amount
+

@@ -11,6 +11,7 @@ from btcrpc.utils.log import get_log, log_info, log_error
 import json
 import socket, errno
 from web3 import Web3, HTTPProvider
+import requests
 
 log = get_log("PythonEthereumRpc Call:")
 
@@ -21,6 +22,7 @@ class PythonEthJsonRpc(RPCCall):
         url = yml_config_reader.get_rpc_server(currency=currency, wallet=wallet)
         w3 = Web3(HTTPProvider(url))
         self.access = w3
+        self.check_if_geth_is_synced()
 
     def amount_received_by_address(self, address="", confirms=0):
         raise NotImplementedError
@@ -269,8 +271,8 @@ class PythonEthJsonRpc(RPCCall):
                     account_start_index = index + number_of_elements_skipped
 
                     #NOTE TO BE REMOVED: ONLY FOR TESTING
-                    if account == self.access.eth.accounts[0]:
-                        continue
+                    # if account == self.access.eth.accounts[0]:
+                    #     continue
 
                     sender = account
                     receiver = check_sum_address
@@ -440,3 +442,14 @@ class PythonEthJsonRpc(RPCCall):
             from_wallet=from_wallet)
         any_transaction_succeeded = len(txids) > 0
         return any_transaction_succeeded, txids
+
+    def check_if_geth_is_synced(self):
+        yml_config_reader = ConfigFileReader()
+        api_key = yml_config_reader.get_api_key(api_key_service_name="etherscan")
+
+        userdata = {"module": "proxy", "action": "eth_blockNumber", "apikey" : api_key}
+        resp = requests.post('https://api.etherscan.io/api/',
+                             data=userdata)
+        block_number_hex = resp.json()['result']
+        block_number = int(block_number_hex,0)
+
