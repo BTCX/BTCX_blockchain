@@ -5,7 +5,6 @@ from rest_framework import status
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from pylibmc import ConnectionError, ServerDown
 
 from btcrpc.utils import constantutil
 from btcrpc.utils.config_file_reader import ConfigFileReader
@@ -79,15 +78,6 @@ class TransferCurrencyByUsingSendTaoAddress(APIView):
                                                                                                      message=ex.error['message'],
                                                                                                      status="fail",
                                                                                                      txid="")
-                            except (ConnectionError, ServerDown):
-                                log.error("Error: ConnectionError or ServerDown exception")
-                                response = transfers_using_sendtoaddress.TransferInformationResponse(currency=currency,
-                                                                                                     to_address=to_address,
-                                                                                                     amount=Decimal(str(send_amount)),
-                                                                                                     message="Error: ConnectionError or ServerDown exception",
-                                                                                                     status="fail",
-                                                                                                     txid="")
-
 
                             response_list.append(response.__dict__)
 

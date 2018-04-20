@@ -6,4 +6,3 @@ simplejson
 ddt
 pyyaml
 web3
-
