@@ -12,6 +12,7 @@ import json
 import socket, errno
 from web3 import Web3, HTTPProvider
 import requests
+import time
 
 log = get_log("PythonEthereumRpc Call:")
 
@@ -22,7 +23,6 @@ class PythonEthJsonRpc(RPCCall):
         url = yml_config_reader.get_rpc_server(currency=currency, wallet=wallet)
         w3 = Web3(HTTPProvider(url))
         self.access = w3
-        self.check_if_geth_is_synced()
 
     def amount_received_by_address(self, address="", confirms=0):
         raise NotImplementedError
@@ -203,8 +203,9 @@ class PythonEthJsonRpc(RPCCall):
 
 
     def get_wallet_balance(self):
+        self.validate_that_geth_is_synced()
         accounts = self.access.eth.accounts
-        account_balances = map(lambda account: self.access.fromWei(self.access.eth.getBalance(account), "ether"),
+        account_balances = map(lambda account: self.access.fromWei(self.get_real_account_balance_in_wei(account), "ether"),
                                accounts)
         return sum(account_balances)
 
@@ -252,6 +253,7 @@ class PythonEthJsonRpc(RPCCall):
     def send_to_addresses(self, addresses_and_amounts = {}, subtractfeefromamount=True, from_wallet=''):
         txids = []
         try:
+            self.validate_that_geth_is_synced()
             account_start_index = 0
             for to_address, amount in addresses_and_amounts.items():
                 check_sum_address = self.access.toChecksumAddress(to_address)
@@ -323,7 +325,7 @@ class PythonEthJsonRpc(RPCCall):
                 # we don't run into a situation where there's only funds to partially fund the transaction. If that would happen,
                 # It could potentially lead to that only of the percentage offunds was sent to the address, which would make the
                 # situation tricky, as we would then need to have error handling to send the rest of the funds later.
-
+                self.validate_that_geth_is_synced()
                 for trans_object in transaction_objects_list:
                     yml_config_reader = ConfigFileReader()
                     key_encrypt_pass = yml_config_reader.get_private_key_encryption_password(
@@ -443,17 +445,65 @@ class PythonEthJsonRpc(RPCCall):
         any_transaction_succeeded = len(txids) > 0
         return any_transaction_succeeded, txids
 
-    def check_if_geth_is_synced(self):
-        print("Hejsfdsfgrsfsfsdsdf")
+    def validate_that_geth_is_synced(self, number_of_tries = 0, saved_highest_block = -1):
         yml_config_reader = ConfigFileReader()
         api_key = yml_config_reader.get_api_key(api_key_service_name="etherscan")
         userdata = {"module": "proxy", "action": "eth_blockNumber", "apikey" : api_key}
         resp = requests.post('https://api.etherscan.io/api/', data=userdata)
-        ether_scan_block_number_hex = resp.json()['result']
-        ether_scan_block_number = int(ether_scan_block_number_hex,0)
-        node_block_number = self.access.eth.blockNumber
-        block_number_difference = abs(ether_scan_block_number - node_block_number)
-        if block_number_difference > yml_config_reader.get_offsync_acceptance(currency="eth"):
-            print("Out of sync")
+        ether_scan_block_number = None
+        try:
+            ether_scan_block_number_hex = resp.json()['result']
+            ether_scan_block_number = int(ether_scan_block_number_hex,0)
+        except BaseException:
+            log_error(log, "An error occoured when requesting the block number from etherscan, request response", resp)
+
+        if ether_scan_block_number:
+            node_block_number = self.access.eth.blockNumber
+            # NOTE: Add a check that the etherscan number isn't much smaller than our number, if so we trust our number
+            # Instead.
+            block_number_difference = abs(ether_scan_block_number - node_block_number)
+            if block_number_difference > yml_config_reader.get_offsync_acceptance(currency="eth"):
+                exception_string = "The geth node is out of sync"
+                raise JSONRPCException({'code': -343, 'message': exception_string})
+
         else:
-            print("In sync")
+            # The logic should be the following:
+            # If more than 30 seconds in function has passed, base case: raise exception
+            # IF we get a block from Etherscan:
+            #   Check if our node's latest block is before etherscans latest block.
+            #       If so, we are synced
+            #   Else:
+            #       Check if the block difference is in an acceptable range.
+            # Else:
+            #   If our node is syncing:
+            #       Check if highest block has changed (unless this is our first time in the function, hence saved_highest_block=-1):
+            #       (This is since highest block is the latest blockheader the node got last time it started syncing)
+            #           If it has changed, check if the differenct between current and highest block is within range,
+            #           else sleep 3 secs and do recursive call.
+            #       Else:
+            #           Sleep 3 secs and do recursive call
+
+
+            # An error occoured when requesting the block number from etherscan. In this scenario we check that the node
+            # is synced according to its own stats atleast.
+            syncing = self.access.eth.syncing
+            if syncing is not False:
+                current_block = int(str(syncing['currentBlock']))
+                highest_block = int(str(syncing['highestBlock']))
+                block_number_difference = abs(highest_block - current_block)
+                if block_number_difference > yml_config_reader.get_offsync_acceptance(currency="eth"):
+                    exception_string = "The geth node is out of sync"
+                    raise JSONRPCException({'code': -343, 'message': exception_string})
+                else:
+                    # Instead of using number_of_tries we should use the time we have been inside this function.
+                    # If it has been more than 30 seconds, we should just raise the exception.
+                    # If highest block has changed, we should use the reset
+                    if number_of_tries < 10 or highest_block != saved_highest_block:
+                        time.sleep(3)
+                        return self.validate_that_geth_is_synced(
+                            number_of_tries = number_of_tries + 1,
+                            saved_highest_block= highest_block
+                        )
+                    else:
+                        exception_string = "The geth node is out of sync"
+                        raise JSONRPCException({'code': -343, 'message': exception_string})
