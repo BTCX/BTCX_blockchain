@@ -446,10 +446,14 @@ class PythonEthJsonRpc(RPCCall):
     def check_if_geth_is_synced(self):
         yml_config_reader = ConfigFileReader()
         api_key = yml_config_reader.get_api_key(api_key_service_name="etherscan")
-
         userdata = {"module": "proxy", "action": "eth_blockNumber", "apikey" : api_key}
-        resp = requests.post('https://api.etherscan.io/api/',
-                             data=userdata)
-        block_number_hex = resp.json()['result']
-        block_number = int(block_number_hex,0)
+        resp = requests.post('https://api.etherscan.io/api/', data=userdata)
+        ether_scan_block_number_hex = resp.json()['result']
+        ether_scan_block_number = int(ether_scan_block_number_hex,0)
+        node_block_number = self.access.eth.blockNumber
+        block_number_difference = abs(ether_scan_block_number - node_block_number)
+        if block_number_difference > yml_config_reader.get_offsync_acceptance(currency="eth"):
+            print("Out of sync")
+        else:
+            print("In sync")
 
