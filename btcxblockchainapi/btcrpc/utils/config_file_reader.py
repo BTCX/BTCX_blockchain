@@ -27,7 +27,8 @@ class ConfigFileReader(object, metaclass=Singleton):
         url_list.append(host)
         url_list.append(':')
         url_list.append(str(port))
-        url_list.append(multiple_wallet_url + wallet_extension)
+        if len(wallet_extension) > 0:
+            url_list.append(multiple_wallet_url + wallet_extension)
         url = ''.join(url_list)
         return url
 
