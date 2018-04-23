@@ -444,6 +444,7 @@ class PythonEthJsonRpc(RPCCall):
         return any_transaction_succeeded, txids
 
     def check_if_geth_is_synced(self):
+        print("Hejsfdsfgrsfsfsdsdf")
         yml_config_reader = ConfigFileReader()
         api_key = yml_config_reader.get_api_key(api_key_service_name="etherscan")
         userdata = {"module": "proxy", "action": "eth_blockNumber", "apikey" : api_key}
@@ -456,4 +457,3 @@ class PythonEthJsonRpc(RPCCall):
             print("Out of sync")
         else:
             print("In sync")
-

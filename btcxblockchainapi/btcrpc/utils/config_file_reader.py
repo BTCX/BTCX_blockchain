@@ -105,4 +105,3 @@ class ConfigFileReader(object, metaclass=Singleton):
     def get_offsync_acceptance(self, currency):
         wallet_server = self.server_map[currency]
         return int(wallet_server['node_offsync_block_number_acceptance'])
-

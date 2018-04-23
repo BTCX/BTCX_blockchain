@@ -9,9 +9,21 @@ from btcrpc.utils.rpc_calls.python_ethjsonrpc import PythonEthJsonRpc
 class RpcGenerator(object):
     @staticmethod
     def get_rpc_instance(wallet, currency):
-        return {
-            Constants.Currencies.BITCOIN: BitcoinRpc(wallet, currency),
-            Constants.Currencies.BITCOIN_CASH: BitcoinCashRpc(wallet, currency),
-            Constants.Currencies.LITECOIN: LitecoinRpc(wallet, currency),
-            Constants.Currencies.ETHEREUM: PythonEthJsonRpc(wallet, currency)
-        }.get(currency, PythonBitcoinRpc(wallet, currency))
+        if currency == Constants.Currencies.BITCOIN:
+            return BitcoinRpc(wallet, currency)
+        elif currency == Constants.Currencies.BITCOIN_CASH:
+            return BitcoinCashRpc(wallet, currency)
+        elif currency == Constants.Currencies.LITECOIN:
+            return LitecoinRpc(wallet, currency)
+        elif currency == Constants.Currencies.ETHEREUM:
+            return PythonEthJsonRpc(wallet, currency)
+        else:
+            raise TypeError("Incorrect currency entered")
+
+        #This way to return the correct rpc instance was removed as it creates an instance of all of them.
+        # return {
+        #     Constants.Currencies.BITCOIN: BitcoinRpc(wallet, currency),
+        #     Constants.Currencies.BITCOIN_CASH: BitcoinCashRpc(wallet, currency),
+        #     Constants.Currencies.LITECOIN: LitecoinRpc(wallet, currency),
+        #     Constants.Currencies.ETHEREUM: PythonEthJsonRpc(wallet, currency)
+        # }.get(currency, PythonBitcoinRpc(wallet, currency))
