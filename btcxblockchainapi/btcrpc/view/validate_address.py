@@ -33,7 +33,8 @@ class ValidateAddress(APIView):
             address = post_serializers.data["address"]
             wallet_list = yml_config.get_wallet_list(currency)
             try:
-                for wallet in wallet_list:
+                for wallet_json in wallet_list:
+                    wallet = wallet_json['wallet_name']
                     rpc_call = RpcGenerator.get_rpc_instance(wallet=wallet, currency=currency)
                     address_validation = rpc_call.do_validate_address(address=address)
 
