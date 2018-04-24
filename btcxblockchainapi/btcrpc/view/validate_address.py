@@ -20,7 +20,6 @@ logger = logging.getLogger(__name__)
 yml_config = ConfigFileReader()
 
 class ValidateAddress(APIView):
-    permission_classes = (IsAdminUser,)
 
     def post(self, request):
         chain = ChainEnum.UNKNOWN
