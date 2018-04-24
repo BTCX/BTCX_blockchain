@@ -21,7 +21,6 @@ yml_config = ConfigFileReader()
 
 
 class ValidateAddress(APIView):
-    permission_classes = (IsAdminUser,)
 
     def post(self, request):
         log_info(log, "Request data", request.data)
