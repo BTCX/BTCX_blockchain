@@ -445,10 +445,19 @@ class PythonEthJsonRpc(RPCCall):
         any_transaction_succeeded = len(txids) > 0
         return any_transaction_succeeded, txids
 
-    def validate_that_geth_is_synced(self, number_of_tries = 0, saved_highest_block = -1):
+    def validate_that_geth_is_synced(self, total_elapsed_time=0, saved_highest_block=-1):
+
+        #Base case
+        if total_elapsed_time >= 30.0:
+            exception_string = "The geth node is out of sync"
+            raise JSONRPCException({'code': -343, 'message': exception_string})
+
+        start_time = time.process_time()
+
         yml_config_reader = ConfigFileReader()
         api_key = yml_config_reader.get_api_key(api_key_service_name="etherscan")
         userdata = {"module": "proxy", "action": "eth_blockNumber", "apikey" : api_key}
+        node_block_number = self.access.eth.blockNumber
         resp = requests.post('https://api.etherscan.io/api/', data=userdata)
         ether_scan_block_number = None
         try:
@@ -458,52 +467,34 @@ class PythonEthJsonRpc(RPCCall):
             log_error(log, "An error occoured when requesting the block number from etherscan, request response", resp)
 
         if ether_scan_block_number:
-            node_block_number = self.access.eth.blockNumber
-            # NOTE: Add a check that the etherscan number isn't much smaller than our number, if so we trust our number
-            # Instead.
             block_number_difference = abs(ether_scan_block_number - node_block_number)
-            if block_number_difference > yml_config_reader.get_offsync_acceptance(currency="eth"):
+            node_blocks_are_not_ahead_of_etherscan = node_block_number <= ether_scan_block_number
+            difference_is_unnacceptable = block_number_difference > yml_config_reader.get_offsync_acceptance(currency="eth")
+            if node_blocks_are_not_ahead_of_etherscan and difference_is_unnacceptable:
                 exception_string = "The geth node is out of sync"
                 raise JSONRPCException({'code': -343, 'message': exception_string})
 
-        else:
-            # The logic should be the following:
-            # If more than 30 seconds in function has passed, base case: raise exception
-            # IF we get a block from Etherscan:
-            #   Check if our node's latest block is before etherscans latest block.
-            #       If so, we are synced
-            #   Else:
-            #       Check if the block difference is in an acceptable range.
-            # Else:
-            #   If our node is syncing:
-            #       Check if highest block has changed (unless this is our first time in the function, hence saved_highest_block=-1):
-            #       (This is since highest block is the latest blockheader the node got last time it started syncing)
-            #           If it has changed, check if the differenct between current and highest block is within range,
-            #           else sleep 3 secs and do recursive call.
-            #       Else:
-            #           Sleep 3 secs and do recursive call
+        # Either an error occoured when requesting the block number from etherscan, or our node is before etherscan
+        syncing = self.access.eth.syncing
+        if syncing is not False:
+            current_block = int(str(syncing['currentBlock']))
+            highest_block = int(str(syncing['highestBlock']))
+            syncing_block_number_difference = abs(highest_block - current_block)
 
-
-            # An error occoured when requesting the block number from etherscan. In this scenario we check that the node
-            # is synced according to its own stats atleast.
-            syncing = self.access.eth.syncing
-            if syncing is not False:
-                current_block = int(str(syncing['currentBlock']))
-                highest_block = int(str(syncing['highestBlock']))
-                block_number_difference = abs(highest_block - current_block)
-                if block_number_difference > yml_config_reader.get_offsync_acceptance(currency="eth"):
+            # The reason we do this is because highest_block will be the highest block when the node starts syncing.
+            # This means that if the node is syncing and this is our first time in the loop, we can't be sure if the
+            # highest_block is acctually close to the real latest on the network block or not. Because of this
+            # we only check if the range is in an acceptable range once the we know that highest block has actually
+            # changed in the function calls.
+            if saved_highest_block != -1 and highest_block != saved_highest_block:
+                if syncing_block_number_difference > yml_config_reader.get_offsync_acceptance(currency="eth"):
                     exception_string = "The geth node is out of sync"
                     raise JSONRPCException({'code': -343, 'message': exception_string})
-                else:
-                    # Instead of using number_of_tries we should use the time we have been inside this function.
-                    # If it has been more than 30 seconds, we should just raise the exception.
-                    # If highest block has changed, we should use the reset
-                    if number_of_tries < 10 or highest_block != saved_highest_block:
-                        time.sleep(3)
-                        return self.validate_that_geth_is_synced(
-                            number_of_tries = number_of_tries + 1,
-                            saved_highest_block= highest_block
-                        )
-                    else:
-                        exception_string = "The geth node is out of sync"
-                        raise JSONRPCException({'code': -343, 'message': exception_string})
+            else:
+                time.sleep(3)
+                elapsed_time_in_this_call = time.process_time() - start_time
+                new_total_elapsed_time = elapsed_time_in_this_call + total_elapsed_time
+                self.validate_that_geth_is_synced(
+                    total_elapsed_time=new_total_elapsed_time,
+                    saved_highest_block= highest_block
+                )
