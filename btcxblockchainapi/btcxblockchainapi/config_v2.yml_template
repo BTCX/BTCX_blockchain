@@ -1,41 +1,131 @@
 btc:
-  receive_1:
-    type: receive
-    host: 172.16.0.5
-    username: username1
-    key: pass1
+  wallet_types:
+    - receive
+    - send
+  receive:
+    - wallet1
+  send:
+    - wallet2
+  wallet1:
+    wallet_url_extension: wallet.dat
+    host: 127.0.0.1
+    username: username
+    key: password
     port: 8332
     protocol: http
-    risk_confirmations:
-      high: 0
-      medium: 1
-      low: 2
-  receive_2:
-    type: receive
-    host: 172.16.0.8
-    username: username2
-    key: pass2
+  wallet2:
+    wallet_url_extension: wallet2.dat
+    host: 127.0.0.1
+    username: username
+    key: password
     port: 8332
     protocol: http
-    risk_confirmations:
-      high: 0
-      medium: 1
-      low: 2
-  send_1:
-    type: send
-    host: 172.16.0.6
-    username: username3
-    key: pass3
-    port: 8332
-    protocol: http
-    risk_confirmations:
-      high: 0
-      medium: 1
-      low: 2
+  multiple_wallet_url: /wallet/
+  min_transfer_confirmations: 7
+  min_transfer_amount: 0.16
+  reserved_fee: 0.001
+  safe_addresses:
+    - primary_send
+    - secondary_send
+    - cold_storage
+    - exchange1
+    - exchange2
+  primary_send: PRIMARY_SEND_ADDRESS_BTC
+  secondary_send: SECONDARY_SEND_ADDRESS_BTC
+  cold_storage: COLD_STORAGE_ADDRESS_BTC
+  exchange1: EXCHANGE1_ADDRESS_BTC
+  exchange2: EXCHANGE2_ADDRESS_BTC
+  #high risk maps to confirmations: 0 confirmation, medium risk: 1 confirmation, low risk: 6 confirmations.
+  risk_confirmations:
+    high: 0
+    medium: 1
+    low: 6
 
 ltc:
+  wallet_types:
+    - receive
+    - send
+  receive:
+    - wallet1
+  send:
+    - wallet2
+  wallet1:
+    wallet_url_extension: ''
+    host: 127.0.0.1
+    username: username
+    key: password
+    port: 8334
+    protocol: http
+  wallet2:
+    wallet_url_extension: ''
+    host: 127.0.0.1
+    username: username
+    key: password
+    port: 8335
+    protocol: http
+  multiple_wallet_url: ''
+  min_transfer_confirmations: 7
+  min_transfer_amount: 0.16
+  reserved_fee: 0.001
+   safe_addresses:
+    - primary_send
+    - secondary_send
+    - cold_storage
+    - exchange1
+    - exchange2
+  primary_send: PRIMARY_SEND_ADDRESS_LTC
+  secondary_send: SECONDARY_SEND_ADDRESS_LTC
+  cold_storage: COLD_STORAGE_ADDRESS_LTC
+  exchange1: EXCHANGE1_ADDRESS_LTC
+  exchange2: EXCHANGE2_ADDRESS_LTC
+  #high risk maps to confirmations: 0 confirmation, medium risk: 1 confirmation, low risk: 6 confirmations.
+  risk_confirmations:
+    high: 0
+    medium: 1
+    low: 6
+
+bch:
+  wallet_types:
+    - receive
+    - send
+  receive:
+    - wallet1
+  send:
+    - wallet2
+  wallet1:
+    wallet_url_extension: ''
+    host: 127.0.0.1
+    username: username
+    key: password
+    port: 8336
+    protocol: http
+  wallet2:
+    wallet_url_extension: ''
+    host: 127.0.0.1
+    username: username
+    key: password
+    port: 8337
+    protocol: http
+  multiple_wallet_url: ''
+  min_transfer_confirmations: 7
+  min_transfer_amount: 0.16
+  reserved_fee: 0.001
+  safe_addresses:
+    - primary_send
+    - secondary_send
+    - cold_storage
+    - exchange1
+    - exchange2
+  primary_send: PRIMARY_SEND_ADDRESS_BCH
+  secondary_send: SECONDARY_SEND_ADDRESS_BCH
+  cold_storage: COLD_STORAGE_ADDRESS_BCH
+  exchange1: EXCHANGE1_ADDRESS_BCH
+  exchange2: EXCHANGE2_ADDRESS_BCH
+  #high risk maps to confirmations: 0 confirmation, medium risk: 1 confirmation, low risk: 6 confirmations.
+  risk_confirmations:
+    high: 0
+    medium: 1
+    low: 6
 
 dogecoin:
 
-
-eth:

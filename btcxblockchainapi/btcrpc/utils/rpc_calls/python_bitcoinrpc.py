@@ -1,25 +1,26 @@
 from bitcoinrpc.authproxy import AuthServiceProxy, JSONRPCException
 from btcrpc.utils.config_file_reader import ConfigFileReader
+from btcrpc.utils.rpc_calls.rpc_call import RPCCall
+from btcrpc.utils.chain_enum import ChainEnum
 import json
 import socket, errno
 
 from btcrpc.utils.log import *
 
-log = get_log("BTCRPCCall:")
+log = get_log("PythonBitcoinRpc Call:")
 
 
-class BTCRPCCall(object):
-  def __init__(self, wallet="receive", currency="btc"):
+class PythonBitcoinRpc(RPCCall):
+  def __init__(self, wallet, currency):
     yml_config_reader = ConfigFileReader()
     url = yml_config_reader.get_rpc_server(currency=currency, wallet=wallet)
-
     self.access = AuthServiceProxy(url)
 
   def do_getinfo(self):
     return self.access.getinfo()
 
   def do_get_new_address(self):
-    return self.access.getnewaddress();
+    return self.access.getnewaddress()
 
   def do_set_account(self, address, account):
     return self.access.setaccount(address, account)
@@ -56,6 +57,9 @@ class BTCRPCCall(object):
   def send_from(self, from_account="", to_address="", amount=0, minconf=1):
     return self.access.sendfrom(from_account, to_address, amount, minconf)
 
+  def get_blockchain_info(self):
+    return self.access.getblockchaininfo()
+
   def get_received_amount_by_account(self, account="", minconf=1):
     return self.access.getreceivedbyaccount(account, minconf)
 
@@ -64,6 +68,17 @@ class BTCRPCCall(object):
 
   def get_wallet_balance(self):
     return self.access.getbalance()
+
+  def get_chain(self):
+    blockchain_info = self.get_blockchain_info()
+    if blockchain_info["chain"] == "main":
+      return ChainEnum.MAIN
+    elif blockchain_info["chain"] == "test":
+      return ChainEnum.TEST_NET
+    elif blockchain_info["chain"] == "regtest":
+      return ChainEnum.REGTEST
+    else:
+      return ChainEnum.UNKNOWN
 
   def move(self, from_account="", to_account="", amount=0, minconf=1):
     return self.access.move(from_account, to_account, amount, minconf)

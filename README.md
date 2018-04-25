@@ -41,9 +41,10 @@ Response parameter/parameters definition:
 | Parameter   | Type   | Description | Possible values |
 | --------------| ------  | --------- | --------- |
 | wallets               | Array | Holds an array of JSON objects which represents a specific wallet | |
-| wallet                 | String | Defines the name of the specific wallet | |
+| wallet                | String | Defines the name of the specific wallet  | |
+| wallet_type        | String | Defines the wallet type  | receive / send |
 | balance             | Float | Specifies balance of the specific wallet | |
-| test                    | Bool | Specifies if the wallet node is running testnode or not | True  / False |
+| chain                 | Int | Specifies which chain the wallet node is configured for | 0 (Unknown) / 1 (Mainnet) / 2 (Testnet) / 3 (Regtest) |
 | error                  | Int | Indicates if an error occurred when requesting the balance for the specific wallet | 0 (No error) / 1 (Error occurred) |
 | error_message  | String | Holds a descriptive message corresponding to the error  | |
 
@@ -62,16 +63,34 @@ Response body:
     {
         "wallets": [
             {
-                "wallet": "receive",
+                "wallet": "primary_btc_receive",
+                "wallet_type": "receive",
                 "balance": 0.2,
-                "test": True,
+                "chain": 2,
                 "error": 0,
                 "error_message": ""
-            }
+            },
             {
-                "wallet": "send",
+                "wallet": "backup_btc_receive",
+                "wallet_type": "receive",
+                "balance": 0.127,
+                "chain": 2,
+                "error": 0,
+                "error_message": ""
+            },
+            {
+                "wallet": "primary_btc_send",
+                "wallet_type": "send",
                 "balance": 0.7,
-                "test": True,
+                "chain": 2,
+                "error": 0,
+                "error_message": ""
+            },
+            {
+                "wallet": "btc_segwit_test_send",
+                "wallet_type": "send",
+                "balance": 0.001,
+                "chain": 2,
                 "error": 0,
                 "error_message": ""
             }
@@ -82,7 +101,7 @@ Response body:
 
 Function:
 
-Transfers funds from a specified wallet to a safe address defined in the config.yml file.
+Transfers funds from a specified wallet to a specified address that corresponds to a safe address defined in the config.yml file.
 
 
 Request parameter/parameters definition:
@@ -91,6 +110,8 @@ Request parameter/parameters definition:
 | --------------| ------  | --------- | --------- | --------- |
 | transfers        | Array | Holds an array of JSON objects which represents the different transfers to be executed. Supports multi currency transfers with the same request. | | |
 | currency        | String | Specifies the currency of the transfer | btc / ltc / bch | |
+| wallet             | String | Specifies which specific wallet will be used when setting the inputs for the transfer transaction | | |
+| safe_address | String | Specifies which specific address the transaction outputs will be locked to. The address MUST correspond to an address defined in config file under /btcxblockchainapi/btcxblockchainapi/config.yml. | | |
 | amount          | Float | Defines the total amount that will be transferred. NOTE: this amount is the total amount including fees, and the request will therefore fail if the total amount does not exceed the transaction fee.  | | |
 | txFee             | Float | Defines the fee used in the highest denominator for the currency. For bitcoin this is in BTC (hence 0.00000001 is one satoshi) per weight for the transaction. Does currently have no effect for Litecoin or Bitcoin Cash, and the fee set by the node is used. | | Yes |
 
@@ -106,7 +127,7 @@ Response parameter/parameters definition:
 | message           | String | Includes a message corresponding how well the transfer was executed | |
 | status                | String | Indicates if the transaction of the transfer succeeded or not. | ok / fail |
 | txid                    | String | Corresponds to the txid of the transaction of the specific transfer, if it was successful.  | |
-| test                    | Bool                | Specifies if the wallet node is running testnode or not | True  / False |
+| chain                 | Int | Specifies which chain the wallet node is configured for | 0 (Unknown) / 1 (Mainnet) / 2 (Testnet) / 3 (Regtest) |
 | error                  | Int | Indicates if an error occurred when requesting the balance for the specific wallet | 0 (No error) / 1 (Error occurred) |
 | error_message  | String | Holds a descriptive message corresponding to the error  | |
 
@@ -116,6 +137,8 @@ Request body:
         "transfers":[
             {
                 "currency":"btc",
+                "wallet":"primary_btc_receive",
+                "safe_address":"2MzmvJ4L5drgV4yjonxgrvpZkEVaySBZr6N",
                 "amount":0.123,
                 "txFee":0.00123
             }
@@ -136,7 +159,7 @@ Response body:
                 "txid": "0dc909844511f8e8e99d04abee8g4e223c4b8cf43584e0899ef2d6c4841aed7f"
             }
         ],
-        "test": True,
+        "chain": 2,
         "error": 0,
         "error_message": ""
     }
@@ -160,7 +183,7 @@ Response parameter/parameters definition:
 
 | Parameter   | Type   | Description | Possible values |
 | --------------| ------  | --------- | --------- |
-| test                    | Bool                | Specifies if the wallet node is running testnode or not | True  / False |
+| chain                 | Int                  | Specifies for which chain the wallet node is configured | 0 (Unknown) / 1 (Mainnet) / 2 (Testnet) / 3 (Regtest) |
 | addresses         | String Array   | An array of strings where every string represents a generated address. | |
 | error                  | Int                  | Indicates if an error occurred when requesting the balance for the specific wallet. | 0 (No error) / 1 (Error occurred) |
 | error_message  | String            | Holds a descriptive message corresponding to the error.  | |
@@ -170,13 +193,13 @@ Request body:
     {
         "currency":"btc",
         "quantity":3,
-        "wallet":"receive"
+        "wallet":"primary_btc_receive"
     }
 
 Response body:
 
     {
-        "test": True,
+        "chain": 2,
         "addresses": [
             "2N3itqAdDkJNC6aMq2FLaQYnDar1vzzSRFv",
             "2N7nCLKXxWrUEqyZFvt7eahvEaxAZni1fwK",
@@ -200,6 +223,7 @@ Request parameter/parameters definition:
 | transactions | JSON Array | And array of JSON objects, where every object represents the received payment to check. Supports multi currency checks. | |
 | currency      | String | Specifies which currency the specific received payment should be checked for | btc / ltc / bch |
 | address       | String | Defines the address the received payment should be checked for. NOTE: The address must be part of the specified wallet. | |
+| wallet           | String | Specifies which specific wallet the address sent in the address parameter should be "stored" (e.g. hold keys that correspond to the address).  | |
 
 Response parameter/parameters definition:
 
@@ -215,7 +239,7 @@ Response parameter/parameters definition:
 | received             | String            | The amount of the output locked to the address for the specific transaction | |
 | confirmations     | Int                 | Number of confirmations for the specific transaction  | |
 | date                   | String            | The date of the specific transaction | |
-| test                    | Bool                | Specifies if the wallet node is running testnode or not | True  / False |
+| chain                 | Int                  | Specifies for which chain the wallet node is configured | 0 (Unknown) / 1 (Mainnet) / 2 (Testnet) / 3 (Regtest) |
 | error                  | Int                  | Indicates if an error occurred when requesting the balance for the specific wallet. | 0 (No error) / 1 (Error occurred) |
 | error_message  | String            | Holds a descriptive message corresponding to the error.  | |
 
@@ -225,7 +249,8 @@ Request body:
         "transactions":[
             {
                 "currency":"btc",
-                "address":"2NAiERRHtLevi4uf4iMuDgLoyvAKkg2jVj2"
+                "address":"2NAiERRHtLevi4uf4iMuDgLoyvAKkg2jVj2",
+                "wallet":"primary_btc_receive"
             }
         ]
     }
@@ -255,7 +280,7 @@ Response body:
                 ]
             }
         ],
-        "test": True,
+        "chain": 2,
         "error": 0,
         "error_message": ""
     }
@@ -287,9 +312,15 @@ Response parameter/parameters definition:
 | status                | String             | Indicates if the transaction of the transfer succeeded or not. | 200 / 400 / 406 / 500 |
 | fee                     | Float              | Defines the total fee of the sendmany transaction. This is specified in the highest denominator for the currency. For bitcoin the fee is in BTC (hence 0.00000001 is one satoshi)  | |
 | message           | String             | Includes a message corresponding how well the transfer was executed | |
-| test                    | Bool                | Specifies if the wallet node is running testnode or not | True  / False |
+| chain                 | Int                  | Specifies for which chain the wallet node is configured | 0 (Unknown) / 1 (Mainnet) / 2 (Testnet) / 3 (Regtest) |
 | error                  | Int                  | Indicates if an error occurred when requesting the balance for the specific wallet. | 0 (No error) / 1 (Error occurred) |
 | error_message  | String            | Holds a descriptive message corresponding to the error.  | |
+| details               | JSON Array   | A JSON Array where every object represnts an output of the sendmany transaction EXCEPT the change transaction output. | |
+| address             | String            | The address the specific output has been sent to. | |
+| txid                    | String            | The txid of the entire transaction broadcasted to the network.    | |
+| vout                   | Int                 | The index of the specific output in the transaction. | |
+| amount              | String            | The amount sent (locked) with the specific output.  | |
+
 
 Request body:
 
@@ -307,7 +338,7 @@ Request body:
         ],
         "fromAddress":"2N3itqAdDkJNC6aMq2FLaQYnDar1vzzSRFv",
         "txFee":0.0001,
-        "wallet":"send"
+        "wallet":"primary_btc_send"
     }
 
 Response body:
@@ -317,11 +348,69 @@ Response body:
         "status": 200,
         "fee": "0.00004980",
         "message": "Send many is done.",
-        "test": True,
+        "chain": 2,
+        "error": 0,
+        "error_message": "",
+        "details": [
+            {
+                "address": "2N7nCLKXxWrUEqyZFvt7eahvEaxAZni1fwK",
+                "txid": "cbvb35c5c0de7fh42390abe65b685cg4c296c7f7c49d9j7fce5hg2092d3de7c5",
+                "vout": 0,
+                "amount": "0.01000000"
+            },
+            {
+                "address": "2NAiERRHtLevi4uf4iMuDgLoyvAKkg2jVj2",
+                "txid": "cbvb35c5c0de7fh42390abe65b685cg4c296c7f7c49d9j7fce5hg2092d3de7c5",
+                "vout": 1,
+                "amount": "0.07000000"
+            }
+        ]
+    }
+        
+        
+### POST /validate
+
+Function:
+
+Validates if an address is a valid address for a specified currency, and if the address is one of our addresses.
+
+
+Request parameter/parameters definition:
+
+| Parameter   | Type   | Description | Possible values |
+| --------------| ------  | --------- | --------- |
+| currency      | String        | The address parameter should be valid address for this currency. | btc / ltc / bch |
+| address    | String           | The address to validate. | |
+
+Response parameter/parameters definition:
+
+| Parameter   | Type   | Description | Possible values |
+| --------------| ------  | --------- | --------- |
+| is_valid              | Bool            | Returns True if the address is a valid address, or False if not. | True / False |
+| is_mine             | Bool             | Indicaties if the address is part of any of the node's / nodes' wallets. | True / False |
+| address             | String          | The address the request was made with. | |
+| wallet                | String            | Specifies which specific wallet the address is part of. If it's not part of any wallet, the result is an empty string. | |
+| chain                 | Int                  | Specifies for which chain address is part of. | 0 (Unknown) / 1 (Mainnet) / 2 (Testnet) / 3 (Regtest) |
+| error                  | Int                  | Indicates if an error occurred. | 0 (No error) / 1 (Error occurred) |
+| error_message  | String            | Holds a descriptive message corresponding to the error.  | |
+        
+Request body:
+        
+    {
+        "currency":"btc",
+        "address":"2NDZjCHRgRme9FoUqrU441pW9Lo1Ht46F99"
+    }
+        
+Response body:
+        
+    {
+        "is_valid": true,
+        "is_mine": false,
+        "address": "2NDZjCHRgRme9FoUqrU441pW9Lo1Ht46F99",
+        "wallet": "",
+        "chain": 2,
         "error": 0,
         "error_message": ""
     }
-
-
 
 
