@@ -249,6 +249,8 @@ Response parameter/parameters definition:
 | received             | String            | The amount of the output locked to the address for the specific transaction | |
 | confirmations     | Int                 | Number of confirmations for the specific transaction  | |
 | date                   | String            | The date of the specific transaction | |
+| error                  | Int                  | Indicates if an error occurred when checking the receivement for the specific transaction | 0 (No error) / 1 (Error occurred) |
+| error_message  | String            | Holds a descriptive message corresponding to the error for the specific transaction receivement check.  | |
 | chain                 | Int                  | Specifies for which chain the wallet node is configured | 0 (Unknown) / 1 (Mainnet) / 2 (Testnet) / 3 (Regtest) |
 | error                  | Int                  | Indicates if an error occurred when requesting the receive check for the specific address. | 0 (No error) / 1 (Error occurred) |
 | error_message  | String            | Holds a descriptive message corresponding to the error.  | |
@@ -279,13 +281,17 @@ Response body:
                         "txid": "5fcacedef771af8d97f533239cc18e6e7680eg30cdfb26b3e532fc7c1db591dfg",
                         "received": "0.023",
                         "confirmations": 1234,
-                        "date": "2018-01-14 03:42:11"
+                        "date": "2018-01-14 03:42:11",
+                        "error": 0,
+                        "error_message": ""
                     },
                     {
                         "txid": "8f75f2c00cb717965f6dc9c1bf70cd089fte2892420dcaad578517b2dc12c956",
                         "received": "0.021",
                         "confirmations": 1234,
-                        "date": "2018-02-01 16:23:14"
+                        "date": "2018-02-01 16:23:14",
+                        "error": 0,
+                        "error_message": ""
                     }
                 ]
             }
@@ -293,6 +299,89 @@ Response body:
         "chain": 2,
         "error": 0,
         "error_message": ""
+    }
+    
+    Example where one receivement check fails:
+    
+    Request body:
+    
+    {
+        "transactions":[
+            {
+                "currency":"btc",
+                "address":"2NAiERRHtLevi4uf4iMuDgLoyvAKkg2jVj2",
+                "wallet":"primary_btc_receive",
+                "amount": 0
+            },
+            {
+                "currency":"btc",
+                "address":"2N22h3adPaKDfd5j4Rhca5vvzfUssuRKz7p",
+                "wallet":"primary_btc_receive",
+                "amount": 0
+            },
+            {
+                "currency":"btc",
+                "address":"2N7nCLKXxWrUEqyZFvt7eahvEaxAZni1fwK",
+                "wallet":"primary_btc_receive",
+                "amount": 0
+            }
+        ]
+    }
+    
+    Response body:
+    
+    {
+        "receives": [
+            {
+                "currency": "btc",
+                "address": "2NAiERRHtLevi4uf4iMuDgLoyvAKkg2jVj2",
+                "received": "0.000000000000",
+                "risk": "low",
+                "txids": [],
+                "error": 0,
+                "error_message": ""
+            },
+            {
+                "currency": "btc",
+                "address": "2N22h3adPaKDfd5j4Rhca5vvzfUssuRKz7p",
+                "received": "0.000000000000",
+                "risk": "low",
+                "txids": [],
+                "error": 1,
+                "error_message": "2N22h3adPaKDfd5j4Rhca5vvzfUssuRKz7p is not an address of the wallet"
+            },
+            {
+                "currency": "btc",
+                "address": "2N7nCLKXxWrUEqyZFvt7eahvEaxAZni1fwK",
+                "received": "1.135899140000",
+                "risk": "medium",
+                "txids": [
+                    {
+                        "txid": "2fa6ecce1cc64z6155c35649942856fbf8da47023a4c26cb62e7594199d293a1",
+                        "received": "0.001000000000",
+                        "confirmations": 5799,
+                        "date": "2018-03-19 16:23:01"
+                    },
+                    {
+                        "txid": "fa18d657bc485654v8d3eaauyc77se1dbe40642ea1dab13073068e4bd5813d7ee",
+                        "received": "0.001000000000",
+                        "confirmations": 5800,
+                        "date": "2018-03-19 16:23:33"
+                    },
+                    {
+                        "txid": "29061007df1423acc5axth0574c9925342f813b0744378099fyca383294s1abb",
+                        "received": "0.001000000000",
+                        "confirmations": 5799,
+                        "date": "2018-03-19 16:23:43"
+                    }            
+                ],
+                "error": 0,
+                "error_message": ""
+            }
+        ],
+        "chain": 2,
+        "error": 1,
+        "error_message": "One of more receivement checks failed"
     }
 
 ### POST /sendmany

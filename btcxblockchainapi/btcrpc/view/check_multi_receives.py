@@ -35,6 +35,7 @@ class CheckMultiAddressesReceive(APIView):
             transactions = post_serializers.data["transactions"]
             log_info(log, "Transactions to iterate over", transactions)
             try:
+                any_receive_has_error = False
                 for transaction in transactions:
                     log_info(log, "Transaction", transaction)
 
@@ -52,14 +53,34 @@ class CheckMultiAddressesReceive(APIView):
                     log_info(log, "Address validation", address_validation)
 
                     if address_validation["isvalid"] is False:
+                        any_receive_has_error = True
                         error_message = transaction_address + " is not a valid address"
                         log_error(log, error_message)
-                        return Response(error_message, status=status.HTTP_400_BAD_REQUEST)
+                        response = check_multi_receives.ReceiveInformationResponse(
+                            currency=transaction["currency"],
+                            address=transaction_address,
+                            received=0.0,
+                            risk="low",
+                            txs=[],
+                            error=1,
+                            error_message=error_message)
+                        response_list.append(response.__dict__)
+                        continue
 
                     if address_validation["ismine"] is False:
+                        any_receive_has_error = True
                         error_message = transaction_address + " is not an address of the wallet"
                         log_error(log, error_message)
-                        return Response(error_message, status=status.HTTP_400_BAD_REQUEST)
+                        response = check_multi_receives.ReceiveInformationResponse(
+                            currency=transaction["currency"],
+                            address=transaction_address,
+                            received=0.0,
+                            risk="low",
+                            txs=[],
+                            error=1,
+                            error_message=error_message)
+                        response_list.append(response.__dict__)
+                        continue
 
                     tx_ids = self.__get_txIds(rpc_service=rpc_call, account=transaction["address"])
 
@@ -84,13 +105,24 @@ class CheckMultiAddressesReceive(APIView):
                         txs=tx_ids)
                     response_list.append(response.__dict__)
                     log_info(log, "Response list after receive information response has been appended", response_list)
-
-                receives_response = self.create_receives_information_response_and_log(
-                    log_info,
-                    "Generating successful receives information response",
-                    None,
-                    response_list=response_list,
-                    chain=chain)
+                if not any_receive_has_error:
+                    receives_response = self.create_receives_information_response_and_log(
+                        log_info,
+                        "Generating successful receives information response",
+                        None,
+                        response_list=response_list,
+                        chain=chain)
+                else:
+                    error_message = "One of more receivement checks failed"
+                    receives_response = self.create_receives_information_response_and_log(
+                        log_error,
+                        error_message,
+                        None,
+                        response_list=response_list,
+                        chain=chain,
+                        error=1,
+                        error_message=error_message
+                    )
             except JSONRPCException as ex:
 
                 error_message = "Bitcoin RPC error, check if username and password for node is correct. Message from " \

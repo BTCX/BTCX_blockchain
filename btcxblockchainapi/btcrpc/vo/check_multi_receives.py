@@ -74,6 +74,8 @@ class ReceiveInformationResponseSerializer(serializers.Serializer):
     received = serializers.DecimalField(max_digits=18, decimal_places=12, coerce_to_string=True)
     risk = serializers.CharField(max_length=10, allow_blank=True)  # high, medium, low
     txids = TxIdTransactionSerializer(many=True)
+    error = serializers.IntegerField()
+    error_message = serializers.CharField(max_length=512, allow_blank=True)
 
     class Meta:
         fields = ('currency', 'address', 'received', 'risk', 'txids', 'error', 'error_message')
