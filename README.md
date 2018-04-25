@@ -239,6 +239,8 @@ Response parameter/parameters definition:
 | received             | String            | The amount of the output locked to the address for the specific transaction | |
 | confirmations     | Int                 | Number of confirmations for the specific transaction  | |
 | date                   | String            | The date of the specific transaction | |
+| error                  | Int                  | Indicates if an error occurred when checking the receivement for the specific transaction | 0 (No error) / 1 (Error occurred) |
+| error_message  | String            | Holds a descriptive message corresponding to the error for the specific transaction receivement check.  | |
 | chain                 | Int                  | Specifies for which chain the wallet node is configured | 0 (Unknown) / 1 (Mainnet) / 2 (Testnet) / 3 (Regtest) |
 | error                  | Int                  | Indicates if an error occurred when requesting the balance for the specific wallet. | 0 (No error) / 1 (Error occurred) |
 | error_message  | String            | Holds a descriptive message corresponding to the error.  | |
@@ -279,7 +281,9 @@ Response body:
                         "confirmations": 1234,
                         "date": "2018-02-01 16:23:14"
                     }
-                ]
+                ],
+                "error": 0,
+                "error_message": ""
             }
         ],
         "chain": 2,
