@@ -14,7 +14,8 @@ from btcrpc.vo import transfers_using_sendtoaddress
 from btcrpc.utils.semaphore import SemaphoreSingleton
 from btcrpc.utils.rpc_calls.rpc_instance_generator import RpcGenerator
 from btcrpc.utils.chain_enum import ChainEnum
-
+from btcrpc.utils.endpoint_timer import EndpointTimer
+import requests
 
 import errno
 from socket import error as socket_error
@@ -26,6 +27,7 @@ class TransferCurrencyByUsingSendToAddress(APIView):
     permission_classes = (IsAdminUser,)
 
     def post(self, request):
+        endpoint_timer = EndpointTimer()
         log_info(log, "Request data", request.data)
         chain = ChainEnum.UNKNOWN
         semaphore = SemaphoreSingleton()
@@ -49,16 +51,25 @@ class TransferCurrencyByUsingSendToAddress(APIView):
                         wallet = transfer["wallet"]
                         safe_address = transfer["safe_address"]
 
-                        rpc_call = RpcGenerator.get_rpc_instance(wallet=wallet, currency=currency)
+                        rpc_call = RpcGenerator.get_rpc_instance(
+                            wallet=wallet,
+                            currency=currency,
+                            endpoint_timer=endpoint_timer
+                        )
                         log_info(log, "RPC instance class", rpc_call.__class__.__name__)
+                        endpoint_timer.validate_is_within_timelimit()
 
                         chain = constantutil.check_service_chain(rpc_call)
                         log_info(log, "Chain", chain.value)
+                        endpoint_timer.validate_is_within_timelimit()
+
                         encoding_flag = constantutil.get_safe_address_encoding(currency)
                         correct_encoded_safe_address = rpc_call.encode_address(
                             address=safe_address,
                             encoding_flag=encoding_flag)
                         log_info(log, "Safe address to try to send to", correct_encoded_safe_address)
+                        endpoint_timer.validate_is_within_timelimit()
+
                         to_address = yml_config.get_safe_address_to_be_transferred(
                             currency=currency,
                             safe_address=correct_encoded_safe_address)
@@ -66,9 +77,12 @@ class TransferCurrencyByUsingSendToAddress(APIView):
 
                         to_address_is_invalid = not (rpc_call.do_validate_address(address=to_address))["isvalid"]
                         log_info(log, "To address is invalid is", to_address_is_invalid)
+                        endpoint_timer.validate_is_within_timelimit()
 
-                        wallet_balance = rpc_call.get_wallet_balance();
+                        wallet_balance = rpc_call.get_wallet_balance()
                         log_info(log, "The wallet balance is", wallet_balance)
+                        endpoint_timer.validate_is_within_timelimit()
+
                         log_info(log, "Send amount is", send_amount)
 
                         if to_address_is_invalid:
@@ -104,6 +118,7 @@ class TransferCurrencyByUsingSendToAddress(APIView):
                                 log_info(log, "Trying to set the txfee to", str(txFee))
                                 txfee_set = rpc_call.set_tx_fee(txFee)
                                 log_info(log, "Using the suggested txfee " + str(txFee), txfee_set)
+                                endpoint_timer.validate_is_within_timelimit()
 
                                 send_response_txids = rpc_call.send_to_address(
                                     address=to_address,
@@ -111,9 +126,11 @@ class TransferCurrencyByUsingSendToAddress(APIView):
                                     subtractfeefromamount=True,
                                     from_wallet=wallet)
                                 log_info(log, "Send response tx_id is", send_response_txids)
+                                endpoint_timer.validate_is_within_timelimit()
 
                                 transactions_fee_infos = rpc_call.do_get_fees_of_transactions(send_response_txids)
                                 log_info(log, "Transaction of txids is", transactions_fee_infos)
+                                endpoint_timer.validate_is_within_timelimit()
 
                                 response = self.create_transfer_information_response_and_log(
                                     log_function=log_info,
@@ -150,6 +167,20 @@ class TransferCurrencyByUsingSendToAddress(APIView):
                                     message=error_message,
                                     status="fail")
                                 self.append_to_response_list_and_log(response_list, response.__dict__)
+                            except requests.Timeout as ex:
+                                error_message = "The send request timed out. Exception message: " + str(ex)
+                                response = self.create_transfer_information_response_and_log(
+                                    log_function=log_error,
+                                    log_message=error_message,
+                                    log_item=ex,
+                                    currency=currency,
+                                    to_address=to_address,
+                                    amount=Decimal(str(send_amount)),
+                                    message=error_message,
+                                    status="fail")
+                                self.append_to_response_list_and_log(response_list, response.__dict__)
+                                #We want to abort the transfer request if we timeout, so we reraise the exception.
+                                raise ex
 
                     log_info(log, "Response list after transfers have been iterated", response_list)
                     semaphore.release(log)
@@ -216,6 +247,19 @@ class TransferCurrencyByUsingSendToAddress(APIView):
                     log_error,
                     error_message,
                     serr,
+                    response_list=response_list,
+                    chain=chain,
+                    error=1,
+                    error_message=error_message)
+            except requests.Timeout as ex:
+                semaphore.release(log)
+                error_message = "The request timed out. Transactions transferred before the timeout " \
+                                "are included in the response_list list. " \
+                                "Message from exception: " + str(ex)
+                transfers_response = self.create_transfers_information_response_and_log(
+                    log_error,
+                    error_message,
+                    ex,
                     response_list=response_list,
                     chain=chain,
                     error=1,
