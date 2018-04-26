@@ -12,6 +12,8 @@ from bitcoinrpc.authproxy import JSONRPCException
 from socket import error as socket_error
 from btcrpc.utils.rpc_calls.rpc_instance_generator import RpcGenerator
 from btcrpc.utils.chain_enum import ChainEnum
+from btcrpc.utils.endpoint_timer import EndpointTimer
+import requests
 
 __author__ = 'sikamedia'
 __Date__ = '2015-01-18'
@@ -22,6 +24,7 @@ yml_config = ConfigFileReader()
 
 class CheckWalletsBalance(APIView):
     def post(self, request):
+        endpoint_timer = EndpointTimer()
         log_info(log, "Request data", request.data)
         post_serializers = wallet_balance.GetWalletBalancePostParameterSerializer(data=request.data)
         chain = ChainEnum.UNKNOWN
@@ -38,12 +41,22 @@ class CheckWalletsBalance(APIView):
                 wallet_type = wallet_json['wallet_type']
 
                 try:
-                    rpc_call = RpcGenerator.get_rpc_instance(wallet=wallet, currency=currency)
+                    rpc_call = RpcGenerator.get_rpc_instance(
+                        wallet=wallet,
+                        currency=currency,
+                        endpoint_timer=endpoint_timer
+                    )
                     log_info(log, "RPC instance class", rpc_call.__class__.__name__)
+                    endpoint_timer.validate_is_within_timelimit()
+
                     chain = constantutil.check_service_chain(rpc_call)
                     log_info(log, "Chain", chain.value)
+                    endpoint_timer.validate_is_within_timelimit()
+
                     balance = rpc_call.get_wallet_balance()
                     log_info(log, "Wallet balance", format(balance, '0.8f'))
+                    endpoint_timer.validate_is_within_timelimit()
+
                     wallet_balance_response = \
                         self.create_wallet_balance_response_and_log(
                             log_info,
@@ -90,7 +103,23 @@ class CheckWalletsBalance(APIView):
                             error_message=error_message)
                     self.append_to_wallet_balance_list_and_log(wallet_balance_response_list,
                                                                wallet_balance_response.__dict__)
-
+                except requests.Timeout as ex:
+                    error_message = "The request timed out. Message from exception: " + str(ex)
+                    wallet_balance_response = \
+                        self.create_wallet_balance_response_and_log(
+                            log_error,
+                            error_message,
+                            ex,
+                            wallet,
+                            wallet_type,
+                            0,
+                            chain,
+                            error=1,
+                            error_message=error_message)
+                    self.append_to_wallet_balance_list_and_log(wallet_balance_response_list,
+                                                               wallet_balance_response.__dict__)
+                    #We don't want to continue with the next balance check as we need to return the timeout response
+                    break
                 except BaseException as ex:
                     error_message = "An exception was raised. Error message: " + str(ex)
                     wallet_balance_response = \
