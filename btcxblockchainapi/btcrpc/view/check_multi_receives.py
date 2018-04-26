@@ -35,7 +35,6 @@ class CheckMultiAddressesReceive(APIView):
             log.info(post_serializers.data["transactions"])
             transactions = post_serializers.data["transactions"]
             try:
-                any_receive_has_error = False
                 for transaction in transactions:
                     log.info(transaction)
 
@@ -50,7 +49,6 @@ class CheckMultiAddressesReceive(APIView):
                     address_validation = rpc_call.do_validate_address(address=transaction_address)
 
                     if address_validation["isvalid"] is False:
-                        any_receive_has_error = True
                         error_message = transaction_address + " is not a valid address"
                         response = check_multi_receives.ReceiveInformationResponse(
                             currency=transaction["currency"],
@@ -64,7 +62,6 @@ class CheckMultiAddressesReceive(APIView):
                         continue
 
                     if address_validation["ismine"] is False:
-                        any_receive_has_error = True
                         error_message = transaction_address + " is not an address of the wallet"
                         response = check_multi_receives.ReceiveInformationResponse(
                             currency=transaction["currency"],
@@ -94,15 +91,8 @@ class CheckMultiAddressesReceive(APIView):
                                                                                risk=risk,
                                                                                txs=tx_ids)
                     response_list.append(response.__dict__)
-                if not any_receive_has_error:
-                    receives_response = check_multi_receives.ReceivesInformationResponse(receives=response_list,
+                receives_response = check_multi_receives.ReceivesInformationResponse(receives=response_list,
                                                                                          chain=chain.value)
-                else:
-                    error_message = "One of more receivement checks failed"
-                    receives_response = check_multi_receives.ReceivesInformationResponse(receives=response_list,
-                                                                                         chain=chain.value,
-                                                                                         error=1,
-                                                                                         error_message=error_message)
 
             except JSONRPCException as ex:
                 log.error("Error: %s" % ex.error['message'])
