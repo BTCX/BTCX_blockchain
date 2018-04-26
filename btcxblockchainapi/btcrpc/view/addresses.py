@@ -13,6 +13,8 @@ from socket import error as socket_error
 from btcrpc.utils.log import get_log, log_info, log_error
 from btcrpc.utils.rpc_calls.rpc_instance_generator import RpcGenerator
 from btcrpc.utils.chain_enum import ChainEnum
+from btcrpc.utils.endpoint_timer import EndpointTimer
+import requests
 
 log = get_log("Addresses view")
 
@@ -27,26 +29,33 @@ class CreateNewAddresses(APIView):
 
         if serializer_input.is_valid():
             log_info(log, "Post input data", serializer_input.data)
+            new_addresses = []
             try:
                 currency = serializer_input.data["currency"]
                 wallet = serializer_input.data["wallet"]
                 quantity = serializer_input.data["quantity"]
+                endpoint_timer = EndpointTimer(currency)
 
                 rpc_call = RpcGenerator.get_rpc_instance(wallet=wallet, currency=currency)
                 log_info(log, "RPC instance class", rpc_call.__class__.__name__)
+                endpoint_timer.validate_is_within_timelimit()
 
                 chain = constantutil.check_service_chain(rpc_call)
                 log_info(log, "Chain", chain.value)
+                endpoint_timer.validate_is_within_timelimit()
 
-                new_addresses = []
                 number_of_new_addresses = int(quantity)
                 log_info(log, "Number of new addresses to create", number_of_new_addresses)
 
                 for x in range(0, number_of_new_addresses):
                     new_address = rpc_call.do_get_new_address(wallet=wallet)
                     log_info(log, "Generated address " + str(x + 1), new_address)
+                    endpoint_timer.validate_is_within_timelimit()
+
                     rpc_call.do_set_account(new_address, new_address)
                     log_info(log, "Setting account for address " + new_address + " to", new_address)
+                    endpoint_timer.validate_is_within_timelimit()
+
                     new_addresses.append(new_address)
                     log_info(log, "new_addresses list after " + new_address + " has been added", new_addresses)
 
@@ -79,6 +88,17 @@ class CreateNewAddresses(APIView):
                     log_message=error_message,
                     log_item=serr,
                     new_addresses=[],
+                    chain=chain,
+                    error=1,
+                    error_message=error_message)
+            except requests.Timeout as ex:
+                error_message = "The request timed out. Addresses genereated before the timeout " \
+                                "is included in the new_addresses list. Message from exception: " + str(ex)
+                new_addresses_response = self.create_new_addresses_response_and_log(
+                    log_function=log_error,
+                    log_message=error_message,
+                    log_item=ex,
+                    new_addresses=new_addresses,
                     chain=chain,
                     error=1,
                     error_message=error_message)
