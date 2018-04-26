@@ -51,13 +51,17 @@ class CheckMultiAddressesReceive(APIView):
                         endpoint_timer=endpoint_timer
                     )
                     log_info(log, "RPC instance class", rpc_call.__class__.__name__)
+                    endpoint_timer.validate_is_within_timelimit()
+
                     chain = constantutil.check_service_chain(rpc_call)
                     log_info(log, "Chain", chain.value)
+                    endpoint_timer.validate_is_within_timelimit()
 
                     transaction_address = transaction["address"]
 
                     address_validation = rpc_call.do_validate_address(address=transaction_address)
                     log_info(log, "Address validation", address_validation)
+                    endpoint_timer.validate_is_within_timelimit()
 
                     if address_validation["isvalid"] is False:
                         any_receive_has_error = True
@@ -90,11 +94,13 @@ class CheckMultiAddressesReceive(APIView):
                         continue
 
                     tx_ids = self.__get_txIds(rpc_service=rpc_call, account=transaction["address"])
+                    endpoint_timer.validate_is_within_timelimit()
 
                     received_with_risk = self.__receive_amount_for_risk(
                         rpc_service=rpc_call,
                         wallet_address=transaction_address,
                         tx_ids=tx_ids)
+                    endpoint_timer.validate_is_within_timelimit()
 
                     received = Decimal(received_with_risk["result"]) if received_with_risk else 0.0
                     log_info(log, "Total amount received", received)
@@ -154,6 +160,18 @@ class CheckMultiAddressesReceive(APIView):
                     log_error,
                     error_message,
                     serr,
+                    response_list=response_list,
+                    chain=chain,
+                    error=1,
+                    error_message=error_message
+                )
+            except requests.Timeout as ex:
+                error_message = "The request timed out. Transactions genereated before the timeout " \
+                                "is included in the response_list list. Message from exception: " + str(ex)
+                receives_response = self.create_receives_information_response_and_log(
+                    log_error,
+                    error_message,
+                    ex,
                     response_list=response_list,
                     chain=chain,
                     error=1,
