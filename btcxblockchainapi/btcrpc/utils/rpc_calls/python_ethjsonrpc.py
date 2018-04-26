@@ -445,7 +445,10 @@ class PythonEthJsonRpc(RPCCall):
         any_transaction_succeeded = len(txids) > 0
         return any_transaction_succeeded, txids
 
-    def validate_that_geth_is_synced(self, total_elapsed_time=0, saved_highest_block=-1):
+    def validate_that_geth_is_synced(self, total_elapsed_time=0.0, saved_highest_block=-1):
+
+        #To be removed, only used for testing
+        return
 
         #Base case
         if total_elapsed_time >= 30.0:

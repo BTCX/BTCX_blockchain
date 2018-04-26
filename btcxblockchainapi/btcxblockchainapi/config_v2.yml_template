@@ -38,6 +38,7 @@ btc:
   exchange1: EXCHANGE1_ADDRESS_BTC
   exchange2: EXCHANGE2_ADDRESS_BTC
   node_offsync_block_number_acceptance: 0
+  request_time_limit: 60
   #high risk maps to confirmations: 0 confirmation, medium risk: 1 confirmation, low risk: 6 confirmations.
   risk_confirmations:
     high: 0
@@ -84,6 +85,7 @@ ltc:
   exchange1: EXCHANGE1_ADDRESS_LTC
   exchange2: EXCHANGE2_ADDRESS_LTC
   node_offsync_block_number_acceptance: 0
+  request_time_limit: 60
   #high risk maps to confirmations: 0 confirmation, medium risk: 1 confirmation, low risk: 6 confirmations.
   risk_confirmations:
     high: 0
@@ -130,6 +132,7 @@ bch:
   exchange1: EXCHANGE1_ADDRESS_BCH
   exchange2: EXCHANGE2_ADDRESS_BCH
   node_offsync_block_number_acceptance: 0
+  request_time_limit: 60
   #high risk maps to confirmations: 0 confirmation, medium risk: 1 confirmation, low risk: 6 confirmations.
   risk_confirmations:
     high: 0
@@ -180,6 +183,7 @@ eth:
   primary_send: PRIMARY_SEND_ADDRESS_IN_CHECKSUM_FORMAT
   secondary_send: SECONDARY_SEND_ADDRESS_IN_CHECKSUM_FORMAT
   node_offsync_block_number_acceptance: 10
+  request_time_limit: 60
   #high risk maps to confirmations: 0 confirmation, medium risk: 1 confirmation, low risk: 6 confirmations.
   risk_confirmations:
     high: 0
