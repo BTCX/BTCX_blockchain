@@ -4,11 +4,14 @@ from btcrpc.utils.rpc_calls.bitcoin_rpc import BitcoinRpc
 from btcrpc.utils.rpc_calls.litecoin_rpc import LitecoinRpc
 from btcrpc.utils.rpc_calls.python_bitcoinrpc import PythonBitcoinRpc
 from btcrpc.utils.rpc_calls.python_ethjsonrpc import PythonEthJsonRpc
+from btcrpc.utils.endpoint_timer import EndpointTimer
 
 
 class RpcGenerator(object):
     @staticmethod
-    def get_rpc_instance(wallet, currency):
+    def get_rpc_instance(wallet, currency, endpoint_timer=None):
+        if not endpoint_timer:
+            endpoint_timer = EndpointTimer(currency)
         if currency == Constants.Currencies.BITCOIN:
             return BitcoinRpc(wallet, currency)
         elif currency == Constants.Currencies.BITCOIN_CASH:
@@ -16,7 +19,7 @@ class RpcGenerator(object):
         elif currency == Constants.Currencies.LITECOIN:
             return LitecoinRpc(wallet, currency)
         elif currency == Constants.Currencies.ETHEREUM:
-            return PythonEthJsonRpc(wallet, currency)
+            return PythonEthJsonRpc(wallet, currency, endpoint_timer)
         else:
             raise TypeError("Incorrect currency entered")
 

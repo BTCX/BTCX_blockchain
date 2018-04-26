@@ -2,7 +2,7 @@ import time
 import requests
 from btcrpc.utils.config_file_reader import ConfigFileReader
 
-class InEndpointTimer(object):
+class EndpointTimer(object):
 
     def __init__(self, currency):
         self.start_time = time.process_time()

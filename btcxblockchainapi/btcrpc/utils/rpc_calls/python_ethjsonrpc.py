@@ -18,11 +18,12 @@ log = get_log("PythonEthereumRpc Call:")
 
 
 class PythonEthJsonRpc(RPCCall):
-    def __init__(self, wallet, currency):
+    def __init__(self, wallet, currency, endpoint_timer):
         yml_config_reader = ConfigFileReader()
         url = yml_config_reader.get_rpc_server(currency=currency, wallet=wallet)
         w3 = Web3(HTTPProvider(url))
         self.access = w3
+        self.endpoint_timer = endpoint_timer
 
     def amount_received_by_address(self, address="", confirms=0):
         raise NotImplementedError
