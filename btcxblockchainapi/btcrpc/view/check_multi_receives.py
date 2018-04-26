@@ -15,6 +15,8 @@ from socket import error as socket_error
 from btcrpc.utils.rpc_calls.rpc_call import RPCCall
 from btcrpc.utils.rpc_calls.rpc_instance_generator import RpcGenerator
 from btcrpc.utils.chain_enum import ChainEnum
+from btcrpc.utils.endpoint_timer import EndpointTimer
+import requests
 
 log = get_log("CheckMultiAddressesReceive view")
 yml_config = ConfigFileReader()
@@ -25,6 +27,7 @@ RISK_HIGH_CONFIRMATIONS = yml_config.get_confirmations_mapping_to_risk(currency=
 
 class CheckMultiAddressesReceive(APIView):
     def post(self, request):
+        endpoint_timer = EndpointTimer()
         log_info(log, "Request data", request.data)
         chain = ChainEnum.UNKNOWN
         post_serializers = check_multi_receives.PostParametersSerializer(data=request.data)
@@ -42,7 +45,11 @@ class CheckMultiAddressesReceive(APIView):
                     wallet = transaction["wallet"]
                     currency = transaction["currency"]
 
-                    rpc_call = RpcGenerator.get_rpc_instance(wallet=wallet, currency=currency)
+                    rpc_call = RpcGenerator.get_rpc_instance(
+                        wallet=wallet,
+                        currency=currency,
+                        endpoint_timer=endpoint_timer
+                    )
                     log_info(log, "RPC instance class", rpc_call.__class__.__name__)
                     chain = constantutil.check_service_chain(rpc_call)
                     log_info(log, "Chain", chain.value)

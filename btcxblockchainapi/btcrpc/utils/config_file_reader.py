@@ -106,6 +106,6 @@ class ConfigFileReader(object, metaclass=Singleton):
         wallet_server = self.server_map[currency]
         return int(wallet_server['node_offsync_block_number_acceptance'])
 
-    def get_request_time_limit(self, currency):
-        wallet_server = self.server_map[currency]
+    def get_request_time_limit(self):
+        wallet_server = self.server_map['project_wide_values']
         return int(wallet_server['request_time_limit'])

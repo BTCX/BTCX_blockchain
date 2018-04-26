@@ -11,7 +11,7 @@ class RpcGenerator(object):
     @staticmethod
     def get_rpc_instance(wallet, currency, endpoint_timer=None):
         if not endpoint_timer:
-            endpoint_timer = EndpointTimer(currency)
+            endpoint_timer = EndpointTimer()
         if currency == Constants.Currencies.BITCOIN:
             return BitcoinRpc(wallet, currency)
         elif currency == Constants.Currencies.BITCOIN_CASH:

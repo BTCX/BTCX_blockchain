@@ -23,6 +23,7 @@ class CreateNewAddresses(APIView):
     permission_classes = (IsAdminUser,)
 
     def post(self, request):
+        endpoint_timer = EndpointTimer()
         log_info(log, "Request data", request.data)
         chain = ChainEnum.UNKNOWN
         serializer_input = addresses.NewAddressesPostParametersSerializer(data=request.data)
@@ -34,9 +35,12 @@ class CreateNewAddresses(APIView):
                 currency = serializer_input.data["currency"]
                 wallet = serializer_input.data["wallet"]
                 quantity = serializer_input.data["quantity"]
-                endpoint_timer = EndpointTimer(currency)
 
-                rpc_call = RpcGenerator.get_rpc_instance(wallet=wallet, currency=currency)
+                rpc_call = RpcGenerator.get_rpc_instance(
+                    wallet=wallet,
+                    currency=currency,
+                    endpoint_timer=endpoint_timer
+                )
                 log_info(log, "RPC instance class", rpc_call.__class__.__name__)
                 endpoint_timer.validate_is_within_timelimit()
 
