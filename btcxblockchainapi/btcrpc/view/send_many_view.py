@@ -14,6 +14,8 @@ from socket import error as socket_error
 from btcrpc.utils.semaphore import SemaphoreSingleton
 from btcrpc.utils.rpc_calls.rpc_instance_generator import RpcGenerator
 from btcrpc.utils.chain_enum import ChainEnum
+from btcrpc.utils.endpoint_timer import EndpointTimer
+import requests
 
 log = get_log("SendMany view:")
 
@@ -22,6 +24,7 @@ class BTCSendManyView(APIView):
     permission_classes = (IsAdminUser,)
 
     def post(self, request):
+        endpoint_timer = EndpointTimer()
         log_info(log, "Request data", request.data)
         chain = ChainEnum.UNKNOWN
         semaphore = SemaphoreSingleton()
@@ -51,17 +54,22 @@ class BTCSendManyView(APIView):
             response = None
 
             try:
-                rpc_call = RpcGenerator.get_rpc_instance(wallet=wallet, currency=currency)
+                rpc_call = RpcGenerator.get_rpc_instance(wallet=wallet, currency=currency, endpoint_timer=endpoint_timer)
                 log_info(log, "RPC instance class", rpc_call.__class__.__name__)
+                endpoint_timer.validate_is_within_timelimit()
+
                 chain = constantutil.check_service_chain(rpc_call)
                 log_info(log, "Chain", chain.value)
+                endpoint_timer.validate_is_within_timelimit()
 
                 if (semaphore.acquire_if_released(log)):
                     log_info(log, "Trying to set the txfee to", str(txFee))
                     txfee_set = rpc_call.set_tx_fee(txFee)
                     log_info(log, "Using the suggested txfee " + str(txFee), txfee_set)
+                    endpoint_timer.validate_is_within_timelimit()
 
                     isSuccess, txids = rpc_call.send_many(from_account=from_account, from_wallet=wallet, amounts=amounts_dict)
+                    endpoint_timer.validate_is_within_timelimit()
                     # We want to make sure that transactions_with_details_list contains all txids that succeeded, no
                     # matter if the rest of the function below fails and raises exceptions, so that we atleast return
                     # any txids that succeeded
@@ -74,6 +82,8 @@ class BTCSendManyView(APIView):
                     if (isSuccess):
                         semaphore.release(log)
                         txids_with_fee = rpc_call.do_get_fees_of_transactions(txids)
+                        endpoint_timer.validate_is_within_timelimit()
+
                         txids_with_fee_transaction_object_list = \
                             constantutil.create_transaction_object_list_from_transaction_fee_info_list(txids_with_fee)
 
@@ -91,6 +101,7 @@ class BTCSendManyView(APIView):
                         for transaction_object in txids_with_fee_transaction_object_list:
                             log_info(log, "Txid with fee object", transaction_object)
                             transaction_with_details = rpc_call.do_get_transaction_details(transaction_object)
+                            endpoint_timer.validate_is_within_timelimit()
                             log_info(log, "Transaction with details object", transaction_with_details)
                             updated_transaction_with_details.append(transaction_with_details)
 
@@ -201,6 +212,22 @@ class BTCSendManyView(APIView):
                     log_function=log_error,
                     log_message=error_message,
                     log_item=serr,
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    message=error_message,
+                    transactions_with_details_list=transactions_with_details_list,
+                    chain=chain,
+                    error=1,
+                    error_message=error_message)
+
+            except requests.Timeout as ex:
+                semaphore.release(log)
+                error_message = "The request timed out. Transactions genereated before the timeout " \
+                                "is included in the transactions_with_details_list list. " \
+                                "Message from exception: " + str(ex)
+                response = self.create_send_many_response_and_log(
+                    log_function=log_error,
+                    log_message=error_message,
+                    log_item=ex,
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                     message=error_message,
                     transactions_with_details_list=transactions_with_details_list,
