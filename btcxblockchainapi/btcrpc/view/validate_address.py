@@ -52,9 +52,9 @@ class ValidateAddress(APIView):
                     endpoint_timer.validate_is_within_timelimit()
 
                     if address_validation["isvalid"]:
+                        is_valid = True
                         chain = constantutil.check_service_chain(rpc_call)
                         log_info(log, "Chain", chain.value)
-                        is_valid = True
                         endpoint_timer.validate_is_within_timelimit()
                     else:
                         continue
