@@ -68,26 +68,7 @@ class CheckWalletsBalance(APIView):
                             chain)
                     self.append_to_wallet_balance_list_and_log(wallet_balance_response_list,
                                                                wallet_balance_response.__dict__)
-                except socket_error as serr:
-                    error_message = "Socket error: "
-                    if serr.errno != errno.ECONNREFUSED:
-                        error_message = error_message + "A general socket error was raised"
-                    else:
-                        error_message = error_message + "Connection refused error, check if the wallet node is down."
 
-                    wallet_balance_response = \
-                        self.create_wallet_balance_response_and_log(
-                            log_error,
-                            error_message,
-                            serr,
-                            wallet,
-                            wallet_type,
-                            0,
-                            chain,
-                            error=1,
-                            error_message=error_message)
-                    self.append_to_wallet_balance_list_and_log(wallet_balance_response_list,
-                                                               wallet_balance_response.__dict__)
                 except JSONRPCException as ex:
                     error_message = "Bitcoin RPC error, check if username and password for node is correct. Message from python-bitcoinrpc: " + ex.message
                     wallet_balance_response = \
@@ -120,6 +101,26 @@ class CheckWalletsBalance(APIView):
                                                                wallet_balance_response.__dict__)
                     #We don't want to continue with the next balance check as we need to return the timeout response
                     break
+                except socket_error as serr:
+                    error_message = "Socket error: "
+                    if serr.errno != errno.ECONNREFUSED:
+                        error_message = error_message + "A general socket error was raised"
+                    else:
+                        error_message = error_message + "Connection refused error, check if the wallet node is down."
+
+                    wallet_balance_response = \
+                        self.create_wallet_balance_response_and_log(
+                            log_error,
+                            error_message,
+                            serr,
+                            wallet,
+                            wallet_type,
+                            0,
+                            chain,
+                            error=1,
+                            error_message=error_message)
+                    self.append_to_wallet_balance_list_and_log(wallet_balance_response_list,
+                                                               wallet_balance_response.__dict__)
                 except BaseException as ex:
                     error_message = "An exception was raised. Error message: " + str(ex)
                     wallet_balance_response = \
