@@ -81,6 +81,17 @@ class CreateNewAddresses(APIView):
                     chain=chain,
                     error=1,
                     error_message=error_message)
+            except requests.Timeout as ex:
+                error_message = "The request timed out. Addresses genereated before the timeout " \
+                                "is included in the new_addresses list. Message from exception: " + str(ex)
+                new_addresses_response = self.create_new_addresses_response_and_log(
+                    log_function=log_error,
+                    log_message=error_message,
+                    log_item=ex,
+                    new_addresses=new_addresses,
+                    chain=chain,
+                    error=1,
+                    error_message=error_message)
             except socket_error as serr:
                 if serr.errno != errno.ECONNREFUSED:
                     error_message = "A general socket error was raised."
@@ -92,17 +103,6 @@ class CreateNewAddresses(APIView):
                     log_message=error_message,
                     log_item=serr,
                     new_addresses=[],
-                    chain=chain,
-                    error=1,
-                    error_message=error_message)
-            except requests.Timeout as ex:
-                error_message = "The request timed out. Addresses genereated before the timeout " \
-                                "is included in the new_addresses list. Message from exception: " + str(ex)
-                new_addresses_response = self.create_new_addresses_response_and_log(
-                    log_function=log_error,
-                    log_message=error_message,
-                    log_item=ex,
-                    new_addresses=new_addresses,
                     chain=chain,
                     error=1,
                     error_message=error_message)
