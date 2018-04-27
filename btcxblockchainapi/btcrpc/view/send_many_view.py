@@ -84,19 +84,20 @@ class BTCSendManyView(APIView):
             semaphore.release()
             log.info("Error: %s" % result.error['message'])
             response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                                     fee=0, message=result.error['message'], chain=chain.value, error=1)
+                                                     fee=0, message=result.error['message'], chain=chain.value, error=1,
+                                                     error_message=result.error['message'])
           elif result is not None and isinstance(result, socket.error):
             semaphore.release()
             log.info(result.errno == errno.ECONNREFUSED)
             log.info(result.message)
             response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                                                      fee=0, message=result.message,
-                                                     chain=chain.value, error=1)
+                                                     chain=chain.value, error=1, error_message=result.message)
         else:
+          error_message = "Semaphore is already acquired, wait until semaphore is released."
           response = send_many_vo.SendManyResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                                                   fee=0, message="Semaphore is already acquired, wait until semaphore"
-                                                                  " is released.",
-                                                   chain=chain.value, error=1)
+                                                   fee=0, message=error_message,
+                                                   chain=chain.value, error=1, error_message=error_message)
 
       except JSONRPCException as ex:
         semaphore.release()
