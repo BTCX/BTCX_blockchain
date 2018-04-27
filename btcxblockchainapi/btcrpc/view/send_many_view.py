@@ -69,7 +69,6 @@ class BTCSendManyView(APIView):
                     endpoint_timer.validate_is_within_timelimit()
 
                     isSuccess, txids = rpc_call.send_many(from_account=from_account, from_wallet=wallet, amounts=amounts_dict)
-                    endpoint_timer.validate_is_within_timelimit()
                     # We want to make sure that transactions_with_details_list contains all txids that succeeded, no
                     # matter if the rest of the function below fails and raises exceptions, so that we atleast return
                     # any txids that succeeded
@@ -78,6 +77,9 @@ class BTCSendManyView(APIView):
 
                     log_info(log, "Is send many request successful", isSuccess)
                     log_info(log, "Transactions of send many request", txids)
+                    # NOTE! We add this check after we have included the txids in the transactions_with_details_list, as
+                    # we need to ensure that they are returned no matter what.
+                    endpoint_timer.validate_is_within_timelimit()
 
                     if (isSuccess):
                         semaphore.release(log)
@@ -201,6 +203,22 @@ class BTCSendManyView(APIView):
                     error=1,
                     error_message=error_message)
 
+            except requests.Timeout as ex:
+                semaphore.release(log)
+                error_message = "The request timed out. Transactions genereated before the timeout " \
+                                "is included in the transactions_with_details_list list. " \
+                                "Message from exception: " + str(ex)
+                response = self.create_send_many_response_and_log(
+                    log_function=log_error,
+                    log_message=error_message,
+                    log_item=ex,
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    message=error_message,
+                    transactions_with_details_list=transactions_with_details_list,
+                    chain=chain,
+                    error=1,
+                    error_message=error_message)
+
             except socket_error as serr:
                 semaphore.release(log)
                 error_message = "Error: "
@@ -212,22 +230,6 @@ class BTCSendManyView(APIView):
                     log_function=log_error,
                     log_message=error_message,
                     log_item=serr,
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    message=error_message,
-                    transactions_with_details_list=transactions_with_details_list,
-                    chain=chain,
-                    error=1,
-                    error_message=error_message)
-
-            except requests.Timeout as ex:
-                semaphore.release(log)
-                error_message = "The request timed out. Transactions genereated before the timeout " \
-                                "is included in the transactions_with_details_list list. " \
-                                "Message from exception: " + str(ex)
-                response = self.create_send_many_response_and_log(
-                    log_function=log_error,
-                    log_message=error_message,
-                    log_item=ex,
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                     message=error_message,
                     transactions_with_details_list=transactions_with_details_list,
