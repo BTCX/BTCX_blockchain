@@ -113,6 +113,9 @@ class PythonEthJsonRpc(RPCCall):
     def get_balance(self, account="", minconf=1):
         raise NotImplementedError
 
+    def get_gasPrice(self):
+        return self.access.eth.gasPrice
+
     def get_real_account_balance_in_wei(self, account):
         (pending_account_balance, confirmed_account_balance, pending_transactions) = \
             self.get_pending_and_confirmed_balance_in_wei_and_pending_transactions(account)
@@ -254,56 +257,92 @@ class PythonEthJsonRpc(RPCCall):
     def send_to_addresses(self, addresses_and_amounts = {}, subtractfeefromamount=True, from_wallet=''):
         txids = []
         try:
-            self.validate_that_geth_is_synced()
+            self.call_func_and_validate_timeout(
+                func=self.validate_that_geth_is_synced,
+                log_message="Geth is synced"
+            )
             account_start_index = 0
             for to_address, amount in addresses_and_amounts.items():
-                check_sum_address = self.access.toChecksumAddress(to_address)
-                amount_left_to_send = self.access.toWei(amount, "ether")
+                check_sum_address = self.call_func_and_validate_timeout(
+                    func = self.access.toChecksumAddress,
+                    func_args = {"address":to_address},
+                    log_message = "to_address is: " + to_address + ". Checksum address is"
+                )
+                amount_left_to_send = self.call_func_and_validate_timeout(
+                    func = self.access.toWei,
+                    func_args = {'number':amount, 'unit':"ether"},
+                    log_message = "Amount left to send is"
+                )
                 transaction_objects_list = []
 
                 # The [account_start_index:] ensures that we don't loop over accounts already determined to be empty.
                 # This is only made to optimise the runtime of the loop, as if this was not done, we would loop over
                 # The entire account list for every step in the addresses_and_amounts.items() loop
                 account_list_with_empty_accounts_skipped = self.access.eth.accounts[account_start_index:]
+                log_info(log, "None empty accounts to loop over ", account_list_with_empty_accounts_skipped)
+
                 number_of_elements_skipped = account_start_index
+                log_info(log, "Number of elements skipped ", number_of_elements_skipped)
+
+                self.endpoint_timer.validate_is_within_timelimit()
 
                 for index, account in enumerate(account_list_with_empty_accounts_skipped):
 
                     # Please note that we don't use index + number_of_elements_skipped + 1 as there can still be balance
                     # on the account of index, after the funds has been used for this specific transaction.
                     account_start_index = index + number_of_elements_skipped
+                    log_info(log, "account_start_index ", account_start_index)
 
                     #NOTE TO BE REMOVED: ONLY FOR TESTING
                     # if account == self.access.eth.accounts[0]:
                     #     continue
 
                     sender = account
+                    log_info(log, "Sender account ", sender)
+
                     receiver = check_sum_address
 
                     # NOTE!!! Make sure to use a balance that subtracts pending transactions (which
                     # get_real_account_balance_in_wei does), else this function will lead to double spend transactions.
                     # as the account list resets for every new transaction to send to.
-                    balance = self.get_real_account_balance_in_wei(account)
-                    gas_price = self.access.eth.gasPrice
+                    balance = self.call_func_and_validate_timeout(
+                        func = self.get_real_account_balance_in_wei,
+                        func_args = {'account':sender},
+                        log_message = "Real account balance of sender is"
+                    )
+
+                    gas_price = self.call_func_and_validate_timeout(
+                        func = self.get_gasPrice,
+                        log_message = "Gas price used is"
+                    )
+
                     transaction_object = {
                         'from': sender,
                         'to': receiver,
                         'gasPrice': gas_price,
                     }
-                    gas_amount = self.access.eth.estimateGas(transaction_object)
-                    transaction_object['gas'] = gas_amount
-                    transactionFee = gas_amount * gas_price
+                    log_info(log, "Transaction object is", transaction_object)
 
-                    if balance < transactionFee: #Theres either no balance to send or, only balance is lower than the transactionfee
+                    gas_amount = self.call_func_and_validate_timeout(
+                        func = self.access.eth.estimateGas,
+                        func_args = {'transaction':transaction_object},
+                        log_message = "The estimated gas amount for the transaction object is"
+                    )
+
+                    transaction_object['gas'] = gas_amount
+                    transaction_fee = gas_amount * gas_price
+                    log_info(log, "Transaction fee is", transaction_fee )
+
+                    if balance < transaction_fee: #Theres either no balance to send or, only balance is lower than the transactionfee
                         continue
 
                     if balance < amount_left_to_send:
-                        transactionValue = balance - transactionFee
+                        transactionValue = balance - transaction_fee
                     else:
                         if subtractfeefromamount:
-                            transactionValue = amount_left_to_send - transactionFee
-                        elif amount_left_to_send + transactionFee > balance:
-                            transactionValue = balance - transactionFee
+                            transactionValue = amount_left_to_send - transaction_fee
+                        elif amount_left_to_send + transaction_fee > balance:
+                            transactionValue = balance - transaction_fee
                         else:
                             transactionValue = amount_left_to_send
 
@@ -312,7 +351,7 @@ class PythonEthJsonRpc(RPCCall):
                     amount_left_to_send = amount_left_to_send - transactionValue
 
                     if subtractfeefromamount:
-                        amount_left_to_send = amount_left_to_send - transactionFee
+                        amount_left_to_send = amount_left_to_send - transaction_fee
                     if amount_left_to_send <= 0:
                         break
 
@@ -502,3 +541,24 @@ class PythonEthJsonRpc(RPCCall):
                     total_elapsed_time=new_total_elapsed_time,
                     saved_highest_block= highest_block
                 )
+
+    '''Throws requests.Timeout error if the endpoint timer has reached max time defined in config file'''
+    def call_func_and_validate_timeout(self, func, func_args=None, log_message=None):
+        if func_args:
+            item_to_return = func(**func_args)
+        else:
+            item_to_return = func()
+        if log_message:
+            log_info(log, log_message,item_to_return)
+        self.endpoint_timer.validate_is_within_timelimit()
+        return item_to_return
+
+    '''Throws requests.Timeout error if the endpoint timer has reached max time defined in config file'''
+    def call_void_func_and_validate_timeout(self, func, func_args=None, log_message=None):
+        if func_args:
+            func(**func_args)
+        else:
+            func()
+        if log_message:
+            log_info(log, log_message)
+        self.endpoint_timer.validate_is_within_timelimit()
