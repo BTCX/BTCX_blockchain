@@ -19,7 +19,6 @@ logger = logging.getLogger(__name__)
 attributeConst = AddressReceiveOutputAttributeConst()
 
 class CreateNewAddresses(APIView):
-    permission_classes = (IsAdminUser,)
 
     def post(self, request):
         chain = ChainEnum.UNKNOWN
