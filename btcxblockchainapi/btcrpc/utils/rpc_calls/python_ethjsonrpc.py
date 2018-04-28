@@ -381,62 +381,90 @@ class PythonEthJsonRpc(RPCCall):
                 # If this if case is hit, there is not enough funds in the wallet to send the entire amount to the address
                 if amount_left_to_send > 0:
                     exception_string = "There are not enough funds in the wallet: " + from_wallet + " to fund the transaction "\
-                                        "of the amount: " + str(amount) + " To address: " + to_address
+                                        "of the amount: " + str(amount) + " To address: " + to_address + ". Amount left " \
+                                        "required is " + str(amount_left_to_send)
+                    log_error(log, exception_string)
                     raise JSONRPCException({'code': -343, 'message': exception_string})
+
+                self.call_void_func_and_validate_timeout(
+                    func=self.validate_that_geth_is_synced,
+                    log_message="Geth is synced"
+                )
 
                 # We seperate the actual send of funds from the calculation and creation of the transactions, to make sure that
                 # we don't run into a situation where there's only funds to partially fund the transaction. If that would happen,
                 # It could potentially lead to that only of the percentage offunds was sent to the address, which would make the
                 # situation tricky, as we would then need to have error handling to send the rest of the funds later.
-                self.validate_that_geth_is_synced()
+                log_info(log, "transaction_objects_list to send is", transaction_objects_list)
                 for trans_object in transaction_objects_list:
+                    log_info(log, "trans_object to send is is", trans_object)
                     yml_config_reader = ConfigFileReader()
                     key_encrypt_pass = yml_config_reader.get_private_key_encryption_password(
                         currency=Constants.Currencies.ETHEREUM,
                         wallet=from_wallet)
                     sender = trans_object['from']
 
-                    self.access.personal.unlockAccount(sender, key_encrypt_pass)
+                    unlocked = self.call_func_and_validate_timeout(
+                        func = self.access.personal.unlockAccount,
+                        func_args = {'account':sender, 'passphrase': key_encrypt_pass},
+                        log_message = "Account " + sender +" is unlocked is"
+                    )
 
-                    (pending_b1, confirmed_b1, pending_txs1) = \
-                        self.get_pending_and_confirmed_balance_in_wei_and_pending_transactions(sender)
+                    (pending_b1, confirmed_b1, pending_txs1) = self.call_func_and_validate_timeout(
+                        func = self.get_pending_and_confirmed_balance_in_wei_and_pending_transactions,
+                        func_args = {'account':sender},
+                        log_message = "Pending balance, confirmed balance and pending transactions is"
+                    )
 
                     txidBytes = self.access.eth.sendTransaction(trans_object)
 
-                    (pending_b2, confirmed_b2, pending_txs2) = \
-                        self.get_pending_and_confirmed_balance_in_wei_and_pending_transactions(sender)
+                    # We want to ensure that we get the txid back within the timelimit, therefore we catch the timeout
+                    # exception if thrown and return the information about the transaction we got. The calling function
+                    # will have checks for timeouts within it, to ensure that the is timedout.
+                    tx_information = None
+                    try:
+                        if txidBytes is not None:
+                            #The txid returned by sendTransaction is of type hexBytes. To get the hex string, we run .hex()
+                            txid = txidBytes.hex()
+                            tx_information = txid
+                        else:
+                            txid = None
 
-                    self.access.personal.lockAccount(sender)
+                        (pending_b2, confirmed_b2, pending_txs2) = \
+                            self.get_pending_and_confirmed_balance_in_wei_and_pending_transactions(sender)
+
+                        locked = self.access.personal.lockAccount(sender)
+                        log_info(log, "Account " + sender +" is locked is", locked)
 
 
-                    if txidBytes is not None:
-                        #The txid returned by sendTransaction is of type hexBytes. To get the hex string, we run .hex()
-                        txid = txidBytes.hex()
-                    else:
-                        # The sendTransaction returned nothing. However ethereum sometimes still sends a transaction when
-                        # even though sendTransaction returns nothing. We must check if there is a new txid added.
-                        fetched_txid = self.handle_no_txid_returned_for_sendtransaction(
-                            trans_object=trans_object,
-                            pending_balance_before_sent=pending_b1,
-                            pending_balance_after_sent=pending_b2,
-                            pending_transactions_before_sent=pending_txs1,
-                            pending_transactions_after_sent=pending_txs2
-                        )
-                        txid = fetched_txid
-                        #No txid was found
-                        if fetched_txid is None:
-                            continue
+                        if txid is None:
+                            # The sendTransaction returned nothing. However ethereum sometimes still sends a transaction when
+                            # even though sendTransaction returns nothing. We must check if there is a new txid added.
+                            fetched_txid = self.handle_no_txid_returned_for_sendtransaction(
+                                trans_object=trans_object,
+                                pending_balance_before_sent=pending_b1,
+                                pending_balance_after_sent=pending_b2,
+                                pending_transactions_before_sent=pending_txs1,
+                                pending_transactions_after_sent=pending_txs2
+                            )
+                            txid = fetched_txid
+                            #No txid was found
+                            if fetched_txid is None:
+                                continue
 
-                    propagated_transaction = self.access.eth.getTransaction(txid)
-                    if propagated_transaction is not None:
-                        txids.append(txid)
-                    else:
-                        # NOTE: If this case executes, it means that sendTransaction never propagated the transaction
-                        # to the network. This can unfortunatly happen sometimes, for some strange reason.
-                        error_message = "The eth.sendTransaction generated the txid " + txid + \
-                                        " even though the transaction was never popagted to the network. " \
-                                        "Transaction object to send"
-                        log_error(log, error_message, trans_object)
+                        propagated_transaction = self.access.eth.getTransaction(txid)
+                        if propagated_transaction is not None:
+                            txids.append(txid)
+                        else:
+                            # NOTE: If this case executes, it means that sendTransaction never propagated the transaction
+                            # to the network. This can unfortunatly happen sometimes, for some strange reason.
+                            error_message = "The eth.sendTransaction generated the txid " + txid + \
+                                            " even though the transaction was never popagted to the network. " \
+                                            "Transaction object to send"
+                            log_error(log, error_message, trans_object)
+                    except requests.Timeout:
+                        if tx_information is not None:
+                            txids.append(tx_information)
 
         except JSONRPCException as j_ex:
             error_message = "RPC error. Message from rpc client: " + str(j_ex)
