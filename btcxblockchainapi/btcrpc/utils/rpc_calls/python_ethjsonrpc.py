@@ -331,28 +331,51 @@ class PythonEthJsonRpc(RPCCall):
 
                     transaction_object['gas'] = gas_amount
                     transaction_fee = gas_amount * gas_price
-                    log_info(log, "Transaction fee is", transaction_fee )
+                    log_info(log, "Transaction fee is", transaction_fee)
 
-                    if balance < transaction_fee: #Theres either no balance to send or, only balance is lower than the transactionfee
+                    lower_balance_than_lowest_possible_send_amount = balance < transaction_fee
+                    log_info(log, "lower_balance_than_lowest_possible_send_amount is",
+                             lower_balance_than_lowest_possible_send_amount)
+
+                    if lower_balance_than_lowest_possible_send_amount:
+                        #Theres either no balance to send or, only balance is lower than the transactionfee
                         continue
 
-                    if balance < amount_left_to_send:
-                        transactionValue = balance - transaction_fee
-                    else:
-                        if subtractfeefromamount:
-                            transactionValue = amount_left_to_send - transaction_fee
-                        elif amount_left_to_send + transaction_fee > balance:
-                            transactionValue = balance - transaction_fee
-                        else:
-                            transactionValue = amount_left_to_send
+                    balance_below_amount_to_send = balance < amount_left_to_send
+                    log_info(log, "balance_below_amount_to_send is",
+                             balance_below_amount_to_send)
 
-                    transaction_object['value'] = transactionValue
+                    if balance_below_amount_to_send:
+                        transaction_value = balance - transaction_fee
+                    else:
+                        log_info(log, "subtractfeefromamount is",subtractfeefromamount)
+
+                        balance_below_amount_plus_transaction_fee = amount_left_to_send + transaction_fee > balance
+                        log_info(log, "balance_below_amount_plus_transaction_fee is",
+                                 balance_below_amount_plus_transaction_fee)
+
+                        if subtractfeefromamount:
+                            transaction_value = amount_left_to_send - transaction_fee
+                        elif balance_below_amount_plus_transaction_fee:
+                            transaction_value = balance - transaction_fee
+                        else:
+                            transaction_value = amount_left_to_send
+
+                    log_info(log, "transaction_value is", transaction_value)
+                    transaction_object['value'] = transaction_value
+                    log_info(log,"Transaction object after adding value is", transaction_object)
+
                     transaction_objects_list.append(transaction_object)
-                    amount_left_to_send = amount_left_to_send - transactionValue
+                    log_info(log, "transaction_objects_list after adding transaction object is", transaction_objects_list)
+
+                    amount_left_to_send = amount_left_to_send - transaction_value
+                    log_info(log, "amount left to send after subtracting transaction value is", amount_left_to_send)
 
                     if subtractfeefromamount:
                         amount_left_to_send = amount_left_to_send - transaction_fee
+                        log_info(log, "amount left to send after subtracting transaction FEE is", amount_left_to_send)
                     if amount_left_to_send <= 0:
+                        log_info(log, "Amount left to send is 0 or below, breaking loop at account", account)
                         break
 
                 # If this if case is hit, there is not enough funds in the wallet to send the entire amount to the address
