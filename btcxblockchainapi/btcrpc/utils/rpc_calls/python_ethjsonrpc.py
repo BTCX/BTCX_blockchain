@@ -416,56 +416,86 @@ class PythonEthJsonRpc(RPCCall):
                         log_message = "Pending balance, confirmed balance and pending transactions is"
                     )
 
-                    txidBytes = self.access.eth.sendTransaction(trans_object)
-
+                    txid_bytes = self.access.eth.sendTransaction(trans_object)
                     # We want to ensure that we get the txid back within the timelimit, therefore we catch the timeout
                     # exception if thrown and return the information about the transaction we got. The calling function
                     # will have checks for timeouts within it, to ensure that the is timedout.
                     tx_information = None
                     try:
-                        if txidBytes is not None:
+                        if txid_bytes is not None:
+                            log_info(log, "txid_bytes is", txid_bytes)
                             #The txid returned by sendTransaction is of type hexBytes. To get the hex string, we run .hex()
-                            txid = txidBytes.hex()
+                            txid = txid_bytes.hex()
+                            log_info(log, "setting tx_information to", txid)
                             tx_information = txid
                         else:
-                            txid = None
-
-                        (pending_b2, confirmed_b2, pending_txs2) = \
-                            self.get_pending_and_confirmed_balance_in_wei_and_pending_transactions(sender)
-
-                        locked = self.access.personal.lockAccount(sender)
-                        log_info(log, "Account " + sender +" is locked is", locked)
-
-
-                        if txid is None:
+                            # We don't check for timeouts in this case, as it is more important to fetch txids that might
+                            # have been transmitted without the eth.sendTransaction returning it
+                            log_error(log, "No txid was returned by send transaction for trans_object", trans_object)
+                            (pending_b2, confirmed_b2, pending_txs2) = \
+                                self.get_pending_and_confirmed_balance_in_wei_and_pending_transactions(sender)
+                            log_info(
+                                log,
+                                "AFTER send. Pending balance, confirmed balance and pending transactions is",
+                                (pending_b2, confirmed_b2, pending_txs2))
                             # The sendTransaction returned nothing. However ethereum sometimes still sends a transaction when
                             # even though sendTransaction returns nothing. We must check if there is a new txid added.
-                            fetched_txid = self.handle_no_txid_returned_for_sendtransaction(
+                            txid = self.handle_no_txid_returned_for_sendtransaction(
                                 trans_object=trans_object,
                                 pending_balance_before_sent=pending_b1,
                                 pending_balance_after_sent=pending_b2,
                                 pending_transactions_before_sent=pending_txs1,
                                 pending_transactions_after_sent=pending_txs2
                             )
-                            txid = fetched_txid
-                            #No txid was found
-                            if fetched_txid is None:
-                                continue
+                            log_info(log, "The handle_no_txid_returned_for_sendtransaction call returned", txid)
+                            log_info(log, "setting tx_information to", txid)
+                            tx_information = txid
 
-                        propagated_transaction = self.access.eth.getTransaction(txid)
-                        if propagated_transaction is not None:
-                            txids.append(txid)
-                        else:
-                            # NOTE: If this case executes, it means that sendTransaction never propagated the transaction
-                            # to the network. This can unfortunatly happen sometimes, for some strange reason.
-                            error_message = "The eth.sendTransaction generated the txid " + txid + \
-                                            " even though the transaction was never popagted to the network. " \
-                                            "Transaction object to send"
-                            log_error(log, error_message, trans_object)
+                        if tx_information is not None:
+                            locked = self.call_func_and_validate_timeout(
+                                func = self.access.personal.lockAccount,
+                                func_args = {'account':sender},
+                                log_message = "Account " + sender +" is locked is"
+                            )
+
+                            propagated_transaction = self.call_func_and_validate_timeout(
+                                func = self.access.eth.getTransaction,
+                                func_args = {'transaction_hash':txid},
+                                log_message = "The propageted transaction of txid " + txid + " is"
+                            )
+                            if propagated_transaction is not None:
+                                self.__append_to_list_and_log(
+                                    list_to_append_to=txids,
+                                    list_name="txids list",
+                                    item_to_append=tx_information,
+                                    item_name="tx_information"
+                                )
+                            else:
+                                # NOTE: If this case executes, it means that sendTransaction never propagated the transaction
+                                # to the network. This can unfortunatly happen sometimes, for some strange reason.
+                                error_message = "The eth.sendTransaction generated the txid " + txid + \
+                                                " even though the transaction was never popagted to the network. " \
+                                                "Transaction object to send"
+                                log_error(log, error_message, trans_object)
                     except requests.Timeout:
                         if tx_information is not None:
-                            txids.append(tx_information)
-
+                            self.__append_to_list_and_log(
+                                list_to_append_to=txids,
+                                list_name="txids list",
+                                item_to_append=tx_information,
+                                item_name="tx_information"
+                            )
+                    except ValueError as v_ex:
+                        if tx_information is not None:
+                            self.__append_to_list_and_log(
+                                list_to_append_to=txids,
+                                list_name="txids list",
+                                item_to_append=tx_information,
+                                item_name="tx_information"
+                            )
+                        error_message = "Value error. Gas is most likely incorrectly calculated. Error message: " \
+                                        + str(v_ex) + ". Occured for trans_object"
+                        log_error(log, error_message, v_ex)
         except JSONRPCException as j_ex:
             error_message = "RPC error. Message from rpc client: " + str(j_ex)
             log_error(log, error_message, j_ex)
@@ -476,6 +506,7 @@ class PythonEthJsonRpc(RPCCall):
         # We want to make sure that we return any txids that actually succeeded, even if an exception was raised,
         # therefore we never return anything and just log the exception from the exception clauses,
         # and always return the txids.
+        log_info(log, "Returning the following tx list from the send_to_addresses call", txids)
         return txids
 
     def handle_no_txid_returned_for_sendtransaction(self, trans_object, pending_balance_before_sent, pending_balance_after_sent,
@@ -497,7 +528,7 @@ class PythonEthJsonRpc(RPCCall):
                 full_transaction_amount_new_transaction = self.get_full_transaction_amount_in_wei(new_transaction_found)
                 if(full_transaction_amount_trans_object == full_transaction_amount_new_transaction
                     and account == new_transaction_from_account):
-                    error_message += "A new transaction was found in the pending transactions that corresponds to the " \
+                    error_message = "A new transaction was found in the pending transactions that corresponds to the " \
                                      "trans_object. Returning the txid"
                     log_error(log, error_message, txid)
                     return txid
@@ -613,3 +644,10 @@ class PythonEthJsonRpc(RPCCall):
         if log_message:
             log_info(log, log_message)
         self.endpoint_timer.validate_is_within_timelimit()
+
+    def __append_to_list_and_log(self, list_to_append_to, list_name, item_to_append, item_name):
+        log_info(log, "Appending the following " + item_name + " to the " + list_name,
+                 item_to_append)
+        list_to_append_to.append(item_to_append)
+        log_info(log, list_name + " after " + item_name + " was appended",
+                 list_to_append_to)

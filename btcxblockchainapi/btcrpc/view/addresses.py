@@ -20,7 +20,6 @@ log = get_log("Addresses view")
 
 
 class CreateNewAddresses(APIView):
-    permission_classes = (IsAdminUser,)
 
     def post(self, request):
         endpoint_timer = EndpointTimer()
