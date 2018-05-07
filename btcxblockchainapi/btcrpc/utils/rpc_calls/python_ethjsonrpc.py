@@ -81,18 +81,24 @@ class PythonEthJsonRpc(RPCCall):
 
     def do_validate_address(self, address=""):
 
-        is_valid_address = self.access.isAddress(address)
+        is_valid_address = self.call_func_and_validate_timeout(
+                func=self.access.isAddress,
+                func_args={'value': address},
+                log_message="The address is"
+            )
         if not is_valid_address:
             return {'isvalid': is_valid_address, 'ismine': False}
 
         # Since the address sent in might not be in checksum format, we convert it. Note: self.access.eth.accounts always
         # returns the accounts in checksum format. The toChecksumAddress also throws an exception if the address is not
         # valid hex format, therefore we check if it is valid before passing it to the toChecksumAddress function.
-        check_sum_address = self.access.toChecksumAddress(address)
-        wallet_account = \
-            next((account for account in self.access.eth.accounts if account == self.access.toChecksumAddress(check_sum_address)),
-                 None)
-        address_is_mine = wallet_account is not None
+        check_sum_address = self.call_func_and_validate_timeout(
+                func=self.access.toChecksumAddress,
+                func_args={'address': address},
+                log_message="The checksum address is"
+            )
+
+        address_is_mine = check_sum_address in self.access.eth.accounts
         return {'isvalid': is_valid_address, 'ismine': address_is_mine}
 
     def encode_address(self, address, encoding_flag=AddressEncodingFlag.NO_SPECIFIC_ENCODING):
