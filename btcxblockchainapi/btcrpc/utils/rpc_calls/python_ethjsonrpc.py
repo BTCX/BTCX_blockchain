@@ -43,12 +43,20 @@ class PythonEthJsonRpc(RPCCall):
         return True
 
     def do_get_transaction(self, txid):
-        return self.access.eth.getTransaction(txid)
+        return self.call_func_and_validate_timeout(
+            func=self.access.eth.getTransaction,
+            func_args={'transaction_hash': txid},
+            log_message="Transaction of " + txid + " is"
+        )
 
     def do_get_transaction_details(self, transaction_object):
         transaction_info = self.do_get_transaction(transaction_object.txid)
         to_address = transaction_info['to']
-        amount = self.access.fromWei(abs(transaction_info['value']), "ether")
+        amount = self.call_func_and_validate_timeout(
+            func=self.access.fromWei,
+            func_args={'number': abs(transaction_info['value']), 'unit': 'ether'},
+            log_message="Transaction value is"
+        )
         details = TransactionDetails(to_address=to_address, txid=transaction_object.txid, vout=0, amount=amount)
         return TransactionObject(transaction_object.txid, fee = transaction_object.fee, details = [details])
 
@@ -59,7 +67,11 @@ class PythonEthJsonRpc(RPCCall):
             gas_amount = transaction_info['gas']
             gas_price = transaction_info['gasPrice']
             transactionFeeInWei = gas_amount * gas_price
-            transactionFeeInEther = self.access.fromWei(transactionFeeInWei, "ether")
+            transactionFeeInEther = self.call_func_and_validate_timeout(
+                func=self.access.fromWei,
+                func_args={'number': transactionFeeInWei, 'unit': 'ether'},
+                log_message="Transaction value is"
+            )
             txid_with_fee = TransactionFeeInfo(txid, transactionFeeInEther)
             txids_with_fee.append(txid_with_fee)
         return txids_with_fee

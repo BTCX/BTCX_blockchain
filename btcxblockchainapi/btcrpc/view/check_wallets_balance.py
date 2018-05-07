@@ -70,7 +70,8 @@ class CheckWalletsBalance(APIView):
                                                                wallet_balance_response.__dict__)
 
                 except JSONRPCException as ex:
-                    error_message = "Bitcoin RPC error, check if username and password for node is correct. Message from python-bitcoinrpc: " + ex.message
+                    error_message = "Bitcoin RPC error, check if username and password for node is correct. " \
+                                    "Message from python-bitcoinrpc: " + ex.message
                     wallet_balance_response = \
                         self.create_wallet_balance_response_and_log(
                             log_error,
