@@ -103,8 +103,16 @@ class PythonEthJsonRpc(RPCCall):
 
     def encode_address(self, address, encoding_flag=AddressEncodingFlag.NO_SPECIFIC_ENCODING):
         if encoding_flag == AddressEncodingFlag.ETHEREUM_CHECKSUM_ADDRESS:
-            if self.access.isAddress(address):
-                return self.access.toChecksumAddress(address)
+            if self.call_func_and_validate_timeout(
+                func=self.access.isAddress,
+                func_args={'value': address},
+                log_message="The address is"
+            ):
+                return self.call_func_and_validate_timeout(
+                    func=self.access.toChecksumAddress,
+                    func_args={'address': address},
+                    log_message="The checksum address is"
+                )
             else:
                 return address
         else:
