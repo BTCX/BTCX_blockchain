@@ -3,7 +3,6 @@ from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 # from sherlock import MCLock, LockTimeoutException, LockException
-from pylibmc import ConnectionError, ServerDown
 from rest_framework import status
 
 from btcrpc.utils import constantutil
@@ -174,19 +173,19 @@ class BTCSendManyView(APIView):
                         error=1,
                         error_message=error_message)
 
-            except (ConnectionError, ServerDown) as ex:
-                semaphore.release(log)
-                error_message = "Error: ConnectionError or ServerDown exception"
-                response = self.create_send_many_response_and_log(
-                    log_function=log_error,
-                    log_message=error_message,
-                    log_item=ex,
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    message=error_message,
-                    transactions_with_details_list=transactions_with_details_list,
-                    chain=chain,
-                    error=1,
-                    error_message=error_message)
+            # except (ConnectionError, ServerDown) as ex:
+            #     semaphore.release(log)
+            #     error_message = "Error: ConnectionError or ServerDown exception"
+            #     response = self.create_send_many_response_and_log(
+            #         log_function=log_error,
+            #         log_message=error_message,
+            #         log_item=ex,
+            #         status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            #         message=error_message,
+            #         transactions_with_details_list=transactions_with_details_list,
+            #         chain=chain,
+            #         error=1,
+            #         error_message=error_message)
 
             except JSONRPCException as ex:
                 semaphore.release(log)

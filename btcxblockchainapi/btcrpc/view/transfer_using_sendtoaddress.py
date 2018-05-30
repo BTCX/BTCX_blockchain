@@ -5,7 +5,6 @@ from rest_framework import status
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from pylibmc import ConnectionError, ServerDown
 
 from btcrpc.utils import constantutil
 from btcrpc.utils.config_file_reader import ConfigFileReader
@@ -156,18 +155,18 @@ class TransferCurrencyByUsingSendToAddress(APIView):
                                     message=error_message,
                                     status="fail")
                                 self.append_to_response_list_and_log(response_list, response.__dict__)
-                            except (ConnectionError, ServerDown) as ex:
-                                error_message = "Error: ConnectionError or ServerDown exception"
-                                response = self.create_transfer_information_response_and_log(
-                                    log_function=log_error,
-                                    log_message=error_message,
-                                    log_item=ex,
-                                    currency=currency,
-                                    to_address=to_address,
-                                    amount=Decimal(str(send_amount)),
-                                    message=error_message,
-                                    status="fail")
-                                self.append_to_response_list_and_log(response_list, response.__dict__)
+                            # except (ConnectionError, ServerDown) as ex:
+                            #     error_message = "Error: ConnectionError or ServerDown exception"
+                            #     response = self.create_transfer_information_response_and_log(
+                            #         log_function=log_error,
+                            #         log_message=error_message,
+                            #         log_item=ex,
+                            #         currency=currency,
+                            #         to_address=to_address,
+                            #         amount=Decimal(str(send_amount)),
+                            #         message=error_message,
+                            #         status="fail")
+                            #     self.append_to_response_list_and_log(response_list, response.__dict__)
                             except requests.Timeout as ex:
                                 error_message = "The send request timed out. Exception message: " + str(ex)
                                 response = self.create_transfer_information_response_and_log(

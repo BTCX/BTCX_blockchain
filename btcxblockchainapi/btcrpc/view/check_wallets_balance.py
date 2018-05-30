@@ -6,7 +6,6 @@ from btcrpc.utils import constantutil
 from btcrpc.utils.config_file_reader import ConfigFileReader
 from btcrpc.utils.log import get_log, log_info, log_error
 from btcrpc.vo import wallet_balance
-from pylibmc import ConnectionError, ServerDown
 import errno
 from bitcoinrpc.authproxy import JSONRPCException
 from socket import error as socket_error
