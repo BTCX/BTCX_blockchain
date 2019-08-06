@@ -74,7 +74,8 @@ class CheckMultiAddressesReceive(APIView):
                         response_list.append(response.__dict__)
                         continue
 
-                    tx_ids = self.__get_txIds(rpc_service=rpc_call, account=transaction["address"])
+                    tx_ids = self.__get_txIds(
+                        rpc_service=rpc_call, address=transaction["address"])
                     log.debug(tx_ids)
 
                     received_with_risk = self.__receive_amount_for_risk(rpc_service=rpc_call,
@@ -179,7 +180,7 @@ class CheckMultiAddressesReceive(APIView):
             log.info("low")
             return {"result": result, "risk": 'low'}
 
-    def __get_txIds(self, rpc_service, account=""):
+    """def __get_txIds(self, rpc_service, account=""):
 
         if not isinstance(rpc_service, RPCCall):
             raise TypeError("Expected object BTCRPCCall, got %s" % (type(rpc_service),))
@@ -198,4 +199,35 @@ class CheckMultiAddressesReceive(APIView):
                 transactions_with_tx_id.append(transaction_with_tx_id.__dict__)
 
         # txIds = map(lambda transaction: transaction['txid'], transactions_with_tx_id)
+        return transactions_with_tx_id"""
+
+    def __get_txIds(self, rpc_service, address=""):
+
+        if not isinstance(rpc_service, RPCCall):
+            raise TypeError(
+                "Expected object BTCRPCCall, got %s" % (type(rpc_service),))
+
+        received_res_list = rpc_service.list_received_by_address(
+            address=address)
+        transactions_with_tx_id = []
+
+        if len(received_res_list) == 0:
+            return transactions_with_tx_id
+
+        received_res = received_res_list[0]
+        for txid in received_res['txids']:
+            tx_info = rpc_service.do_get_transaction(txid)
+            received_amount = Decimal(0)
+            for detail in tx_info['details']:
+                is_received = detail['category'] == "receive"
+                is_correct_address = detail['address'] == address
+                if is_received and is_correct_address:
+                    received_amount += detail['amount']
+            transaction_with_tx_id = check_multi_receives.TxIdTransaction(
+                txid=txid,
+                received=received_amount,
+                confirmations=tx_info['confirmations'],
+                date=datetime.fromtimestamp(tx_info['time']))
+            transactions_with_tx_id.append(transaction_with_tx_id.__dict__)
+
         return transactions_with_tx_id

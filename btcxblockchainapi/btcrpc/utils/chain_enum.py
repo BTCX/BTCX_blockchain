@@ -1,5 +1,6 @@
 from enum import IntEnum
 
+
 class ChainEnum(IntEnum):
   UNKNOWN = 0
   MAIN = 1

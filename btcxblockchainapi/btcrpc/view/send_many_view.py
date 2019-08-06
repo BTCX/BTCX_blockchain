@@ -53,7 +53,7 @@ class BTCSendManyView(APIView):
 
         if (semaphore.acquire_if_released()):
           rpc_call.set_tx_fee(txFee)
-          isSuccess, result = rpc_call.send_many(from_account=from_account, amounts=amounts_dict)
+          isSuccess, result = rpc_call.send_many(amounts=amounts_dict)
 
 
           if (isSuccess):

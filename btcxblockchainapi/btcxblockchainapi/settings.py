@@ -23,6 +23,9 @@ SECRET_KEY = ''
 DEBUG = False
 
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+INTERNAL_IPS = [
+   '127.0.0.1',
+]
 
 TEMPLATES = [
  {
@@ -49,6 +52,8 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_extensions',
+    'debug_toolbar',
     'rest_framework',
     'btcrpc',
     'ethereum.apps.EthereumConfig',
@@ -63,6 +68,7 @@ REST_FRAMEWORK = {
 
 
 MIDDLEWARE = (
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -147,6 +153,11 @@ LOGGING = {
             'propagate': True,
             'level': 'DEBUG',
 
+        },
+        'werkzeug': {
+           'handlers': ['console'],
+           'level': 'DEBUG',
+           'propagate': True,
         },
 
     }

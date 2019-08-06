@@ -17,13 +17,10 @@ class PythonBitcoinRpc(RPCCall):
     self.access = AuthServiceProxy(url)
 
   def do_getinfo(self):
-    return self.access.getinfo()
+    return self.access.getwalletinfo()
 
   def do_get_new_address(self):
     return self.access.getnewaddress()
-
-  def do_set_account(self, address, account):
-    return self.access.setaccount(address, account)
 
   def do_get_transaction(self, txid):
     try:
@@ -49,22 +46,19 @@ class PythonBitcoinRpc(RPCCall):
     return self.access.getreceivedbyaddress(address, confirms)
 
   def do_validate_address(self, address=""):
-    return self.access.validateaddress(address)
+    validate_res = self.access.validateaddress(address)
+    address_info_res = self.access.getaddressinfo(address)
+    validate_res.update(address_info_res)
+    return validate_res
 
   def list_transactions(self, account="", count=10, from_index=0):
     return self.access.listtransactions(account, count, from_index)
 
-  def send_from(self, from_account="", to_address="", amount=0, minconf=1):
-    return self.access.sendfrom(from_account, to_address, amount, minconf)
-
   def get_blockchain_info(self):
     return self.access.getblockchaininfo()
 
-  def get_received_amount_by_account(self, account="", minconf=1):
-    return self.access.getreceivedbyaccount(account, minconf)
-
-  def get_balance(self, account="", minconf=1):
-    return self.access.getbalance(account, minconf)
+  def get_balance(self, minconf=1):
+    return self.access.getbalance("*", minconf)
 
   def get_wallet_balance(self):
     return self.access.getbalance()
@@ -80,17 +74,8 @@ class PythonBitcoinRpc(RPCCall):
     else:
       return ChainEnum.UNKNOWN
 
-  def move(self, from_account="", to_account="", amount=0, minconf=1):
-    return self.access.move(from_account, to_account, amount, minconf)
-
-  def list_accounts(self, confirmations=1):
-    return self.access.listaccounts(confirmations)
-
-  def list_received_by_address(self, confirmations=1, include_empty=False):
-    return self.access.listreceivedbyaddress(confirmations, include_empty)
-
-  def get_addresses_by_account(self, account):
-    return self.access.getaddressesbyaccount(account)
+  def list_received_by_address(self, address, confirmations=0, include_empty=False, include_watchonly=False):
+    return self.access.listreceivedbyaddress(confirmations, include_empty, include_watchonly, address)
 
   def set_tx_fee(self, amount):
     return self.access.settxfee(amount)
@@ -99,13 +84,12 @@ class PythonBitcoinRpc(RPCCall):
     return self.access.sendtoaddress(address, amount, "", "", subtractfeefromamount)
 
   # amount is type of dictionary
-  def send_many(self, from_account="", minconf=1, **amounts):
-    log.info("From account: %s", from_account)
-    log.info("To accounts: %s", json.dumps(amounts))
+  def send_many(self, minconf=1, **amounts):
+    log.info("sendmany to: %s", json.dumps(amounts))
     amounts_string = json.dumps(amounts['amounts'])
     amounts_object = json.loads(amounts_string)
     try:
-      return True, self.access.sendmany(from_account, amounts_object, minconf)
+      return True, self.access.sendmany("", amounts_object, minconf)
     except JSONRPCException as ex:
       return False, ex
     except socket.error as e:

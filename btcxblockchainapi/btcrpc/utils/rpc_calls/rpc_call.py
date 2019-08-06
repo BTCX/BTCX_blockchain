@@ -14,10 +14,6 @@ class RPCCall():
     raise NotImplementedError
 
   @abstractmethod
-  def do_set_account(self, address, account):
-    raise NotImplementedError
-
-  @abstractmethod
   def do_get_transaction(self, txid):
     raise NotImplementedError
 
@@ -38,19 +34,11 @@ class RPCCall():
     raise NotImplementedError
 
   @abstractmethod
-  def send_from(self, from_account="", to_address="", amount=0, minconf=1):
-    raise NotImplementedError
-
-  @abstractmethod
   def get_blockchain_info(self):
     raise NotImplementedError
 
   @abstractmethod
-  def get_received_amount_by_account(self, account="", minconf=1):
-    raise NotImplementedError
-
-  @abstractmethod
-  def get_balance(self, account="", minconf=1):
+  def get_balance(self, minconf=1):
     raise NotImplementedError
 
   @abstractmethod
@@ -58,19 +46,7 @@ class RPCCall():
     raise NotImplementedError
 
   @abstractmethod
-  def move(self, from_account="", to_account="", amount=0, minconf=1):
-    raise NotImplementedError
-
-  @abstractmethod
-  def list_accounts(self, confirmations=1):
-    raise NotImplementedError
-
-  @abstractmethod
   def list_received_by_address(self, confirmations=1, include_empty=False):
-    raise NotImplementedError
-
-  @abstractmethod
-  def get_addresses_by_account(self, account):
     raise NotImplementedError
 
   @abstractmethod
@@ -82,5 +58,5 @@ class RPCCall():
     raise NotImplementedError
 
   @abstractmethod
-  def send_many(self, from_account="", minconf=1, **amounts):
+  def send_many(self, minconf=1, **amounts):
     raise NotImplementedError

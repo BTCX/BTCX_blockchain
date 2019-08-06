@@ -36,7 +36,7 @@ class CreateNewAddresses(APIView):
                 new_addresses = []
                 for x in range(0, int(serializer_input.data[attributeConst.QUANTITY])):
                     new_address = rpc_call.do_get_new_address()
-                    rpc_call.do_set_account(new_address, new_address)
+                    # rpc_call.do_set_account(new_address, new_address)
                     new_addresses.append(new_address)
 
                 new_addresses_response = addresses.NewAddresses(addresses=new_addresses, chain=chain.value)
