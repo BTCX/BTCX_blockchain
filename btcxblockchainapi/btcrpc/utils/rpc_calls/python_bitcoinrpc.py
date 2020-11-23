@@ -3,11 +3,11 @@ from btcrpc.utils.config_file_reader import ConfigFileReader
 from btcrpc.utils.rpc_calls.rpc_call import RPCCall
 from btcrpc.utils.chain_enum import ChainEnum
 import json
-import socket, errno
+import socket
+import logging
 
-from btcrpc.utils.log import *
 
-log = get_log("PythonBitcoinRpc Call:")
+log = logging.getLogger("PythonBitcoinRpc Call:")
 
 
 class PythonBitcoinRpc(RPCCall):
@@ -35,13 +35,6 @@ class PythonBitcoinRpc(RPCCall):
     except RuntimeError:
       print("calling failure")
 
-    def do_get_transaction(self, tx_id):
-        try:
-            return self.access.gettransaction(tx_id)
-        except RuntimeError:
-            #return simplejson.dumps ({u'error' : u'txid is not valid'})
-            return None
-
   def amount_received_by_address(self, address="", confirms=0):
     return self.access.getreceivedbyaddress(address, confirms)
 
@@ -50,6 +43,12 @@ class PythonBitcoinRpc(RPCCall):
     address_info_res = self.access.getaddressinfo(address)
     validate_res.update(address_info_res)
     return validate_res
+
+  def do_bump_fee(self, txid, **options):
+    return self.access.bumpfee(txid, **options)
+
+  def do_estimate_smart_fee(self, conf_target, *estimate_mode):
+    return self.access.estimatesmartfee(conf_target, *estimate_mode)
 
   def list_transactions(self, account="", count=10, from_index=0):
     return self.access.listtransactions(account, count, from_index)
@@ -62,6 +61,9 @@ class PythonBitcoinRpc(RPCCall):
 
   def get_wallet_balance(self):
     return self.access.getbalance()
+
+  def get_unconfirmed_balance(self):
+    return self.access.getunconfirmedbalance()
 
   def get_chain(self):
     blockchain_info = self.get_blockchain_info()

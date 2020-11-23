@@ -2,3 +2,10 @@
 *~
 *#
 .idea/
+
+# Not at this time
+.vscode
+
+# Don't include lock file since we're Python version agnostic
+Pipfile.lock
+

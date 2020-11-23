@@ -17,7 +17,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 # See https://docs.djangoproject.com/en/1.6/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret'
-SECRET_KEY = ''
+SECRET_KEY = 'development key'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
@@ -57,12 +57,12 @@ INSTALLED_APPS = (
     'rest_framework',
     'btcrpc',
     'ethereum.apps.EthereumConfig',
-    #'sslserver',
     'commonapi'
 )
 
 REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.IsAuthenticated',),
+    'DEFAULT_PERMISSION_CLASSES': ('rest_framework.permissions.IsAuthenticated', ),
+    'EXCEPTION_HANDLER': 'btcrpc.view.exception_handler.custom_exception_handler',
     'PAGINATE_BY': 10,
 }
 
@@ -100,65 +100,35 @@ DATABASES = {
 # https://docs.djangoproject.com/en/1.6/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_L10N = True
-
 USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 
-#STATIC_URL = 'https://test.blockchain.bt.cx/static/'
 STATIC_URL = '/static/'
 
 
 LOGGING = {
     'version': 1,
-    'disable_existing_loggers': True,
-    'formatters': {
-        'verbose': {
-            'format' : "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
-            'datefmt' : "%d/%b/%Y %H:%M:%S"
-        },
-        'simple': {
-            'format': '%(levelname)s %(message)s'
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
         },
     },
-    'handlers': {
-        'file': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': 'btcxblockchain.log',
-            'formatter': 'verbose'
-        },
-        'console':{
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            'formatter': 'simple',
-        },
+    'root': {
+        'handlers': ['console'],
+        'level': 'DEBUG',
     },
     'loggers': {
         'django': {
-            'handlers':['file'],
-            'propagate': True,
-            'level':'DEBUG',
+            'handlers': ['console'],
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
+            'propagate': False,
         },
-        'btcrpc': {
-            'handlers': ['file', 'console'],
-            'propagate': True,
-            'level': 'DEBUG',
-
-        },
-        'werkzeug': {
-           'handlers': ['console'],
-           'level': 'DEBUG',
-           'propagate': True,
-        },
-
-    }
+    },
 }
