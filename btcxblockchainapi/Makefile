@@ -1,9 +1,12 @@
+.PHONY: initdb install test server
+
 initdb:
 	python3 manage.py migrate
 
+install: export PIPENV_VENV_IN_PROJECT = 1
 install:
-	pip3 install --upgrade setuptools
-	pip3 install --upgrade -r requirements.txt
+	pip3 install pipenv
+	python3 -m pipenv install --skip-lock
 
 test:
 	python3 manage.py test --verbosity 2
